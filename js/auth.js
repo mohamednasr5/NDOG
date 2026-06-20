@@ -1,10 +1,20 @@
 /**
  * NileDogs (NDOG) — Authentication Module
- * v1.3.0 CRITICAL FIX FOR MOBILE REDIRECT:
- *   • Proper async/await chaining: getRedirectResult → onAuthStateChanged
- *   • Fixed race condition: redirect result now guaranteed to resolve before listeners fire
- *   • Mobile redirect flow debugged and verified
- *   • Timeout safeguard added to prevent stuck login screens
+ * v1.4.0 MOBILE LOGIN FIX (popup-first + embedded-browser guard):
+ *   • signInWithPopup is now tried first on ALL devices (mobile included).
+ *     signInWithRedirect requires sessionStorage/IndexedDB to survive a
+ *     full-page round trip to Google and back; many mobile browsers and
+ *     especially in-app WebViews (Telegram, Facebook, Instagram, etc.)
+ *     clear/partition that storage, silently breaking getRedirectResult()
+ *     and leaving the user stuck on the login screen with no error.
+ *   • signInWithRedirect is now only a fallback when the popup itself is
+ *     blocked or unsupported in the current environment.
+ *   • Embedded in-app browsers are detected up front and shown a clear
+ *     "open this in Chrome/Safari" message instead of attempting a login
+ *     Google will block anyway.
+ *   • If a redirect WAS attempted but no result comes back (the silent
+ *     storage-loss case), the user now sees an explicit error instead of
+ *     just sitting on the login screen forever.
  */
 
 import {
@@ -38,6 +48,18 @@ function isMobile() {
   return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
 }
 
+// In-app browsers (Telegram, Facebook, Instagram, Line, WeChat, Twitter/X,
+// TikTok, Snapchat) and bare Android WebViews ("; wv)") commonly:
+//   1) get blocked outright by Google ("disallowed_useragent"), or
+//   2) silently clear/partition sessionStorage + IndexedDB across the
+//      full-page redirect, which breaks getRedirectResult() with NO error —
+//      the user just lands back on the login screen as if nothing happened.
+// This is almost certainly what users were hitting on mobile.
+function isEmbeddedBrowser() {
+  const ua = navigator.userAgent || navigator.vendor || "";
+  return /Telegram|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|Twitter|TikTok|Snapchat|; ?wv\)/i.test(ua);
+}
+
 function friendlyAuthError(err) {
   const code = err?.code || "";
   const msg  = err?.message || "";
@@ -63,15 +85,50 @@ function friendlyAuthError(err) {
 }
 
 export async function googleLogin() {
+  if (isEmbeddedBrowser()) {
+    console.warn("[NDOG] Blocked login attempt inside an embedded/in-app browser");
+    const e = new Error(t("auth.errEmbeddedBrowser"));
+    e.code = "auth/embedded-browser";
+    throw e;
+  }
+
+  // CRITICAL FIX: prefer signInWithPopup even on mobile.
+  // signInWithRedirect requires sessionStorage/IndexedDB state to survive a
+  // full-page round trip to accounts.google.com and back. Many mobile
+  // browsers (and especially in-app WebViews) clear or partition that
+  // storage, which silently breaks getRedirectResult() — the user just
+  // stays on the login screen with no error. A popup never navigates the
+  // page away, so it sidesteps that failure mode entirely. We only fall
+  // back to redirect if the popup itself is blocked/unsupported.
   try {
-    if (isMobile()) {
-      console.log("[NDOG] Mobile detected — using signInWithRedirect");
-      await signInWithRedirect(auth, googleProvider);
-      return;
-    }
-    console.log("[NDOG] Desktop detected — using signInWithPopup");
+    console.log("[NDOG] Attempting signInWithPopup (preferred on all devices)");
     await signInWithPopup(auth, googleProvider);
+    return;
   } catch (err) {
+    const fallbackToRedirect = [
+      "auth/popup-blocked",
+      "auth/operation-not-supported-in-this-environment",
+      "auth/cancelled-popup-request"
+    ].includes(err?.code);
+
+    if (!fallbackToRedirect) {
+      console.error("[NDOG] Google login failed:", err.code, err.message);
+      const friendly = friendlyAuthError(err);
+      const e = new Error(friendly);
+      e.original = err;
+      throw e;
+    }
+
+    console.log("[NDOG] Popup unavailable (", err.code, ") — falling back to signInWithRedirect");
+  }
+
+  try {
+    // Mark that a redirect is in flight so initAuth() can detect the case
+    // where the round trip completes but the result was lost in storage.
+    sessionStorage.setItem("ndog_redirect_pending", "1");
+    await signInWithRedirect(auth, googleProvider);
+  } catch (err) {
+    sessionStorage.removeItem("ndog_redirect_pending");
     console.error("[NDOG] Google login failed:", err.code, err.message);
     const friendly = friendlyAuthError(err);
     const e = new Error(friendly);
@@ -287,14 +344,28 @@ export async function initAuth(onReady) {
   try {
     console.log("[NDOG] [1/3] Calling getRedirectResult()...");
     redirectResult = await getRedirectResult(auth);
-    
+
+    const wasPending = sessionStorage.getItem("ndog_redirect_pending") === "1";
+    sessionStorage.removeItem("ndog_redirect_pending");
+
     if (redirectResult?.user) {
       console.log("[NDOG] [1/3] ✅ Redirect result received for:", redirectResult.user.uid);
       console.log("[NDOG] Redirect user email:", redirectResult.user.email);
+    } else if (wasPending) {
+      // We sent the user to Google via signInWithRedirect, the page came
+      // back, but there is no result AND no auth/* error was thrown. This
+      // is the classic "silently lost across the redirect" failure (storage
+      // cleared/partitioned by the browser) — surface it instead of leaving
+      // the user stuck on the login screen with no explanation.
+      console.warn("[NDOG] [1/3] ⚠️ Expected a redirect result but got none — likely lost in storage");
+      document.dispatchEvent(new CustomEvent("ndog:authError", {
+        detail: { message: t("auth.errRedirectIncomplete") }
+      }));
     } else {
       console.log("[NDOG] [1/3] No redirect result (normal for first visit or non-redirect flow)");
     }
   } catch (err) {
+    sessionStorage.removeItem("ndog_redirect_pending");
     console.error("[NDOG] [1/3] ❌ getRedirectResult error:", err.code, err.message);
     document.dispatchEvent(new CustomEvent("ndog:authError", {
       detail: { message: friendlyAuthError(err) }

@@ -12,12 +12,40 @@ import {
   ref, get, set, update, push, remove, onValue,
   signInWithPopup, signOut, onAuthStateChanged
 } from "./firebase-config.js";
+import { t, getLang, setLang, applyTranslations, onLangChange } from "./i18n.js";
 
 let currentUser = null;
 let allUsers = [];
 let allClaims = [];
 let allReferrals = [];
+let allGifts = [];
 let editingUid = null;
+
+// ───────────────────────────────────────────────────────────────────
+// LANGUAGE SWITCHER (AR / EN)
+// ───────────────────────────────────────────────────────────────────
+function bindLanguageSwitcher() {
+  document.querySelectorAll(".lang-pill[data-lang]").forEach(pill => {
+    pill.classList.toggle("active", pill.dataset.lang === getLang());
+    pill.addEventListener("click", () => setLang(pill.dataset.lang));
+  });
+  onLangChange(() => {
+    applyTranslations();
+    document.title = t("admin.brand") + " — Secure Dashboard";
+    updateActiveSectionTitle();
+    renderSection(document.querySelector(".admin-link.active")?.dataset.asec || "overview");
+  });
+}
+applyTranslations();
+document.title = t("admin.brand") + " — Secure Dashboard";
+bindLanguageSwitcher();
+
+function updateActiveSectionTitle() {
+  const active = document.querySelector("[data-asec].active");
+  if (!active) return;
+  const key = "admin.nav." + active.dataset.asec;
+  document.getElementById("adminTitle").textContent = t(key);
+}
 
 // ───────────────────────────────────────────────────────────────────
 // AUTH GATE
@@ -26,7 +54,7 @@ document.getElementById("adminLoginBtn")?.addEventListener("click", async () => 
   try {
     await signInWithPopup(auth, googleProvider);
   } catch (err) {
-    toast(err.message || "Login failed", "err");
+    toast(err.message || t("admin.toast.loginFailed"), "err");
   }
 });
 
@@ -86,7 +114,7 @@ document.querySelectorAll("[data-asec]").forEach(link => {
     link.classList.add("active");
     document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
     document.getElementById(`asec-${link.dataset.asec}`).classList.add("active");
-    document.getElementById("adminTitle").textContent = link.textContent.trim().replace(/^[^\s]+\s/, "");
+    updateActiveSectionTitle();
     renderSection(link.dataset.asec);
   });
 });
@@ -97,6 +125,7 @@ function renderSection(sec) {
     case "users":        renderUsers(); break;
     case "referrals":    renderReferrals(); break;
     case "claims":       renderClaims(); break;
+    case "gifts":        renderGifts(); break;
     case "tasks":        renderTasks(); break;
     case "notifications":renderNotifications(); break;
     case "events":       renderEvents(); break;
@@ -120,16 +149,19 @@ async function bootstrapAdmin() {
   document.getElementById("sendNotifBtn")?.addEventListener("click", sendNotif);
   document.getElementById("createEventBtn")?.addEventListener("click", createEvent);
   document.getElementById("saveEditBtn")?.addEventListener("click", saveEdit);
+  document.getElementById("sendGiftBtn")?.addEventListener("click", sendGift);
   document.getElementById("exportUsersBtn")?.addEventListener("click", () => exportCSV("users"));
   document.getElementById("exportClaimsBtn")?.addEventListener("click", () => exportCSV("claims"));
   document.getElementById("exportReferralsBtn")?.addEventListener("click", () => exportCSV("referrals"));
+  document.getElementById("exportGiftsBtn")?.addEventListener("click", () => exportCSV("gifts"));
 }
 
 async function loadAll() {
-  const [usersSnap, claimsSnap, refSnap] = await Promise.all([
+  const [usersSnap, claimsSnap, refSnap, giftsSnap] = await Promise.all([
     get(ref(db, "users")),
     get(ref(db, "claims")),
-    get(ref(db, "referrals"))
+    get(ref(db, "referrals")),
+    get(ref(db, "gifts"))
   ]);
   allUsers = [];
   if (usersSnap.exists()) usersSnap.forEach(c => allUsers.push(c.val()));
@@ -137,6 +169,8 @@ async function loadAll() {
   if (claimsSnap.exists()) claimsSnap.forEach(c => allClaims.push(c.val()));
   allReferrals = [];
   if (refSnap.exists()) refSnap.forEach(c => allReferrals.push(c.val()));
+  allGifts = [];
+  if (giftsSnap.exists()) giftsSnap.forEach(c => allGifts.push({ id: c.key, ...c.val() }));
   renderSection(document.querySelector(".admin-link.active")?.dataset.asec);
 }
 
@@ -208,15 +242,15 @@ function renderUsers() {
       <td>${(u.balance || 0).toLocaleString()}</td>
       <td>${u.totalReferrals || 0}</td>
       <td>
-        ${u.banned ? '<span class="pill pill--ban">Banned</span>' : '<span class="pill pill--ok">Active</span>'}
-        ${u.isFounder ? '<span class="pill pill--founder">Founder</span>' : ''}
+        ${u.banned ? `<span class="pill pill--ban">${t("admin.pill.banned")}</span>` : `<span class="pill pill--ok">${t("admin.pill.active")}</span>`}
+        ${u.isFounder ? `<span class="pill pill--founder">${t("admin.pill.founder")}</span>` : ''}
       </td>
       <td class="row-actions">
-        <button class="gold"   data-edit="${u.uid}">Edit</button>
-        <button data-add="${u.uid}">+Rwd</button>
-        <button data-sub="${u.uid}">−Rwd</button>
-        <button class="${u.banned ? "" : "danger"}" data-ban="${u.uid}">${u.banned ? "Unban" : "Ban"}</button>
-        <button class="danger" data-del="${u.uid}">Del</button>
+        <button class="gold"   data-edit="${u.uid}">${t("admin.action.edit")}</button>
+        <button data-add="${u.uid}">${t("admin.action.addReward")}</button>
+        <button data-sub="${u.uid}">${t("admin.action.subReward")}</button>
+        <button class="${u.banned ? "" : "danger"}" data-ban="${u.uid}">${u.banned ? t("admin.action.unban") : t("admin.action.ban")}</button>
+        <button class="danger" data-del="${u.uid}">${t("admin.action.delete")}</button>
       </td>
     </tr>`).join("");
 
@@ -246,7 +280,7 @@ async function saveEdit() {
     country:        document.getElementById("editCountry").value,
     communityScore: +document.getElementById("editScore").value
   });
-  toast("User updated", "ok");
+  toast(t("admin.toast.userUpdated"), "ok");
   document.getElementById("editModal").classList.add("hidden");
   await loadAll();
 }
@@ -255,7 +289,7 @@ async function adjustBalance(uid, delta) {
   const u = allUsers.find(x => x.uid === uid);
   if (!u) return;
   await update(ref(db, `users/${uid}`), { balance: Math.max(0, (u.balance || 0) + delta) });
-  toast(`${delta > 0 ? "+" : ""}${delta} NDOG applied`, "ok");
+  toast(t("admin.toast.rewardApplied", { delta: (delta > 0 ? "+" : "") + delta }), "ok");
   await loadAll();
 }
 
@@ -263,14 +297,14 @@ async function toggleBan(uid) {
   const u = allUsers.find(x => x.uid === uid);
   if (!u) return;
   await update(ref(db, `users/${uid}`), { banned: !u.banned });
-  toast(u.banned ? "User unbanned" : "User banned", "ok");
+  toast(u.banned ? t("admin.toast.unbanned") : t("admin.toast.banned"), "ok");
   await loadAll();
 }
 
 async function deleteUser(uid) {
-  if (!confirm("Permanently delete this user? This cannot be undone.")) return;
+  if (!confirm(t("admin.confirm.deleteUser"))) return;
   await remove(ref(db, `users/${uid}`));
-  toast("User deleted", "ok");
+  toast(t("admin.toast.deleted"), "ok");
   await loadAll();
 }
 
@@ -298,6 +332,7 @@ function renderClaims() {
   const body = document.getElementById("claimsBody");
   if (!body) return;
   const recent = [...allClaims].sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 200);
+  if (!recent.length) { body.innerHTML = `<tr><td colspan="4" class="empty">${t("admin.noClaims")}</td></tr>`; return; }
   body.innerHTML = recent.map(c => `
     <tr>
       <td><code>${c.userId?.slice(0, 10)}…</code></td>
@@ -308,6 +343,84 @@ function renderClaims() {
 }
 
 // ───────────────────────────────────────────────────────────────────
+// GIFTS — manual NDOG grants to a single user or broadcast to all
+// ───────────────────────────────────────────────────────────────────
+function findUserByLookup(lookup) {
+  const q = lookup.trim().toLowerCase();
+  if (!q) return null;
+  return allUsers.find(u =>
+    (u.uid || "").toLowerCase() === q ||
+    (u.email || "").toLowerCase() === q ||
+    (u.referralCode || "").toLowerCase() === q
+  ) || null;
+}
+
+async function sendGift() {
+  const targetInput = document.getElementById("giftTarget");
+  const amountInput = document.getElementById("giftAmount");
+  const reasonInput = document.getElementById("giftReason");
+  const lookup = (targetInput.value || "").trim();
+  const amount = +amountInput.value;
+  const reason = (reasonInput.value || "").trim();
+
+  if (!amount || amount <= 0) return toast(t("admin.gifts.amountRequired"), "err");
+
+  if (!lookup) {
+    // Broadcast to everyone
+    if (!confirm(`${t("admin.gifts.all")}: +${amount} NDOG × ${allUsers.length}?`)) return;
+    const updates = {};
+    allUsers.forEach(u => {
+      updates[`users/${u.uid}/balance`] = Math.max(0, (u.balance || 0) + amount);
+    });
+    await update(ref(db), updates);
+    await push(ref(db, "gifts"), {
+      target: "all", targetName: t("admin.gifts.all"), amount, reason,
+      createdAt: Date.now()
+    });
+    toast(t("admin.gifts.sentAll", { amount, count: allUsers.length }), "ok");
+  } else {
+    const u = findUserByLookup(lookup);
+    if (!u) return toast(t("admin.gifts.userNotFound"), "err");
+    await update(ref(db, `users/${u.uid}`), { balance: Math.max(0, (u.balance || 0) + amount) });
+    await push(ref(db, "gifts"), {
+      target: u.uid, targetName: u.name || u.email || u.uid, amount, reason,
+      createdAt: Date.now()
+    });
+    toast(t("admin.gifts.sentOne", { amount, name: u.name || u.email || u.uid }), "ok");
+  }
+
+  targetInput.value = "";
+  amountInput.value = "";
+  reasonInput.value = "";
+  await loadAll();
+  renderGifts();
+}
+
+function renderGifts() {
+  const body = document.getElementById("giftsBody");
+  if (!body) return;
+  const sorted = [...allGifts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  if (!sorted.length) { body.innerHTML = `<tr><td colspan="5" class="empty">${t("admin.gifts.noGifts")}</td></tr>`; return; }
+  body.innerHTML = sorted.slice(0, 200).map(g => `
+    <tr>
+      <td>${escapeHtml(g.targetName || g.target || "—")}</td>
+      <td>+${g.amount || 0}</td>
+      <td>${escapeHtml(g.reason || "—")}</td>
+      <td>${formatDate(g.createdAt)}</td>
+      <td class="row-actions"><button class="danger" data-delgift="${g.id}">${t("admin.action.deleteFull")}</button></td>
+    </tr>`).join("");
+  body.querySelectorAll("[data-delgift]").forEach(b =>
+    b.addEventListener("click", async () => {
+      if (!confirm(t("admin.gifts.confirmDelete"))) return;
+      await remove(ref(db, `gifts/${b.dataset.delgift}`));
+      toast(t("admin.gifts.deleted"), "ok");
+      await loadAll();
+      renderGifts();
+    })
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────
 // TASKS
 // ───────────────────────────────────────────────────────────────────
 async function createTask() {
@@ -315,13 +428,13 @@ async function createTask() {
   const desc   = document.getElementById("taskDesc").value.trim();
   const type   = document.getElementById("taskType").value;
   const reward = +document.getElementById("taskReward").value;
-  if (!title || !reward) return toast("Title and reward required", "err");
+  if (!title || !reward) return toast(t("admin.tasks.titleReq"), "err");
   await push(ref(db, "tasks"), {
     title, desc, type, reward,
     status: "active",
     createdAt: Date.now()
   });
-  toast("Task created", "ok");
+  toast(t("admin.tasks.created"), "ok");
   document.getElementById("taskTitle").value = "";
   document.getElementById("taskDesc").value = "";
   document.getElementById("taskReward").value = "";
@@ -332,21 +445,21 @@ async function renderTasks() {
   const snap = await get(ref(db, "tasks"));
   const body = document.getElementById("tasksBody");
   if (!body) return;
-  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="5" class="empty">No tasks yet.</td></tr>`; return; }
+  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="5" class="empty">${t("admin.tasks.noTasks")}</td></tr>`; return; }
   const tasks = [];
   snap.forEach(c => tasks.push({ id: c.key, ...c.val() }));
-  body.innerHTML = tasks.map(t => `
+  body.innerHTML = tasks.map(task => `
     <tr>
-      <td>${escapeHtml(t.title)}</td>
-      <td>${t.type}</td>
-      <td>+${t.reward}</td>
-      <td><span class="pill pill--ok">${t.status}</span></td>
-      <td class="row-actions"><button class="danger" data-deltask="${t.id}">Delete</button></td>
+      <td>${escapeHtml(task.title)}</td>
+      <td>${task.type}</td>
+      <td>+${task.reward}</td>
+      <td><span class="pill pill--ok">${task.status}</span></td>
+      <td class="row-actions"><button class="danger" data-deltask="${task.id}">${t("admin.action.deleteFull")}</button></td>
     </tr>`).join("");
   body.querySelectorAll("[data-deltask]").forEach(b =>
     b.addEventListener("click", async () => {
       await remove(ref(db, `tasks/${b.dataset.deltask}`));
-      toast("Task deleted", "ok");
+      toast(t("admin.tasks.deleted"), "ok");
       renderTasks();
     })
   );
@@ -358,9 +471,9 @@ async function renderTasks() {
 async function sendNotif() {
   const title   = document.getElementById("notifTitle").value.trim();
   const message = document.getElementById("notifMessage").value.trim();
-  if (!title || !message) return toast("Title and message required", "err");
+  if (!title || !message) return toast(t("admin.notif.titleReq"), "err");
   await push(ref(db, "notifications"), { title, message, createdAt: Date.now() });
-  toast("Notification sent to all users", "ok");
+  toast(t("admin.notif.sent"), "ok");
   document.getElementById("notifTitle").value = "";
   document.getElementById("notifMessage").value = "";
   renderNotifications();
@@ -370,7 +483,7 @@ async function renderNotifications() {
   const snap = await get(ref(db, "notifications"));
   const body = document.getElementById("notifsBody");
   if (!body) return;
-  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="3" class="empty">No notifications yet.</td></tr>`; return; }
+  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="3" class="empty">${t("admin.notif.noNotifs")}</td></tr>`; return; }
   const notifs = [];
   snap.forEach(c => notifs.push(c.val()));
   notifs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -390,9 +503,9 @@ async function createEvent() {
   const desc   = document.getElementById("eventDesc").value.trim();
   const reward = +document.getElementById("eventReward").value;
   const status = document.getElementById("eventStatus").value;
-  if (!title) return toast("Title required", "err");
+  if (!title) return toast(t("admin.events.titleReq"), "err");
   await push(ref(db, "events"), { title, desc, reward, status, createdAt: Date.now() });
-  toast("Event created", "ok");
+  toast(t("admin.events.created"), "ok");
   document.getElementById("eventTitle").value = "";
   document.getElementById("eventDesc").value = "";
   document.getElementById("eventReward").value = "";
@@ -403,7 +516,7 @@ async function renderEvents() {
   const snap = await get(ref(db, "events"));
   const body = document.getElementById("eventsBody");
   if (!body) return;
-  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="4" class="empty">No events yet.</td></tr>`; return; }
+  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="4" class="empty">${t("admin.events.noEvents")}</td></tr>`; return; }
   const events = [];
   snap.forEach(c => events.push({ id: c.key, ...c.val() }));
   body.innerHTML = events.map(e => `
@@ -411,12 +524,12 @@ async function renderEvents() {
       <td>${escapeHtml(e.title)}</td>
       <td>+${e.reward || 0}</td>
       <td><span class="pill pill--ok">${e.status}</span></td>
-      <td class="row-actions"><button class="danger" data-delev="${e.id}">Delete</button></td>
+      <td class="row-actions"><button class="danger" data-delev="${e.id}">${t("admin.action.deleteFull")}</button></td>
     </tr>`).join("");
   body.querySelectorAll("[data-delev]").forEach(b =>
     b.addEventListener("click", async () => {
       await remove(ref(db, `events/${b.dataset.delev}`));
-      toast("Event deleted", "ok");
+      toast(t("admin.events.deleted"), "ok");
       renderEvents();
     })
   );
@@ -514,6 +627,12 @@ function exportCSV(type) {
     allReferrals.forEach(r => {
       csv += [r.referrer, r.referredUser, r.level, r.createdAt].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
     });
+  } else if (type === "gifts") {
+    filename = "ndog_gifts.csv";
+    csv = "target,targetName,amount,reason,createdAt\n";
+    allGifts.forEach(g => {
+      csv += [g.target, g.targetName, g.amount, g.reason, g.createdAt].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
+    });
   }
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -521,7 +640,7 @@ function exportCSV(type) {
   a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
-  toast("Export ready", "ok");
+  toast(t("admin.export.ready"), "ok");
 }
 
 // ───────────────────────────────────────────────────────────────────
@@ -534,7 +653,8 @@ function setText(id, val) {
 
 function formatDate(ts) {
   if (!ts) return "—";
-  return new Date(ts).toLocaleDateString("en-US", {
+  const locale = getLang() === "ar" ? "ar-EG" : "en-US";
+  return new Date(ts).toLocaleDateString(locale, {
     month: "short", day: "numeric", year: "numeric"
   });
 }

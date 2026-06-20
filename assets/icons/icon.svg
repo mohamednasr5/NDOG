@@ -1,42 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0a1f44"/>
-      <stop offset="1" stop-color="#00132a"/>
-    </linearGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffd700"/>
-      <stop offset="1" stop-color="#ffb347"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.6">
-      <stop offset="0" stop-color="#1e90ff" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="#1e90ff" stop-opacity="0"/>
-    </radialGradient>
+    <clipPath id="circleClip">
+      <circle cx="256" cy="256" r="256"/>
+    </clipPath>
   </defs>
-  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
-  <rect width="512" height="512" rx="120" fill="url(#glow)"/>
-  <rect x="8" y="8" width="496" height="496" rx="116" fill="none" stroke="url(#gold)" stroke-width="6" opacity="0.7"/>
-  <!-- Stylized dog head silhouette -->
-  <g transform="translate(256 270)" fill="url(#gold)">
-    <!-- ears -->
-    <path d="M-120,-90 L-90,-180 L-40,-110 Z"/>
-    <path d="M 120,-90 L  90,-180 L  40,-110 Z"/>
+
+  <!-- Background -->
+  <g clip-path="url(#circleClip)">
+    <rect width="512" height="512" fill="#F2CF61"/>
+    <!-- soft diagonal shadow on lower-right, mirroring reference -->
+    <path d="M 330 170 L 512 350 L 512 512 L 230 512 Z" fill="#E6C45C"/>
+
+    <!-- ears (drawn first so head overlaps them) -->
+    <ellipse cx="138" cy="248" rx="50" ry="108" fill="#A67C52" transform="rotate(-12 138 248)"/>
+    <ellipse cx="374" cy="248" rx="50" ry="108" fill="#99724C" transform="rotate(12 374 248)"/>
+
     <!-- head -->
-    <ellipse cx="0" cy="0" rx="120" ry="100"/>
-    <!-- snout -->
-    <ellipse cx="0" cy="55" rx="55" ry="40" fill="#ffe9a8"/>
-    <!-- nose -->
-    <ellipse cx="0" cy="35" rx="14" ry="9" fill="#1a1a1a"/>
+    <path d="M256,128
+             C198,128 158,168 150,228
+             C144,272 158,312 184,344
+             C202,366 226,378 256,378
+             C286,378 310,366 328,344
+             C354,312 368,272 362,228
+             C354,168 314,128 256,128 Z"
+          fill="#A67C52"/>
+
+    <!-- white blaze stripe -->
+    <path d="M256,132
+             C246,132 238,140 236,156
+             L226,330
+             C224,348 234,362 256,372
+             C278,362 288,348 286,330
+             L276,156
+             C274,140 266,132 256,132 Z"
+          fill="#F5F5F5"/>
+
     <!-- eyes -->
-    <circle cx="-45" cy="-20" r="11" fill="#0a1f44"/>
-    <circle cx=" 45" cy="-20" r="11" fill="#0a1f44"/>
-    <circle cx="-42" cy="-23" r="3.5" fill="#ffffff"/>
-    <circle cx=" 48" cy="-23" r="3.5" fill="#ffffff"/>
+    <g>
+      <circle cx="210" cy="232" r="17" fill="#F5F5F5"/>
+      <circle cx="210" cy="234" r="9" fill="#242424"/>
+      <circle cx="302" cy="232" r="17" fill="#F5F5F5"/>
+      <circle cx="302" cy="234" r="9" fill="#242424"/>
+    </g>
+
+    <!-- nose -->
+    <path d="M256,290 L286,312 C286,326 272,336 256,336 C240,336 226,326 226,312 Z" fill="#242424"/>
+
+    <!-- mouth -->
+    <path d="M232,358 C238,344 250,338 256,338 C262,338 274,344 280,358"
+          fill="none" stroke="#242424" stroke-width="6" stroke-linecap="round"/>
   </g>
-  <!-- NDOG text -->
-  <text x="256" y="445" text-anchor="middle"
-        font-family="'Arial Black', Helvetica, sans-serif"
-        font-size="78" font-weight="900"
-        fill="url(#gold)" letter-spacing="6">NDOG</text>
 </svg>

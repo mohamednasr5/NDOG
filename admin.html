@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1f44" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>NileDogs Admin — Secure Dashboard</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="stylesheet" href="./css/styles.css" />
+  <style>
+    .admin-shell { display:flex; min-height:100dvh; }
+    .admin-side {
+      width:240px; padding:20px 16px; position:sticky; top:0; height:100dvh;
+      background:rgba(10,31,68,0.7); border-right:1px solid var(--glass-bd);
+      display:flex; flex-direction:column; gap:6px;
+      backdrop-filter:blur(18px);
+    }
+    .admin-side h2 { font-size:16px; margin-bottom:14px; color:var(--gold); letter-spacing:1.5px; }
+    .admin-link {
+      display:flex; align-items:center; gap:10px; padding:10px 12px;
+      border-radius:var(--r-sm); color:var(--text-dim); font-size:14px; font-weight:600;
+      transition:background .2s, color .2s; cursor:pointer;
+    }
+    .admin-link:hover { background:rgba(255,255,255,0.05); color:var(--text); }
+    .admin-link.active {
+      background:linear-gradient(135deg,rgba(30,144,255,0.18),rgba(255,215,0,0.10));
+      color:var(--gold); border:1px solid var(--glass-bd);
+    }
+    .admin-main { flex:1; padding:24px; max-width:1200px; }
+    .admin-topbar {
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;
+      padding-bottom:14px; border-bottom:1px solid var(--glass-bd);
+    }
+    .admin-topbar h1 { font-size:22px; background:linear-gradient(135deg,var(--gold),var(--gold-2));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .admin-topbar__user { font-size:13px; color:var(--text-dim); display:flex; align-items:center; gap:10px; }
+    .admin-topbar__user img { width:32px; height:32px; border-radius:50%; }
+    .admin-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+    .kpi {
+      padding:18px; border-radius:var(--r-lg);
+      background:var(--glass-bg); border:1px solid var(--glass-bd);
+    }
+    .kpi__label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+    .kpi__value { font-size:28px; font-weight:800; color:var(--gold); margin-top:4px; }
+    .kpi__sub { font-size:11px; color:var(--text-mute); }
+    .panel {
+      padding:18px; border-radius:var(--r-lg);
+      background:var(--glass-bg); border:1px solid var(--glass-bd);
+      margin-bottom:18px;
+    }
+    .panel h3 { font-size:15px; margin-bottom:12px; }
+    .admin-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .admin-table th { text-align:left; padding:10px 8px; color:var(--text-dim); font-weight:600; border-bottom:1px solid var(--glass-bd); }
+    .admin-table td { padding:10px 8px; border-bottom:1px solid rgba(255,255,255,0.05); }
+    .admin-table tr:hover td { background:rgba(255,255,255,0.03); }
+    .admin-search {
+      display:flex; gap:8px; margin-bottom:14px;
+    }
+    .admin-search input {
+      flex:1; padding:10px 14px; border-radius:var(--r-md);
+      background:rgba(0,0,0,0.4); border:1px solid var(--glass-bd); color:var(--text);
+    }
+    .admin-search input:focus { outline:2px solid var(--nile); }
+    .pill { padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; }
+    .pill--ok   { background:rgba(54,241,163,0.15); color:var(--neon-green); }
+    .pill--ban  { background:rgba(255,110,199,0.15); color:var(--neon-pink); }
+    .pill--founder { background:rgba(255,215,0,0.15); color:var(--gold); }
+    .row-actions { display:flex; gap:6px; }
+    .row-actions button {
+      padding:4px 8px; font-size:11px; border-radius:6px;
+      background:rgba(255,255,255,0.05); border:1px solid var(--glass-bd);
+    }
+    .row-actions button:hover { background:rgba(255,255,255,0.12); }
+    .row-actions .danger:hover { background:rgba(255,110,199,0.2); color:var(--neon-pink); }
+    .row-actions .gold:hover { background:rgba(255,215,0,0.2); color:var(--gold); }
+    .admin-section { display:none; }
+    .admin-section.active { display:block; animation:fadeIn .4s; }
+    .form-row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+    .form-row input, .form-row select, .form-row textarea {
+      flex:1; min-width:140px; padding:10px 14px; border-radius:var(--r-md);
+      background:rgba(0,0,0,0.4); border:1px solid var(--glass-bd); color:var(--text);
+      font-family:inherit; font-size:13px;
+    }
+    .admin-login {
+      max-width:380px; margin:80px auto; padding:32px; border-radius:var(--r-xl);
+      background:var(--glass-bg); border:1px solid var(--glass-bd); backdrop-filter:blur(18px);
+      text-align:center;
+    }
+    .admin-login h1 { color:var(--gold); margin-bottom:8px; }
+    .admin-login p { color:var(--text-dim); font-size:13px; margin-bottom:18px; }
+    .deny {
+      max-width:480px; margin:100px auto; text-align:center; padding:32px;
+      background:rgba(255,110,199,0.05); border:1px solid var(--neon-pink); border-radius:var(--r-xl);
+    }
+    .deny h1 { color:var(--neon-pink); margin-bottom:10px; }
+    @media (max-width:880px) {
+      .admin-side { display:none; }
+      .admin-grid { grid-template-columns:1fr 1fr; }
+      .admin-main { padding:14px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb--1"></span>
+    <span class="orb orb--2"></span>
+  </div>
+
+  <!-- LOGIN GATE -->
+  <div id="adminLogin" class="admin-login">
+    <div style="font-size:48px">🛡️</div>
+    <h1>Admin Access</h1>
+    <p>Sign in with an authorized admin Google account.</p>
+    <button id="adminLoginBtn" class="btn btn--google" style="background:#fff;color:#1a1a1a">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#fff" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.4-1.6 4.1-5.27 4.1-3.17 0-5.76-2.62-5.76-5.86s2.59-5.86 5.76-5.86c1.81 0 3.02.77 3.71 1.43l2.53-2.44C16.9 3.4 14.79 2.5 12.17 2.5 6.99 2.5 2.81 6.68 2.81 11.86S6.99 21.22 12.17 21.22c5.86 0 9.74-4.11 9.74-9.9 0-.66-.07-1.17-.16-1.67z"/></svg>
+      Sign in as Admin
+    </button>
+    <p style="margin-top:14px"><a href="./">← Back to app</a></p>
+  </div>
+
+  <!-- ACCESS DENIED -->
+  <div id="adminDeny" class="deny hidden">
+    <div style="font-size:48px">⛔</div>
+    <h1>Access Denied</h1>
+    <p>Your account is not authorized to view the admin dashboard. If you believe this is an error, ask a super-admin to add your UID to the <code>admins</code> node in the Realtime Database.</p>
+    <a href="./" class="btn btn--ghost" style="margin-top:14px">← Back to app</a>
+  </div>
+
+  <!-- ADMIN SHELL -->
+  <div id="adminShell" class="admin-shell hidden">
+    <aside class="admin-side">
+      <h2>🛡️ NDOG Admin</h2>
+      <a class="admin-link active" data-asec="overview">📊 Overview</a>
+      <a class="admin-link" data-asec="users">👥 Users</a>
+      <a class="admin-link" data-asec="referrals">👥 Referrals</a>
+      <a class="admin-link" data-asec="claims">🎁 Claims</a>
+      <a class="admin-link" data-asec="tasks">🎯 Tasks</a>
+      <a class="admin-link" data-asec="notifications">🔔 Notifications</a>
+      <a class="admin-link" data-asec="events">🎉 Events</a>
+      <a class="admin-link" data-asec="leaderboards">🏆 Leaderboards</a>
+      <a class="admin-link" data-asec="analytics">📈 Analytics</a>
+      <a class="admin-link" data-asec="export">📤 Export</a>
+      <a href="./" class="admin-link">🏠 Back to App</a>
+      <button class="btn btn--ghost btn--sm" id="adminLogout" style="margin-top:auto">Sign Out</button>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <h1 id="adminTitle">Overview</h1>
+        <div class="admin-topbar__user">
+          <img id="adminAvatar" alt="" />
+          <span id="adminName">—</span>
+        </div>
+      </div>
+
+      <!-- OVERVIEW -->
+      <section class="admin-section active" id="asec-overview">
+        <div class="admin-grid">
+          <div class="kpi"><div class="kpi__label">Total Users</div><div class="kpi__value" id="kpiTotal">0</div><div class="kpi__sub">all time</div></div>
+          <div class="kpi"><div class="kpi__label">Active 24h</div><div class="kpi__value" id="kpiActive">0</div><div class="kpi__sub">last 24 hours</div></div>
+          <div class="kpi"><div class="kpi__label">Claims Today</div><div class="kpi__value" id="kpiClaims">0</div><div class="kpi__sub">daily claims</div></div>
+          <div class="kpi"><div class="kpi__label">Total NDOG</div><div class="kpi__value" id="kpiSupply">0</div><div class="kpi__sub">circulating</div></div>
+        </div>
+        <div class="admin-grid">
+          <div class="kpi"><div class="kpi__label">Referrals</div><div class="kpi__value" id="kpiRefs">0</div><div class="kpi__sub">total tracked</div></div>
+          <div class="kpi"><div class="kpi__label">Founders</div><div class="kpi__value" id="kpiFounders">0</div><div class="kpi__sub">pre-launch users</div></div>
+          <div class="kpi"><div class="kpi__label">Banned</div><div class="kpi__value" id="kpiBanned">0</div><div class="kpi__sub">suspended</div></div>
+          <div class="kpi"><div class="kpi__label">Avg Balance</div><div class="kpi__value" id="kpiAvg">0</div><div class="kpi__sub">NDOG per user</div></div>
+        </div>
+
+        <div class="panel">
+          <h3>Recent Users</h3>
+          <table class="admin-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Country</th><th>Balance</th><th>Joined</th></tr></thead>
+            <tbody id="recentUsersBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section class="admin-section" id="asec-users">
+        <div class="admin-search">
+          <input id="userSearch" placeholder="Search by name, email, code, country…" />
+          <select id="userFilter">
+            <option value="">All users</option>
+            <option value="founder">Founders only</option>
+            <option value="banned">Banned only</option>
+            <option value="active">Active 24h</option>
+          </select>
+          <button class="btn btn--ghost btn--sm" id="refreshUsers">↻</button>
+        </div>
+        <div class="panel">
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>Email</th><th>Code</th><th>Country</th><th>Balance</th><th>Refs</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- REFERRALS -->
+      <section class="admin-section" id="asec-referrals">
+        <div class="panel">
+          <h3>All Referrals</h3>
+          <table class="admin-table">
+            <thead><tr><th>Referrer</th><th>Referred User</th><th>Level</th><th>Date</th></tr></thead>
+            <tbody id="referralsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CLAIMS -->
+      <section class="admin-section" id="asec-claims">
+        <div class="panel">
+          <h3>All Claims</h3>
+          <table class="admin-table">
+            <thead><tr><th>User ID</th><th>Type</th><th>Amount</th><th>Date</th></tr></thead>
+            <tbody id="claimsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TASKS -->
+      <section class="admin-section" id="asec-tasks">
+        <div class="panel">
+          <h3>Create Task</h3>
+          <div class="form-row">
+            <input id="taskTitle" placeholder="Task title" />
+            <input id="taskDesc" placeholder="Description" />
+            <select id="taskType"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select>
+            <input id="taskReward" type="number" placeholder="Reward (NDOG)" />
+            <button class="btn btn--gold btn--sm" id="createTaskBtn">Create</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Existing Tasks</h3>
+          <table class="admin-table">
+            <thead><tr><th>Title</th><th>Type</th><th>Reward</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="tasksBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section class="admin-section" id="asec-notifications">
+        <div class="panel">
+          <h3>Send Notification</h3>
+          <div class="form-row">
+            <input id="notifTitle" placeholder="Title" />
+          </div>
+          <div class="form-row">
+            <textarea id="notifMessage" placeholder="Message" rows="3"></textarea>
+          </div>
+          <button class="btn btn--gold btn--sm" id="sendNotifBtn">Send to All Users</button>
+        </div>
+        <div class="panel">
+          <h3>Recent Notifications</h3>
+          <table class="admin-table">
+            <thead><tr><th>Title</th><th>Message</th><th>Date</th></tr></thead>
+            <tbody id="notifsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- EVENTS -->
+      <section class="admin-section" id="asec-events">
+        <div class="panel">
+          <h3>Create Event</h3>
+          <div class="form-row">
+            <input id="eventTitle" placeholder="Event title" />
+            <input id="eventDesc" placeholder="Description" />
+            <input id="eventReward" type="number" placeholder="Reward" />
+            <select id="eventStatus"><option>Active</option><option>Upcoming</option><option>Ended</option></select>
+            <button class="btn btn--gold btn--sm" id="createEventBtn">Create</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Active Events</h3>
+          <table class="admin-table">
+            <thead><tr><th>Title</th><th>Reward</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="eventsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- LEADERBOARDS -->
+      <section class="admin-section" id="asec-leaderboards">
+        <div class="panel">
+          <h3>Top 50 by Balance</h3>
+          <table class="admin-table">
+            <thead><tr><th>#</th><th>User</th><th>Country</th><th>Balance</th><th>Refs</th></tr></thead>
+            <tbody id="adminLbBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section class="admin-section" id="asec-analytics">
+        <div class="admin-grid">
+          <div class="kpi"><div class="kpi__label">DAU (24h)</div><div class="kpi__value" id="aDau">0</div></div>
+          <div class="kpi"><div class="kpi__label">Retention 7d</div><div class="kpi__value" id="aRet7">0%</div></div>
+          <div class="kpi"><div class="kpi__label">Referral Growth</div><div class="kpi__value" id="aRefGrowth">0%</div></div>
+          <div class="kpi"><div class="kpi__label">Avg Claim</div><div class="kpi__value" id="aAvgClaim">0</div></div>
+        </div>
+        <div class="panel">
+          <h3>Daily Claims (last 14 days)</h3>
+          <div id="claimsChart" style="height:200px;display:flex;align-items:flex-end;gap:6px;"></div>
+        </div>
+      </section>
+
+      <!-- EXPORT -->
+      <section class="admin-section" id="asec-export">
+        <div class="panel">
+          <h3>Export Data</h3>
+          <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Download a CSV of all users for offline analysis.</p>
+          <button class="btn btn--gold" id="exportUsersBtn">📥 Export Users CSV</button>
+          <button class="btn btn--ghost" id="exportClaimsBtn">📥 Export Claims CSV</button>
+          <button class="btn btn--ghost" id="exportReferralsBtn">📥 Export Referrals CSV</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- EDIT USER MODAL -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel glass">
+      <button class="modal__close" data-close-modal>×</button>
+      <h3>Edit User</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;text-align:left">
+        <input id="editName" placeholder="Name" />
+        <input id="editBalance" type="number" placeholder="Balance" />
+        <input id="editCountry" placeholder="Country" />
+        <input id="editScore" type="number" placeholder="Community score" />
+        <div style="display:flex;gap:8px">
+          <button class="btn btn--gold btn--sm" style="flex:1" id="saveEditBtn">Save</button>
+          <button class="btn btn--ghost btn--sm" style="flex:1" data-close-modal>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastHost" class="toast-host"></div>
+
+  <script type="module" src="./js/admin.js"></script>
+</body>
+</html>

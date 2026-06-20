@@ -7,7 +7,7 @@
 
 import { db, ref, onValue, APP_CONFIG } from "./firebase-config.js";
 import { onUser, getCurrentUser } from "./auth.js";
-//import { animateCount, copyText, toast, openModal } from "./app.js";
+import { animateCount, openModal } from "./app.js";
 import { shareLink, generateQR } from "./share-utils.js";
 import { t, getLang, onLangChange } from "./i18n.js";
 

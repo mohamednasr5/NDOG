@@ -365,6 +365,8 @@ function bootstrap() {
       login?.classList.remove("hidden");
       shell?.classList.add("hidden");
       hidePreloader();
+      // Hide admin link when logged out
+      document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
       return;
     }
 
@@ -378,6 +380,10 @@ function bootstrap() {
     if (sideAvatar && user.photoURL) sideAvatar.src = user.photoURL;
     document.getElementById("sideName").textContent = user.name || "User";
     document.getElementById("sideCode").textContent = user.referralCode || "NDOG—";
+
+    // Show admin link only for admin users (placeholder - actual check done server-side)
+    // For now we hide it from regular users. Admins need separate page (admin.html)
+    document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
   });
 
   initAuth(() => {

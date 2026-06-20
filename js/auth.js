@@ -276,12 +276,14 @@ function guessCountry() {
 }
 
 export function initAuth(onReady) {
-  handleRedirectResult();
-
   onAuthStateChanged(auth, async (fbUser) => {
     if (!fbUser) {
-      emit(null);
-      onReady && onReady(null);
+      // First, check for redirect result
+      const redirectResult = await handleRedirectResult();
+      if (!redirectResult) {
+        emit(null);
+        onReady && onReady(null);
+      }
       return;
     }
 

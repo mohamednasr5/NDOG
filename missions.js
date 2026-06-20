@@ -374,10 +374,9 @@ function openLucky() {
   }
   openModal("luckyModal");
   const box = document.getElementById("luckyBox");
-  box.classList.remove("open");
-  box.textContent = "🎁";
-  document.getElementById("luckyOpenBtn").disabled = false;
-  document.getElementById("luckyOpenBtn").textContent = "Open Box";
+  if (box) { box.classList.remove("open"); box.textContent = "🎁"; }
+  const lb = document.getElementById("luckyOpenBtn");
+  if (lb) { lb.disabled = false; lb.textContent = "Open Box"; }
 }
 
 async function doLucky() {

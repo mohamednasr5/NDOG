@@ -157,7 +157,8 @@ function renderRefStats(total, active) {
   animateCount(document.getElementById("refStatTotal"), total);
   animateCount(document.getElementById("refStatActive"), active);
   const conv = total ? Math.round((active / total) * 100) : 0;
-  document.getElementById("refStatConv").textContent = conv + "%";
+  const el = document.getElementById("refStatConv");
+  if (el) el.textContent = conv + "%";
 }
 
 function defaultAvatar(name) {

@@ -9,7 +9,7 @@
  *   - Offline fallback page when everything else fails
  */
 
-const VERSION    = "ndog-v1.0.0";
+const VERSION    = "ndog-v1.0.2";
 const SHELL_CACHE = `${VERSION}-shell`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 const CDN_CACHE    = `${VERSION}-cdn`;
@@ -50,7 +50,7 @@ self.addEventListener("install", (event) => {
 });
 
 // ───────────────────────────────────────────────────────────────────
-// ACTIVATE — clean up old caches
+// ACTIVATE — clean up old caches + take control immediately
 // ───────────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   const valid = [SHELL_CACHE, RUNTIME_CACHE, CDN_CACHE];
@@ -60,6 +60,10 @@ self.addEventListener("activate", (event) => {
         keys.filter(k => !valid.includes(k)).map(k => caches.delete(k))
       ))
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: "window" }))
+      .then(clients => clients.forEach(c =>
+        c.postMessage({ type: "SW_ACTIVATED", version: VERSION })
+      ))
   );
 });
 
@@ -86,6 +90,13 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // For same-origin static assets, strip ?v= cache-buster so the cache
+  // lookup matches across requests with different version tags.
+  let cacheKey = req;
+  if (url.origin === self.location.origin && url.search.includes("v=")) {
+    cacheKey = new Request(url.pathname, req);
+  }
+
   // Navigation requests → network-first, fallback to cached index, then offline
   if (req.mode === "navigate") {
     event.respondWith(
@@ -103,11 +114,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets → cache-first
+  // Static assets → cache-first (using stripped cache key)
   event.respondWith(
-    caches.match(req).then(cached => cached || fetch(req).then(res => {
+    caches.match(cacheKey).then(cached => cached || fetch(req).then(res => {
       const copy = res.clone();
-      caches.open(RUNTIME_CACHE).then(c => c.put(req, copy));
+      caches.open(RUNTIME_CACHE).then(c => c.put(cacheKey, copy));
       return res;
     }).catch(() => cached))
   );

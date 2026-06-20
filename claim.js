@@ -85,9 +85,10 @@ function renderClaim() {
 
   // Compute reward
   const { amount, multiplier } = computeReward(user);
-  document.getElementById("claimReward").textContent = `+${amount} NDOG`;
-  document.getElementById("claimMult").textContent = `×${multiplier.toFixed(1)}`;
-  document.getElementById("claimStreak").textContent = `${user.streak || 0} days`;
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText("claimReward", `+${amount} NDOG`);
+  setText("claimMult",   `×${multiplier.toFixed(1)}`);
+  setText("claimStreak", `${user.streak || 0} days`);
 
   const btn = document.getElementById("claimBtn");
   const hint = document.getElementById("claimHint");
@@ -99,19 +100,15 @@ function renderClaim() {
 
   if (now >= next) {
     // Ready to claim
-    btn.disabled = false;
-    btn.textContent = "Claim Daily Reward";
-    btn.classList.add("btn--gold");
-    hint.textContent = "Ready to claim";
-    document.getElementById("claimCountdown").textContent = "";
+    if (btn) { btn.disabled = false; btn.textContent = "Claim Daily Reward"; btn.classList.add("btn--gold"); }
+    if (hint) hint.textContent = "Ready to claim";
+    setText("claimCountdown", "");
     if (ringFg) ringFg.style.strokeDashoffset = 0;
     if (claimTimer) { clearInterval(claimTimer); claimTimer = null; }
   } else {
     // Not yet — start countdown
-    btn.disabled = true;
-    btn.classList.remove("btn--gold");
-    btn.textContent = "Claimed ✓ — Come back later";
-    hint.textContent = "Next claim in";
+    if (btn) { btn.disabled = true; btn.classList.remove("btn--gold"); btn.textContent = "Claimed ✓ — Come back later"; }
+    if (hint) hint.textContent = "Next claim in";
 
     if (claimTimer) clearInterval(claimTimer);
     claimTimer = setInterval(() => {
@@ -125,8 +122,8 @@ function renderClaim() {
       const h = Math.floor(remaining / 3600000);
       const m = Math.floor((remaining % 3600000) / 60000);
       const s = Math.floor((remaining % 60000) / 1000);
-      document.getElementById("claimCountdown").textContent =
-        `⏳ ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+      setText("claimCountdown",
+        `⏳ ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
 
       // ring fill (0 = full, ringCirc = empty)
       const total = 24 * 3600 * 1000;

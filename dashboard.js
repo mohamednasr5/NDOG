@@ -38,14 +38,25 @@ export function bindDashboard() {
 }
 
 function renderDashboard(user) {
+  if (!user) return;
+
+  // Helper: safe text setter
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  const setSrc = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val) el.src = val;
+  };
+
   // Avatar
-  const dashAvatar = document.getElementById("dashAvatar");
-  if (dashAvatar && user.photoURL) dashAvatar.src = user.photoURL;
+  setSrc("dashAvatar", user.photoURL);
 
   // Name & meta
-  document.getElementById("dashName").textContent    = user.name || "User";
-  document.getElementById("dashJoined").textContent  = `Member since ${formatDate(user.createdAt)}`;
-  document.getElementById("dashCountry").textContent = `🌍 ${user.country || "Global"}`;
+  setText("dashName",    user.name || "User");
+  setText("dashJoined",  `Member since ${formatDate(user.createdAt)}`);
+  setText("dashCountry", `🌍 ${user.country || "Global"}`);
 
   // Stats
   animateCount(document.getElementById("statBalance"),   user.balance || 0);
@@ -56,16 +67,15 @@ function renderDashboard(user) {
 
   // Rank chip
   const level = computeLevel(user.balance || 0);
-  document.getElementById("dashRankIcon")?.replaceChildren();
   const rankChip = document.getElementById("dashRankChip");
   if (rankChip) {
     rankChip.innerHTML = `<span class="dash__rank-icon">${level.icon}</span><span>${level.name}</span>`;
   }
-  document.getElementById("dashRankName").textContent = level.name;
+  setText("dashRankName", level.name);
 
   // Referral code & link
-  document.getElementById("dashRefCode").textContent = user.referralCode || "NDOG—";
-  document.getElementById("dashRefLink").textContent = `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`;
+  setText("dashRefCode", user.referralCode || "NDOG—");
+  setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
 
   // Level progress
   renderLevelProgress(user.balance || 0);
@@ -85,14 +95,14 @@ function renderLevelProgress(balance) {
   const nextLbl = document.getElementById("levelNext");
 
   if (!next) {
-    fill.style.width = "100%";
-    nextLbl.textContent = "Max level reached 👑";
+    if (fill) fill.style.width = "100%";
+    if (nextLbl) nextLbl.textContent = "Max level reached 👑";
   } else {
     const prevMin = current.min;
     const range = next.min - prevMin;
     const pct = Math.min(100, ((balance - prevMin) / range) * 100);
-    fill.style.width = pct + "%";
-    nextLbl.textContent = `Next: ${next.name} (${(next.min - balance).toLocaleString()} NDOG to go)`;
+    if (fill) fill.style.width = pct + "%";
+    if (nextLbl) nextLbl.textContent = `Next: ${next.name} (${(next.min - balance).toLocaleString()} NDOG to go)`;
   }
 
   // Badges

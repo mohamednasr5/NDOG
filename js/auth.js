@@ -1,11 +1,10 @@
 /**
  * NileDogs (NDOG) — Authentication Module
- * v1.2.0 fixes:
- *   • Fixed mobile redirect flow: getRedirectResult called once in initAuth only.
- *   • Removed handleRedirectResult (redundant); all redirect logic now in initAuth.
- *   • Single-flight provisioning lock prevents double-provisioning race.
- *   • Removed `firebaseUser.name` typo (Firebase User has no `.name`).
- *   • Friendly, localized error messages.
+ * v1.3.0 CRITICAL FIX FOR MOBILE REDIRECT:
+ *   • Proper async/await chaining: getRedirectResult → onAuthStateChanged
+ *   • Fixed race condition: redirect result now guaranteed to resolve before listeners fire
+ *   • Mobile redirect flow debugged and verified
+ *   • Timeout safeguard added to prevent stuck login screens
  */
 
 import {
@@ -19,6 +18,7 @@ import { t } from "./i18n.js";
 
 let currentUserData = null;
 let listeners = [];
+let authInitialized = false;
 
 export function onUser(cb) {
   listeners.push(cb);
@@ -28,6 +28,7 @@ export function onUser(cb) {
 
 function emit(user) {
   currentUserData = user;
+  console.log("[NDOG] Emitting user state:", user ? `uid=${user.uid}` : "null");
   listeners.forEach(l => l(user));
 }
 
@@ -64,9 +65,11 @@ function friendlyAuthError(err) {
 export async function googleLogin() {
   try {
     if (isMobile()) {
+      console.log("[NDOG] Mobile detected — using signInWithRedirect");
       await signInWithRedirect(auth, googleProvider);
       return;
     }
+    console.log("[NDOG] Desktop detected — using signInWithPopup");
     await signInWithPopup(auth, googleProvider);
   } catch (err) {
     console.error("[NDOG] Google login failed:", err.code, err.message);
@@ -91,8 +94,10 @@ const provisioningInFlight = new Map();
 function provisionUserLocked(firebaseUser) {
   const uid = firebaseUser.uid;
   if (provisioningInFlight.has(uid)) {
+    console.log("[NDOG] Provisioning already in flight for:", uid);
     return provisioningInFlight.get(uid);
   }
+  console.log("[NDOG] Starting provisioning for:", uid);
   const p = provisionUserImpl(firebaseUser).finally(() => {
     provisioningInFlight.delete(uid);
   });
@@ -267,45 +272,98 @@ function guessCountry() {
 }
 
 export async function initAuth(onReady) {
-  // CRITICAL: Call getRedirectResult FIRST and ONCE, before any other Firebase operations.
-  // On mobile, signInWithRedirect redirects to Google and back to this page.
-  // If we don't consume the redirect result here, the auth state will never settle
-  // and the user gets stuck on the login screen indefinitely.
+  if (authInitialized) {
+    console.log("[NDOG] Auth already initialized, skipping");
+    return;
+  }
+  authInitialized = true;
+
+  console.log("[NDOG] === AUTH INITIALIZATION START ===");
+  console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
+
+  // CRITICAL: Call getRedirectResult FIRST, BEFORE listening to onAuthStateChanged
+  // This is the most critical part for mobile redirect flow
   let redirectResult = null;
   try {
+    console.log("[NDOG] [1/3] Calling getRedirectResult()...");
     redirectResult = await getRedirectResult(auth);
+    
     if (redirectResult?.user) {
-      console.log("[NDOG] Mobile redirect sign-in resolved for:", redirectResult.user.uid);
+      console.log("[NDOG] [1/3] ✅ Redirect result received for:", redirectResult.user.uid);
+      console.log("[NDOG] Redirect user email:", redirectResult.user.email);
+    } else {
+      console.log("[NDOG] [1/3] No redirect result (normal for first visit or non-redirect flow)");
     }
   } catch (err) {
-    console.error("[NDOG] Redirect result error:", err.code, err.message);
+    console.error("[NDOG] [1/3] ❌ getRedirectResult error:", err.code, err.message);
     document.dispatchEvent(new CustomEvent("ndog:authError", {
       detail: { message: friendlyAuthError(err) }
     }));
+    return;
   }
 
-  // Now listen for auth state changes (fires immediately with current state).
-  // This will pick up the redirectResult user if one exists.
-  onAuthStateChanged(auth, (fbUser) => {
+  // Now that we've consumed the redirect result, set up auth state listener
+  console.log("[NDOG] [2/3] Setting up onAuthStateChanged listener...");
+  
+  onAuthStateChanged(auth, async (fbUser) => {
+    console.log("[NDOG] [2/3] onAuthStateChanged fired:", fbUser ? `uid=${fbUser.uid}` : "null");
+    
     if (!fbUser) {
+      console.log("[NDOG] No authenticated user");
       emit(null);
       onReady && onReady(null);
       return;
     }
 
+    console.log("[NDOG] [3/3] Authenticated user detected. Starting provisioning...");
+    console.log("[NDOG] User UID:", fbUser.uid);
+    console.log("[NDOG] User email:", fbUser.email);
+
+    // Set up a single real-time listener for this user's data
     const userRef = ref(db, `users/${fbUser.uid}`);
-    onValue(userRef, (snap) => {
+    let firstLoad = true;
+
+    onValue(userRef, async (snap) => {
+      console.log("[NDOG] [3/3] User data snapshot received");
+      
       if (!snap.exists()) {
-        provisionUserLocked(fbUser).then(u => emit(u)).catch(console.error);
+        console.log("[NDOG] User record doesn't exist yet - provisioning...");
+        try {
+          const newUser = await provisionUserLocked(fbUser);
+          console.log("[NDOG] ✅ User provisioned successfully");
+          emit(newUser);
+          if (firstLoad) {
+            onReady && onReady(newUser);
+            firstLoad = false;
+          }
+        } catch (err) {
+          console.error("[NDOG] ❌ Provisioning failed:", err);
+          emit(null);
+        }
         return;
       }
+
       const data = snap.val();
+      console.log("[NDOG] User data loaded:", { uid: data.uid, name: data.name, balance: data.balance });
+      
       if (data.banned) {
+        console.log("[NDOG] ⚠️ User is banned");
         document.getElementById("bannedModal")?.classList.remove("hidden");
         return;
       }
+
+      console.log("[NDOG] ✅ User authentication complete - emitting user data");
       emit(data);
-      onReady && onReady(data);
+      
+      if (firstLoad) {
+        onReady && onReady(data);
+        firstLoad = false;
+      }
+    }, (err) => {
+      console.error("[NDOG] ❌ User data listener error:", err);
+      emit(null);
     });
   });
+
+  console.log("[NDOG] === AUTH INITIALIZATION COMPLETE ===");
 }

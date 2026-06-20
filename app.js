@@ -217,7 +217,7 @@ function bindNavigation() {
     try {
       await googleLogin();
     } catch (err) {
-      toast(err.message || "Google login failed. Try again.", "err");
+      toast(err.message || "Login failed. Please ensure popups are allowed, then retry.", "err");
       btn.disabled = false;
       btn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22"><path fill="#fff" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.4-1.6 4.1-5.27 4.1-3.17 0-5.76-2.62-5.76-5.86s2.59-5.86 5.76-5.86c1.81 0 3.02.77 3.71 1.43l2.53-2.44C16.9 3.4 14.79 2.5 12.17 2.5 6.99 2.5 2.81 6.68 2.81 11.86S6.99 21.22 12.17 21.22c5.86 0 9.74-4.11 9.74-9.9 0-.66-.07-1.17-.16-1.67z"/></svg> Continue with Google`;
     }
@@ -370,3 +370,44 @@ const refParam = new URLSearchParams(location.search).get("ref");
 if (refParam) sessionStorage.setItem("ndog_ref", refParam);
 
 bootstrap();
+
+// PWA INSTALL BANNER
+let _deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    _deferredPrompt = e;
+    if (sessionStorage.getItem("pwa_banner_dismissed")) return;
+    const banner = document.getElementById("pwaBanner");
+    if (banner) banner.classList.add("pwa-banner--visible");
+  });
+
+window.addEventListener("appinstalled", () => {
+    _deferredPrompt = null;
+    const banner = document.getElementById("pwaBanner");
+    if (banner) banner.classList.remove("pwa-banner--visible");
+    toast("NileDogs installed successfully!", "ok");
+  });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const installBtn = document.getElementById("pwaInstallBtn");
+    const dismissBtn = document.getElementById("pwaDismissBtn");
+    if (installBtn) {
+          installBtn.addEventListener("click", async () => {
+                  if (!_deferredPrompt) return;
+                  _deferredPrompt.prompt();
+                  const { outcome } = await _deferredPrompt.userChoice;
+                  if (outcome === "accepted") toast("Installing NileDogs...", "ok");
+                  _deferredPrompt = null;
+                  const b = document.getElementById("pwaBanner");
+                  if (b) b.classList.remove("pwa-banner--visible");
+                });
+        }
+    if (dismissBtn) {
+          dismissBtn.addEventListener("click", () => {
+                  const b = document.getElementById("pwaBanner");
+                  if (b) b.classList.remove("pwa-banner--visible");
+                  sessionStorage.setItem("pwa_banner_dismissed", "1");
+                });
+        }
+  });

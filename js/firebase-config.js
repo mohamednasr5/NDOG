@@ -29,6 +29,7 @@ import {
   getRedirectResult,
   signOut,
   onAuthStateChanged
+    signInWithCredential,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getDatabase,
@@ -107,7 +108,7 @@ export {
   query, orderByChild, orderByValue,
   limitToLast, limitToFirst, equalTo,
   serverTimestamp, onDisconnect,
-  signInWithPopup, signInWithRedirect, getRedirectResult,
+  signInWithPopup, signInWithRedirect, getRedirectResult, signInWithCredential
   signOut, onAuthStateChanged
 };
 

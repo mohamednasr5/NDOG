@@ -247,6 +247,7 @@ const TRANSLATIONS = {
     "auth.errGeneric": "Sign-in failed. Please try again.",
     "auth.errEmbeddedBrowser": "Google sign-in can't be completed inside this app's built-in browser (e.g. Telegram, Facebook, Instagram). Please open this page in Chrome or your phone's default browser, then tap \"Continue with Google\" again.",
     "auth.errRedirectIncomplete": "Sign-in didn't finish. Please try again — for best results, open this page in Chrome or Safari instead of an in-app browser.",
+    "auth.standaloneRedirect": "Opening sign-in in your browser. Finish signing in there, then switch back to this app — you'll be signed in automatically.",
 
     "admin.loginTitle": "Admin Access",
     "admin.loginDesc": "Sign in with an authorized admin Google account.",
@@ -617,6 +618,7 @@ const TRANSLATIONS = {
     "auth.errGeneric": "فشل تسجيل الدخول. حاول مرة أخرى.",
     "auth.errEmbeddedBrowser": "لا يمكن إتمام تسجيل الدخول بحساب Google داخل المتصفح المدمج في هذا التطبيق (مثل تيليجرام أو فيسبوك أو إنستجرام). يرجى فتح هذه الصفحة في متصفح Chrome أو المتصفح الافتراضي لهاتفك، ثم اضغط \"المتابعة باستخدام Google\" مرة أخرى.",
     "auth.errRedirectIncomplete": "لم تكتمل عملية تسجيل الدخول. حاول مرة أخرى — ويُفضّل فتح هذه الصفحة في Chrome أو Safari بدلاً من متصفح مدمج داخل تطبيق آخر.",
+    "auth.standaloneRedirect": "جارٍ فتح تسجيل الدخول في متصفحك. أكمل تسجيل الدخول هناك، ثم ارجع لهذا التطبيق — سيتم تسجيل دخولك تلقائياً.",
 
     "admin.loginTitle": "دخول الإدارة",
     "admin.loginDesc": "سجّل الدخول بحساب Google إداري مُصرّح له.",

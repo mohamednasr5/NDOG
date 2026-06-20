@@ -1,5 +1,17 @@
 /**
  * NileDogs (NDOG) — Authentication Module
+ * v1.5.0 STANDALONE PWA LOGIN FIX:
+ *   • Installed PWAs ("Add to Home Screen", display:standalone) now skip
+ *     in-app popup/redirect entirely and escape to the system browser via
+ *     window.open(). Redirect-based sign-in from inside a standalone PWA
+ *     frequently completes in a *different* browser tab than the original
+ *     app window, leaving the app stuck on the login screen forever — this
+ *     was confirmed to be the case for our mobile users testing via the
+ *     installed app icon.
+ *   • Relies on browserLocalPersistence's built-in cross-tab "storage"
+ *     event sync, with a visibilitychange-based reload as a defensive
+ *     fallback in case that sync is unreliable on a given device/WebView.
+ *
  * v1.4.0 MOBILE LOGIN FIX (popup-first + embedded-browser guard):
  *   • signInWithPopup is now tried first on ALL devices (mobile included).
  *     signInWithRedirect requires sessionStorage/IndexedDB to survive a
@@ -25,7 +37,6 @@ import {
   generateReferralCode, getDeviceFingerprint
 } from "./firebase-config.js";
 import { t } from "./i18n.js";
-import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 let currentUserData = null;
 let listeners = [];
@@ -61,6 +72,17 @@ function isEmbeddedBrowser() {
   return /Telegram|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|Twitter|TikTok|Snapchat|; ?wv\)/i.test(ua);
 }
 
+// Installed PWA ("Add to Home Screen") on Android or iOS. These run in an
+// isolated standalone browsing context. A full-page signInWithRedirect to
+// accounts.google.com frequently returns into a *different* browser
+// tab/activity than the standalone app instance — the original PWA window
+// is left sitting on the login screen forever, even though sign-in may
+// have actually succeeded elsewhere. See googleLogin() below for the fix.
+function isStandalone() {
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+         window.navigator.standalone === true; // legacy iOS Safari flag
+}
+
 function friendlyAuthError(err) {
   const code = err?.code || "";
   const msg  = err?.message || "";
@@ -92,17 +114,22 @@ export async function googleLogin() {
     e.code = "auth/embedded-browser";
     throw e;
   }
-    // On iOS Safari, signInWithPopup often fails silently (user-gesture context
-    // is lost after async operations). Use redirect directly on iOS Safari.
-    const isIosSafari = /iP(hone|ad|od)/i.test(navigator.userAgent) &&
-          /WebKit/i.test(navigator.userAgent) &&
-          !/CriOS|FxiOS|OPiOS|mercury/i.test(navigator.userAgent);
-    if (isIosSafari) {
-          console.log("[NDOG] iOS Safari detected - using signInWithRedirect directly");
-          sessionStorage.setItem("ndog_redirect_pending", "1");
-          await signInWithRedirect(auth, googleProvider);
-          return;
-        }
+
+  if (isStandalone() && isMobile()) {
+    // CRITICAL FIX: see isStandalone() comment above. Escape the standalone
+    // PWA context entirely and let the user finish sign-in in their real
+    // browser. Because firebase-config.js uses browserLocalPersistence,
+    // Firebase Auth listens for the "storage" event and will automatically
+    // pick up the new session in THIS window once the user signs in over
+    // there — no manual return-and-reload needed (though they do still
+    // need to switch back to this app to see the dashboard).
+    console.log("[NDOG] Standalone PWA on mobile — escaping to system browser for sign-in");
+    sessionStorage.setItem("ndog_pwa_login_opened", "1");
+    window.open(location.origin + location.pathname, "_blank", "noopener");
+    const e = new Error(t("auth.standaloneRedirect"));
+    e.code = "auth/standalone-escape";
+    throw e;
+  }
 
   // CRITICAL FIX: prefer signInWithPopup even on mobile.
   // signInWithRedirect requires sessionStorage/IndexedDB state to survive a
@@ -349,8 +376,6 @@ export async function initAuth(onReady) {
 
   console.log("[NDOG] === AUTH INITIALIZATION START ===");
   console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
-    // Ensure persistence is active before reading redirect result (fixes mobile race)
-    try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
 
   // CRITICAL: Call getRedirectResult FIRST, BEFORE listening to onAuthStateChanged
   // This is the most critical part for mobile redirect flow
@@ -451,4 +476,21 @@ export async function initAuth(onReady) {
   });
 
   console.log("[NDOG] === AUTH INITIALIZATION COMPLETE ===");
+
+  // Defensive fallback for the standalone-PWA escape flow above: Firebase's
+  // browserLocalPersistence normally syncs new sessions across tabs via the
+  // "storage" event automatically, but some Android WebAPK shells isolate
+  // processes in ways that make that unreliable. If the user opened the
+  // system browser to sign in and then comes back to this standalone
+  // window still logged out, force one reload so persisted auth state is
+  // re-read fresh from disk instead of relying on the live storage event.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    if (sessionStorage.getItem("ndog_pwa_login_opened") !== "1") return;
+    sessionStorage.removeItem("ndog_pwa_login_opened");
+    if (!currentUserData) {
+      console.log("[NDOG] Back from system-browser sign-in, still logged out — reloading to re-check");
+      location.reload();
+    }
+  });
 }

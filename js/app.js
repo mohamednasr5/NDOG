@@ -220,7 +220,8 @@ function bindNavigation() {
     try {
       await googleLogin();
     } catch (err) {
-      toast(err.message || t("login.connectFailed"), "err");
+      const isInfo = err.code === "auth/standalone-escape";
+      toast(err.message || t("login.connectFailed"), isInfo ? "info" : "err", isInfo ? 6000 : 3200);
       btn.disabled = false;
       if (labelSpan) labelSpan.textContent = t("login.googleBtn");
     }

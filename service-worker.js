@@ -1,4 +1,4 @@
-/**
+/** 
  * NileDogs (NDOG) — Service Worker
  * ------------------------------------------------------------------
  * Strategy:
@@ -9,7 +9,7 @@
  *   - Offline fallback page when everything else fails
  */
 
-const VERSION    = "ndog-v1.0.2";
+const VERSION    = "ndog-v1.0.1";
 const SHELL_CACHE = `${VERSION}-shell`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 const CDN_CACHE    = `${VERSION}-cdn`;

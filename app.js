@@ -1,4 +1,4 @@
-/**
+/** 
  * NileDogs (NDOG) — App Shell
  * ------------------------------------------------------------------
  * - Module bootstrap & SPA router
@@ -200,8 +200,8 @@ function bindNavigation() {
 
   // menu toggle
   document.getElementById("menuToggle")?.addEventListener("click", () => {
-    document.getElementById("sidenav")?.classList.toggle("open");
-    document.getElementById("sidenavScrim")?.classList.toggle("show");
+    document.getElementById("sidenav").classList.toggle("open");
+    document.getElementById("sidenavScrim").classList.toggle("show");
   });
   document.getElementById("sidenavScrim")?.addEventListener("click", closeSidenav);
 
@@ -260,7 +260,7 @@ document.addEventListener("click", (e) => {
 function registerSW() {
   if (!("serviceWorker" in navigator)) return;
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=1.0.2")
+    navigator.serviceWorker.register("./service-worker.js?v=1.0.1")
       .then(reg => {
         console.log("[NDOG] SW registered:", reg.scope);
         // Auto-update: when a new SW takes over, reload once so the user
@@ -363,10 +363,8 @@ function bootstrap() {
     // sidenav profile
     const sideAvatar = document.getElementById("sideAvatar");
     if (sideAvatar && user.photoURL) sideAvatar.src = user.photoURL;
-    const sideName = document.getElementById("sideName");
-    if (sideName) sideName.textContent = user.name || "User";
-    const sideCode = document.getElementById("sideCode");
-    if (sideCode) sideCode.textContent = user.referralCode || "NDOG—";
+    document.getElementById("sideName").textContent = user.name || "User";
+    document.getElementById("sideCode").textContent = user.referralCode || "NDOG—";
   });
 
   // Initial view from URL

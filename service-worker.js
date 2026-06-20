@@ -1,4 +1,4 @@
-/** 
+/**
  * NileDogs (NDOG) — Service Worker
  * ------------------------------------------------------------------
  * Strategy:
@@ -9,7 +9,7 @@
  *   - Offline fallback page when everything else fails
  */
 
-const VERSION    = "ndog-v1.0.1";
+const VERSION    = "ndog-v1.0.3";
 const SHELL_CACHE = `${VERSION}-shell`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 const CDN_CACHE    = `${VERSION}-cdn`;
@@ -74,8 +74,9 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Only handle GET
+  // Only handle GET requests for http/https (skip chrome-extension, moz-extension, etc.)
   if (req.method !== "GET") return;
+  if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
   // Firebase API calls → always network, never cache
   if (url.hostname.includes("firebaseio.com") ||
@@ -94,7 +95,7 @@ self.addEventListener("fetch", (event) => {
   // lookup matches across requests with different version tags.
   let cacheKey = req;
   if (url.origin === self.location.origin && url.search.includes("v=")) {
-    cacheKey = new Request(url.pathname, req);
+    try { cacheKey = new Request(url.pathname, req); } catch (_) { cacheKey = req; }
   }
 
   // Navigation requests → network-first, fallback to cached index, then offline
@@ -103,7 +104,7 @@ self.addEventListener("fetch", (event) => {
       fetch(req)
         .then(res => {
           const copy = res.clone();
-          caches.open(RUNTIME_CACHE).then(c => c.put(req, copy));
+          caches.open(RUNTIME_CACHE).then(c => c.put(req, copy)).catch(() => {});
           return res;
         })
         .catch(() => caches.match(req)
@@ -118,7 +119,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(cacheKey).then(cached => cached || fetch(req).then(res => {
       const copy = res.clone();
-      caches.open(RUNTIME_CACHE).then(c => c.put(cacheKey, copy));
+      caches.open(RUNTIME_CACHE).then(c => c.put(cacheKey, copy)).catch(() => {});
       return res;
     }).catch(() => cached))
   );

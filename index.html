@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0a1f44" />
   <meta name="description" content="NileDogs (NDOG) — community-driven rewards ecosystem. Earn, refer, and climb the leaderboard before the official launch on January 1, 2028." />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NileDogs" />
 
@@ -14,13 +14,13 @@
   <meta property="og:description" content="Earn NDOG tokens, invite friends, and climb the leaderboard. Launch: January 1, 2028." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mohamednasr5.github.io/NDOG/" />
-  <meta property="og:image" content="https://mohamednasr5.github.io/NDOG/icon-512.png" />
+  <meta property="og:image" content="https://mohamednasr5.github.io/NDOG/assets/icons/icon-512.png" />
 
   <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="64x64" href="./favicon.png" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="./assets/icons/favicon.png" />
+  <link rel="stylesheet" href="./css/styles.css?v=1.0.3" />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
 
   <title>NileDogs (NDOG) — Rewards Ecosystem</title>
@@ -124,7 +124,7 @@
         <a href="#" data-view="missions"     class="nav-link"><span>🎯</span> Missions</a>
         <a href="#" data-view="leaderboard"  class="nav-link"><span>🏆</span> Leaderboard</a>
         <a href="#" data-view="whitepaper"   class="nav-link"><span>📄</span> Whitepaper</a>
-        <a href="./admin.html"               class="nav-link"><span>🛡️</span> Admin</a>
+        <a href="./admin.html"               class="nav-link admin-only hidden"><span>🛡️</span> Admin</a>
       </nav>
       <button class="btn btn--ghost" id="logoutBtn"><span>⏻</span> Sign Out</button>
     </aside>
@@ -490,6 +490,6 @@
       }, FAILSAFE_MS);
     })();
   </script>
-  <script type="module" src="./app.js"></script>
-<!-- PWA INSTALL BANNER -->   <div id="pwaBanner" class="pwa-banner" role="banner" aria-live="polite">     <img src="./icon-192.png" alt="NileDogs" class="pwa-banner__icon" />     <div class="pwa-banner__text">       <strong>Install NileDogs App</strong>       <span>Add to your home screen for the best experience</span>     </div>     <button id="pwaInstallBtn" class="pwa-banner__install">Install</button>     <button id="pwaDismissBtn" class="pwa-banner__dismiss" aria-label="Dismiss">&#x2715;</button>   </div> </body>
+  <script type="module" src="./js/app.js?v=1.0.3"></script>
+</body>
 </html>

@@ -16,7 +16,7 @@ import {
   signOut, onAuthStateChanged,
   generateReferralCode, getDeviceFingerprint
 } from "./firebase-config.js";
-export { APP_CONFIG };
+
 let currentUserData = null;
 let listeners = [];
 
@@ -53,7 +53,7 @@ export async function googleLogin() {
     const result = await signInWithPopup(auth, googleProvider);
     await provisionUser(result.user);
   } catch (err) {
-    const code = err?.code || "";     if (["auth/popup-blocked","auth/popup-closed-by-user","auth/cancelled-popup-request","auth/unauthorized-domain"].includes(code)) {       await signInWithRedirect(auth, googleProvider);       return;     }     console.error("[NDOG] Google login failed:", err);
+    console.error("[NDOG] Google login failed:", err);
     throw err;
   }
 }

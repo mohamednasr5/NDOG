@@ -272,11 +272,12 @@ function registerSW() {
 function hidePreloader() {
   const p = document.getElementById("preloader");
   if (!p) return;
-  setTimeout(() => {
-    p.classList.add("done");
-    setTimeout(() => p.remove(), 600);
-  }, 900);
-}
+setTimeout(() => {
+  if (!banner.classList.contains("pwa-banner--visible") 
+      && !sessionStorage.getItem("pwa_banner_dismissed")) {
+    banner.classList.add("pwa-banner--visible"); // يظهر دائماً ✅
+  }
+}, 4000);
 
 // Safety net: force-hide preloader after 6 seconds even if auth hangs
 setTimeout(() => {

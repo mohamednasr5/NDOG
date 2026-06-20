@@ -120,6 +120,9 @@ const TRANSLATIONS = {
     "claim.loadingHistory": "Loading history…",
     "claim.nextIn": "Next claim in",
 
+    "claim.boostMining": "⛏️ Boost Mining",
+    "claim.boostMiningDesc": "Watch an ad to boost your mining power!",
+
     "ref.title": "Invite & Earn Big",
     "ref.intro": "Share your link. Earn NDOG across <strong>3 levels</strong> of referrals — forever.",
     "ref.total": "Total Referrals",
@@ -484,6 +487,9 @@ const TRANSLATIONS = {
     "claim.failed": "فشلت المطالبة — حاول مرة أخرى.",
     "claim.loadingHistory": "جارٍ تحميل السجل…",
     "claim.nextIn": "المطالبة التالية خلال",
+
+    "claim.boostMining": "⛏️ زيادة التعدين",
+    "claim.boostMiningDesc": "شاهد إعلاناً لزيادة قوة التعدين!",
 
     "ref.title": "ادعُ واربح أكثر",
     "ref.intro": "شارك رابطك. اكسب NDOG عبر <strong>3 مستويات</strong> من الإحالات — للأبد.",

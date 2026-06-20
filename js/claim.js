@@ -15,6 +15,47 @@ let claimTimer = null;
 let currentUser = null;
 let viewBound = false;
 
+// ───────────────────────────────────────────────────────────────────
+// BOOST MINING — Random ad delivery
+// ───────────────────────────────────────────────────────────────────
+const BOOST_AD_OPTIONS = [
+  {
+    type: "url",
+    url: "https://www.effectivecpmnetwork.com/i6pwi8zq?key=0fe53613ffa1192520bdc1c7a7029407"
+  },
+  {
+    type: "script",
+    src: "https://pl29821933.effectivecpmnetwork.com/1a/08/30/1a08309ed1562880bf0699c4a3613d00.js"
+  },
+  {
+    type: "script",
+    src: "https://pl29821934.effectivecpmnetwork.com/be/2a/1f/be2a1facb8e6ecde3c428e59fdff0937.js"
+  }
+];
+
+function triggerBoostAd() {
+  const chosen = BOOST_AD_OPTIONS[Math.floor(Math.random() * BOOST_AD_OPTIONS.length)];
+
+  if (chosen.type === "url") {
+    window.open(chosen.url, "_blank", "noopener,noreferrer");
+  } else if (chosen.type === "script") {
+    const s = document.createElement("script");
+    s.src = chosen.src;
+    s.async = true;
+    document.body.appendChild(s);
+    // Auto-cleanup after 30s to avoid memory leaks
+    setTimeout(() => { if (s.parentNode) s.parentNode.removeChild(s); }, 30000);
+  }
+}
+
+function initBoostMining() {
+  const btn = document.getElementById("boostMiningBtn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    triggerBoostAd();
+  });
+}
+
 export function initClaim() {
   onUser((u) => {
     currentUser = u;
@@ -22,6 +63,9 @@ export function initClaim() {
   });
 
   document.getElementById("claimBtn")?.addEventListener("click", doClaim);
+
+  // Initialize boost mining button
+  initBoostMining();
 
   if (!viewBound) {
     viewBound = true;

@@ -275,15 +275,28 @@ function guessCountry() {
   return "Global";
 }
 
-export function initAuth(onReady) {
-  onAuthStateChanged(auth, async (fbUser) => {
+export async function initAuth(onReady) {
+  // IMPORTANT: Call getRedirectResult FIRST, before onAuthStateChanged.
+  // On mobile, signInWithRedirect redirects to Google and back.
+  // If we don't consume the redirect result here, the auth state may
+  // never resolve and the user stays stuck on the login screen.
+  try {
+    const redirectResult = await getRedirectResult(auth);
+    if (redirectResult) {
+      console.log("[NDOG] Redirect sign-in resolved for:", redirectResult.user?.uid);
+    }
+  } catch (err) {
+    console.error("[NDOG] Redirect result failed:", err.code, err.message);
+    document.dispatchEvent(new CustomEvent("ndog:authError", {
+      detail: { message: friendlyAuthError(err) }
+    }));
+  }
+
+  // Now listen for auth state changes (fires immediately with current state)
+  onAuthStateChanged(auth, (fbUser) => {
     if (!fbUser) {
-      // First, check for redirect result
-      const redirectResult = await handleRedirectResult();
-      if (!redirectResult) {
-        emit(null);
-        onReady && onReady(null);
-      }
+      emit(null);
+      onReady && onReady(null);
       return;
     }
 

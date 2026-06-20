@@ -51,14 +51,14 @@ import {
 // 1. PROJECT CONFIG  ← REPLACE THESE PLACEHOLDERS
 // ───────────────────────────────────────────────────────────────────
 export const firebaseConfig = {
-  apiKey:            "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  authDomain:        "niledogs.firebaseapp.com",
-  databaseURL:       "https://niledogs-default-rtdb.firebaseio.com",
-  projectId:         "niledogs",
-  storageBucket:     "niledogs.appspot.com",
-  messagingSenderId: "000000000000",
-  appId:             "1:000000000000:web:xxxxxxxxxxxxxxxxxxxxxx",
-  measurementId:     "G-XXXXXXXXXX"
+  apiKey:            "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
+  authDomain:        "ndog-a3265.firebaseapp.com",
+  databaseURL:       "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "ndog-a3265",
+  storageBucket:     "ndog-a3265.firebasestorage.app",
+  messagingSenderId: "829364393352",
+  appId:             "1:829364393352:web:82d0d0a99a3b3f2200163d",
+  measurementId:     "G-YF7HC7T8M0"
 };
 
 // ───────────────────────────────────────────────────────────────────

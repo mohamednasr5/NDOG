@@ -14,19 +14,19 @@
   "categories": ["finance", "productivity", "social"],
   "icons": [
     {
-      "src": "assets/icons/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/icons/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/icons/icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
@@ -38,21 +38,21 @@
       "short_name": "Claim",
       "description": "Claim your daily NDOG rewards",
       "url": "/NDOG/?view=claim",
-      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Referrals",
       "short_name": "Refer",
       "description": "Invite friends and earn bonuses",
       "url": "/NDOG/?view=referral",
-      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Leaderboard",
       "short_name": "Ranks",
       "description": "View the global leaderboard",
       "url": "/NDOG/?view=leaderboard",
-      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ],
   "screenshots": [

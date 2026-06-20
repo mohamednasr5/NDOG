@@ -25,11 +25,11 @@ const BOOST_AD_OPTIONS = [
   },
   {
     type: "script",
-    src: "https://pl29821933.effectivecpmnetwork.com/1a/08/30/1a08309ed1562880bf0699c4a3613d00.js"
+    src: "https://pl29822341.effectivecpmnetwork.com/e9/23/c2/e923c23960923f40920a0e6dbcf0222f.js"
   },
   {
     type: "script",
-    src: "https://pl29821934.effectivecpmnetwork.com/be/2a/1f/be2a1facb8e6ecde3c428e59fdff0937.js"
+    src: "https://pl29822342.effectivecpmnetwork.com/b0/8b/04/b08b04a4569092e013acea2ac1e3f682.js"
   }
 ];
 

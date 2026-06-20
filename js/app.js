@@ -23,12 +23,27 @@ import {
 export function toast(message, type = "info", duration = 3200) {
   const host = document.getElementById("toastHost");
   if (!host) return;
+
+  // De-dupe: if an identical toast (same type + message) is already
+  // visible, just restart its timer instead of stacking a second copy.
+  // This was happening with the redirect-incomplete auth error when a
+  // user retried login while the first toast was still on screen.
+  const existing = Array.from(host.children).find(
+    el => el.dataset.toastKey === `${type}:${message}`
+  );
+  if (existing) {
+    clearTimeout(existing._toastTimer);
+    existing._toastTimer = setTimeout(() => existing.remove(), duration + 400);
+    return;
+  }
+
   const tEl = document.createElement("div");
   tEl.className = `toast toast--${type}`;
+  tEl.dataset.toastKey = `${type}:${message}`;
   const icons = { ok: "✅", err: "⚠️", info: "ℹ️" };
   tEl.innerHTML = `<span class="toast__icon">${icons[type] || "ℹ️"}</span><span>${message}</span>`;
   host.appendChild(tEl);
-  setTimeout(() => tEl.remove(), duration + 400);
+  tEl._toastTimer = setTimeout(() => tEl.remove(), duration + 400);
 }
 window.ndogToast = toast;
 

@@ -92,20 +92,26 @@ function renderLevelProgress(balance) {
     const range = next.min - prevMin;
     const pct = Math.min(100, ((balance - prevMin) / range) * 100);
     if (fill) fill.style.width = pct + "%";
-    if (nextLbl) nextLbl.textContent = t("dash.nextLevel", {
-      name: next.name,
-      remaining: (next.min - balance).toLocaleString()
-    });
+    if (nextLbl) {
+      const nextName = t(next.nameKey || next.name);
+      nextLbl.textContent = t("dash.nextLevel", {
+        name: nextName,
+        remaining: (next.min - balance).toLocaleString()
+      });
+    }
   }
 
   const wrap = document.getElementById("levelBadges");
   if (wrap) {
-    wrap.innerHTML = levels.map(l => `
+    wrap.innerHTML = levels.map(l => {
+      const levelName = t(l.nameKey || l.name);
+      return `
       <div class="level-badge ${balance >= l.min ? "unlocked" : ""}">
         <span class="lb-icon">${l.icon}</span>
-        <span class="lb-name">${l.name}</span>
+        <span class="lb-name">${levelName}</span>
       </div>
-    `).join("");
+    `;
+    }).join("");
   }
 }
 

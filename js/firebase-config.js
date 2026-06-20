@@ -74,11 +74,11 @@ export const APP_CONFIG = {
   streakBonus:    { 7: 1.5, 14: 2, 30: 3 },     // multiplier by streak length
   referralBonus:  0.25,                          // extra multiplier if user came via referral
   rewardLevels: [
-    { name: "Bronze",  min:    0, icon: "🥉", color: "#cd7f32" },
-    { name: "Silver",  min:  500, icon: "🥈", color: "#c0c0c0" },
-    { name: "Gold",    min: 2000, icon: "🥇", color: "#ffd700" },
-    { name: "Diamond", min:10000, icon: "💎", color: "#b9f2ff" },
-    { name: "Legend",  min:50000, icon: "👑", color: "#ff6ec7" }
+    { nameKey: "dash.level.bronze",  min:    0, icon: "🥉", color: "#cd7f32" },
+    { nameKey: "dash.level.silver",  min:  500, icon: "🥈", color: "#c0c0c0" },
+    { nameKey: "dash.level.gold",    min: 2000, icon: "🥇", color: "#ffd700" },
+    { nameKey: "dash.level.diamond", min:10000, icon: "💎", color: "#b9f2ff" },
+    { nameKey: "dash.level.legend",  min:50000, icon: "👑", color: "#ff6ec7" }
   ],
   adminUIDs: ["REPLACE_WITH_YOUR_FIREBASE_UID"]  // ← set your admin UID(s)
 };

@@ -98,6 +98,11 @@ const TRANSLATIONS = {
     "dash.founderDesc": "You joined before launch — you receive priority rewards and a higher reward multiplier forever.",
     "dash.maxLevel": "Max level reached 👑",
     "dash.nextLevel": "Next: {name} ({remaining} NDOG to go)",
+    "dash.level.bronze": "Bronze",
+    "dash.level.silver": "Silver",
+    "dash.level.gold": "Gold",
+    "dash.level.diamond": "Diamond",
+    "dash.level.legend": "Legend",
 
     "claim.ready": "Ready to claim",
     "claim.btn": "Claim Daily Reward",
@@ -288,6 +293,11 @@ const TRANSLATIONS = {
     "dash.founderDesc": "لقد انضممت قبل الإطلاق — تحصل على مكافآت أولوية ومضاعف مكافآت أعلى للأبد.",
     "dash.maxLevel": "وصلت أعلى مستوى 👑",
     "dash.nextLevel": "التالي: {name} (يتبقى {remaining} NDOG)",
+    "dash.level.bronze": "برونز",
+    "dash.level.silver": "فضة",
+    "dash.level.gold": "ذهب",
+    "dash.level.diamond": "ماسة",
+    "dash.level.legend": "أسطورة",
 
     "claim.ready": "جاهز للمطالبة",
     "claim.btn": "اطلب مكافأة اليوم",

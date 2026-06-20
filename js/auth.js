@@ -25,6 +25,7 @@ import {
   generateReferralCode, getDeviceFingerprint
 } from "./firebase-config.js";
 import { t } from "./i18n.js";
+import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 let currentUserData = null;
 let listeners = [];
@@ -91,6 +92,17 @@ export async function googleLogin() {
     e.code = "auth/embedded-browser";
     throw e;
   }
+    // On iOS Safari, signInWithPopup often fails silently (user-gesture context
+    // is lost after async operations). Use redirect directly on iOS Safari.
+    const isIosSafari = /iP(hone|ad|od)/i.test(navigator.userAgent) &&
+          /WebKit/i.test(navigator.userAgent) &&
+          !/CriOS|FxiOS|OPiOS|mercury/i.test(navigator.userAgent);
+    if (isIosSafari) {
+          console.log("[NDOG] iOS Safari detected - using signInWithRedirect directly");
+          sessionStorage.setItem("ndog_redirect_pending", "1");
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        }
 
   // CRITICAL FIX: prefer signInWithPopup even on mobile.
   // signInWithRedirect requires sessionStorage/IndexedDB state to survive a
@@ -337,6 +349,8 @@ export async function initAuth(onReady) {
 
   console.log("[NDOG] === AUTH INITIALIZATION START ===");
   console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
+    // Ensure persistence is active before reading redirect result (fixes mobile race)
+    try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
 
   // CRITICAL: Call getRedirectResult FIRST, BEFORE listening to onAuthStateChanged
   // This is the most critical part for mobile redirect flow

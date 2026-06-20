@@ -462,6 +462,34 @@
   </div>
 
   <!-- ────────────────────────────── SCRIPTS ────────────────────────────── -->
+  <script>
+    // Inline safety net — runs IMMEDIATELY before ES modules load.
+    // If app.js fails to load (e.g., opened via file://), this still hides
+    // the preloader after a timeout and ensures only the dashboard view is visible.
+    (function() {
+      var FAILSAFE_MS = 4000;
+      setTimeout(function() {
+        var preloader = document.getElementById('preloader');
+        if (preloader && !preloader.classList.contains('done')) {
+          console.warn('[NDOG] Failsafe: forcing preloader hide');
+          preloader.classList.add('done');
+          setTimeout(function() { preloader.remove(); }, 600);
+        }
+        // Ensure only one view is active
+        var views = document.querySelectorAll('.view');
+        if (views.length && !document.querySelector('.view--active')) {
+          views[0].classList.add('view--active');
+        }
+        // If app shell still hidden and login still hidden, show login
+        var shell = document.getElementById('appShell');
+        var login = document.getElementById('loginScreen');
+        if (shell && shell.classList.contains('hidden') &&
+            login && login.classList.contains('hidden')) {
+          login.classList.remove('hidden');
+        }
+      }, FAILSAFE_MS);
+    })();
+  </script>
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>

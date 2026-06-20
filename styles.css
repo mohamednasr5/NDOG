@@ -342,8 +342,8 @@ input { font: inherit; }
 
 /* ---------- VIEWPORT ---------- */
 .viewport { position: relative; max-width: var(--maxw); margin: 0 auto; padding: 14px 14px 24px; }
-.view { display: none; animation: viewIn .45s var(--ease-out); }
-.view--active { display: block; }
+.view { display: none !important; animation: viewIn .45s var(--ease-out); }
+.view--active { display: block !important; }
 @keyframes viewIn { from { opacity: 0; transform: translateY(12px); } }
 .view__in { display: flex; flex-direction: column; gap: 16px; }
 

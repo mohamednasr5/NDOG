@@ -278,6 +278,38 @@ function hidePreloader() {
   }, 900);
 }
 
+// Safety net: force-hide preloader after 6 seconds even if auth hangs
+setTimeout(() => {
+  const p = document.getElementById("preloader");
+  if (p && !p.classList.contains("done")) {
+    console.warn("[NDOG] Forcing preloader hide after timeout");
+    p.classList.add("done");
+    setTimeout(() => p.remove(), 600);
+    // Also show login screen as fallback if app hasn't initialized
+    const shell = document.getElementById("appShell");
+    const login = document.getElementById("loginScreen");
+    if (shell?.classList.contains("hidden") && login?.classList.contains("hidden")) {
+      login?.classList.remove("hidden");
+    }
+  }
+}, 6000);
+
+// Global error handler — surface JS errors to the user
+window.addEventListener("error", (e) => {
+  console.error("[NDOG] Uncaught error:", e.error || e.message);
+  // If error happens before auth ready, hide preloader and show login
+  const p = document.getElementById("preloader");
+  if (p && !p.classList.contains("done")) {
+    p.classList.add("done");
+    setTimeout(() => p.remove(), 600);
+  }
+});
+
+// Handle module load failures (e.g., file:// protocol, network errors)
+window.addEventListener("unhandledrejection", (e) => {
+  console.error("[NDOG] Unhandled promise rejection:", e.reason);
+});
+
 // ───────────────────────────────────────────────────────────────────
 // BOOTSTRAP
 // ───────────────────────────────────────────────────────────────────

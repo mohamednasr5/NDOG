@@ -1,12 +1,9 @@
 /**
  * NileDogs (NDOG) — Authentication Module
- * ------------------------------------------------------------------
- * - Google sign-in (popup with redirect fallback for mobile)
- * - Session persistence (browserLocalPersistence)
- * - User provisioning on first login
- * - Anti-multi-account: device fingerprint check
- * - Banned-account detection
- * - Referral attribution via ?ref= URL param
+ * v1.1.0 fixes:
+ *   • Single-flight provisioning lock prevents double-provisioning race.
+ *   • Removed `firebaseUser.name` typo (Firebase User has no `.name`).
+ *   • Friendly, localized error messages.
  */
 
 import {
@@ -16,11 +13,11 @@ import {
   signOut, onAuthStateChanged,
   generateReferralCode, getDeviceFingerprint
 } from "./firebase-config.js";
+import { t } from "./i18n.js";
 
 let currentUserData = null;
 let listeners = [];
 
-/** Subscribe to current-user changes. Returns unsubscribe fn. */
 export function onUser(cb) {
   listeners.push(cb);
   if (currentUserData) cb(currentUserData);
@@ -34,47 +31,61 @@ function emit(user) {
 
 export function getCurrentUser() { return currentUserData; }
 
-// ───────────────────────────────────────────────────────────────────
-// Detect mobile for proper sign-in flow
-// ───────────────────────────────────────────────────────────────────
 function isMobile() {
   return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
 }
 
-/**
- * Sign in with Google. Uses popup on desktop, redirect on mobile.
- */
+function friendlyAuthError(err) {
+  const code = err?.code || "";
+  const msg  = err?.message || "";
+  switch (code) {
+    case "auth/unauthorized-domain":
+      return t("auth.errUnauthorizedDomain");
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+      return t("auth.errPopupClosed");
+    case "auth/popup-blocked":
+      return t("auth.errPopupBlocked");
+    case "auth/operation-not-allowed":
+      return t("auth.errNotEnabled");
+    case "auth/network-request-failed":
+      return t("auth.errNetwork");
+    case "auth/redirect-operation-pending":
+      return t("auth.errRedirectPending");
+    case "auth/operation-not-supported-in-this-environment":
+      return t("auth.errEnv");
+    default:
+      return msg || t("auth.errGeneric");
+  }
+}
+
 export async function googleLogin() {
   try {
     if (isMobile()) {
       await signInWithRedirect(auth, googleProvider);
-      return; // result handled in getRedirectResult below
+      return;
     }
-    const result = await signInWithPopup(auth, googleProvider);
-    await provisionUser(result.user);
+    await signInWithPopup(auth, googleProvider);
   } catch (err) {
-    console.error("[NDOG] Google login failed:", err);
-    throw err;
+    console.error("[NDOG] Google login failed:", err.code, err.message);
+    const friendly = friendlyAuthError(err);
+    const e = new Error(friendly);
+    e.original = err;
+    throw e;
   }
 }
 
-/**
- * Handle redirect result on mobile.
- */
 export async function handleRedirectResult() {
   try {
-    const result = await getRedirectResult(auth);
-    if (result && result.user) {
-      await provisionUser(result.user);
-    }
+    return await getRedirectResult(auth);
   } catch (err) {
-    console.error("[NDOG] Redirect result failed:", err);
+    console.error("[NDOG] Redirect result failed:", err.code, err.message);
+    document.dispatchEvent(new CustomEvent("ndog:authError", {
+      detail: { message: friendlyAuthError(err) }
+    }));
   }
 }
 
-/**
- * Sign out.
- */
 export async function logout() {
   try {
     await signOut(auth);
@@ -84,31 +95,38 @@ export async function logout() {
   }
 }
 
-// ───────────────────────────────────────────────────────────────────
-// Provision user on first login
-// ───────────────────────────────────────────────────────────────────
-async function provisionUser(firebaseUser) {
+const provisioningInFlight = new Map();
+
+function provisionUserLocked(firebaseUser) {
+  const uid = firebaseUser.uid;
+  if (provisioningInFlight.has(uid)) {
+    return provisioningInFlight.get(uid);
+  }
+  const p = provisionUserImpl(firebaseUser).finally(() => {
+    provisioningInFlight.delete(uid);
+  });
+  provisioningInFlight.set(uid, p);
+  return p;
+}
+
+async function provisionUserImpl(firebaseUser) {
   const uid = firebaseUser.uid;
   const userRef = ref(db, `users/${uid}`);
   const snap = await get(userRef);
 
-  // Anti-multi-account: check device fingerprint
   const fingerprint = await getDeviceFingerprint();
   const fpRef = ref(db, `deviceFingerprints/${fingerprint}`);
   const fpSnap = await get(fpRef);
   if (fpSnap.exists() && fpSnap.val() !== uid) {
-    // Existing fingerprint belongs to a different account → flag for review
     await set(ref(db, `flaggedAccounts/${uid}`), {
       reason: "duplicate_device_fingerprint",
       otherUid: fpSnap.val(),
       at: Date.now()
     });
-    // Don't block — let admin review. Continue.
   }
   await set(fpRef, uid);
 
   if (!snap.exists()) {
-    // ── Brand new user: create profile ──
     const referralCode = generateReferralCode();
     const urlRef = new URLSearchParams(location.search).get("ref");
     const storedRef = sessionStorage.getItem("ndog_ref");
@@ -131,24 +149,22 @@ async function provisionUser(firebaseUser) {
       totalReferrals: 0,
       activeReferrals: 0,
       communityScore: 0,
-      loyaltyScore:   10,        // bonus for joining
+      loyaltyScore:   10,
       createdAt:    Date.now(),
       lastClaim:    0,
       streak:       0,
       deviceFingerprint: fingerprint,
       banned:       false,
-      isFounder:    true,        // everyone joining pre-launch is a founder
+      isFounder:    true,
       badges:       { founder: true }
     };
 
     await set(userRef, newUserData);
 
-    // ── Process referral attribution ──
     if (referredBy) {
       await processReferral(uid, referredBy);
     }
 
-    // ── Add to claims history a welcome entry ──
     await push(ref(db, `claims`), {
       userId: uid,
       amount: 0,
@@ -160,22 +176,21 @@ async function provisionUser(firebaseUser) {
     return newUserData;
   }
 
-  // ── Existing user — update profile pic/name if changed ──
   const existing = snap.val();
   const patch = {};
-  if (existing.photoURL !== firebaseUser.photoURL) patch.photoURL = firebaseUser.photoURL;
-  if (existing.name !== firebaseUser.name && firebaseUser.displayName) patch.name = firebaseUser.displayName;
+  if (existing.photoURL !== firebaseUser.photoURL && firebaseUser.photoURL) {
+    patch.photoURL = firebaseUser.photoURL;
+  }
+  if (firebaseUser.displayName && existing.name !== firebaseUser.displayName) {
+    patch.name = firebaseUser.displayName;
+  }
   if (Object.keys(patch).length) await update(userRef, patch);
 
   return { ...existing, ...patch };
 }
 
-// ───────────────────────────────────────────────────────────────────
-// Process referral attribution (3-tier reward)
-// ───────────────────────────────────────────────────────────────────
 async function processReferral(newUid, refCode) {
   try {
-    // Find referrer by referralCode
     const usersSnap = await get(ref(db, "users"));
     if (!usersSnap.exists()) return;
 
@@ -187,7 +202,6 @@ async function processReferral(newUid, refCode) {
 
     const now = Date.now();
 
-    // Create referral record (L1)
     await push(ref(db, "referrals"), {
       referrer:     referrerUid,
       referredUser: newUid,
@@ -195,14 +209,12 @@ async function processReferral(newUid, refCode) {
       createdAt:    now
     });
 
-    // Reward L1 referrer
     await update(ref(db, `users/${referrerUid}`), {
       balance:        (await bal(referrerUid)) + APP_CONFIG.referralReward.l1,
       totalReferrals: (await tRefs(referrerUid)) + 1,
       communityScore: (await cScore(referrerUid)) + 10
     });
 
-    // L2 — referrer of referrer
     const l1Snap = await get(ref(db, `users/${referrerUid}`));
     if (l1Snap.exists() && l1Snap.val().referredBy) {
       const l2Code = l1Snap.val().referredBy;
@@ -221,7 +233,6 @@ async function processReferral(newUid, refCode) {
           balance: (await bal(l2Uid)) + APP_CONFIG.referralReward.l2
         });
 
-        // L3 — referrer of L2
         const l2Snap = await get(ref(db, `users/${l2Uid}`));
         if (l2Snap.exists() && l2Snap.val().referredBy) {
           const l3Code = l2Snap.val().referredBy;
@@ -264,11 +275,7 @@ function guessCountry() {
   return "Global";
 }
 
-// ───────────────────────────────────────────────────────────────────
-// Auth state observer
-// ───────────────────────────────────────────────────────────────────
 export function initAuth(onReady) {
-  // Handle mobile redirect first
   handleRedirectResult();
 
   onAuthStateChanged(auth, async (fbUser) => {
@@ -278,16 +285,13 @@ export function initAuth(onReady) {
       return;
     }
 
-    // Pull / subscribe to user data
     const userRef = ref(db, `users/${fbUser.uid}`);
     onValue(userRef, (snap) => {
       if (!snap.exists()) {
-        // First-time user that hasn't been provisioned yet — try provisioning
-        provisionUser(fbUser).then(u => emit(u)).catch(console.error);
+        provisionUserLocked(fbUser).then(u => emit(u)).catch(console.error);
         return;
       }
       const data = snap.val();
-      // Banned?
       if (data.banned) {
         document.getElementById("bannedModal")?.classList.remove("hidden");
         return;

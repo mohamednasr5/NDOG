@@ -778,3 +778,127 @@ input { font: inherit; }
      transition: color 0.2s;
    }
 .pwa-banner__dismiss:hover { color: var(--text); }
+
+/* ============================================================
+   LANGUAGE SWITCHER (login screen pills + topbar button)
+   ============================================================ */
+.login__lang {
+  display: flex; gap: 8px; justify-content: center;
+  margin-bottom: 14px;
+}
+.lang-pill {
+  padding: 8px 16px; border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--glass-bd);
+  color: var(--text-dim);
+  font-size: 13px; font-weight: 700;
+  transition: all .2s var(--ease-out);
+  cursor: pointer;
+}
+.lang-pill:hover { color: var(--gold); border-color: var(--gold); }
+.lang-pill.active {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: #1a1306; border-color: var(--gold);
+  box-shadow: var(--glow-gold);
+}
+
+.topbar__actions {
+  display: flex; align-items: center; gap: 8px;
+}
+.topbar__lang {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--glass-bd);
+  color: var(--text);
+  font-size: 12px; font-weight: 800;
+  transition: all .2s var(--ease-out);
+  cursor: pointer;
+}
+.topbar__lang:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: #1a1306; border-color: var(--gold);
+  transform: scale(1.05);
+}
+
+/* Arabic typography: ensure Arabic text uses a proper font stack. */
+html[lang="ar"] body {
+  font-family: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Cairo",
+               "Helvetica Neue", Arial, sans-serif;
+}
+html[lang="ar"] .login__title,
+html[lang="ar"] .topbar__name,
+html[lang="ar"] .preloader__title {
+  letter-spacing: 0;
+  font-family: "Cairo", "Tajawal", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+/* ============================================================
+   RTL (Right-to-Left) LAYOUT OVERRIDES
+   Triggered automatically when <html dir="rtl"> is set by i18n.js
+   ============================================================ */
+html[dir="rtl"] body { text-align: right; }
+
+/* Top bar: menu button goes on the right, balance on the left */
+html[dir="rtl"] .topbar { flex-direction: row-reverse; }
+
+/* Side nav slides in from the right instead of the left */
+html[dir="rtl"] .sidenav {
+  left: auto; right: 0;
+  transform: translateX(100%);
+  border-left: 1px solid var(--glass-bd);
+  border-right: 0;
+}
+html[dir="rtl"] .sidenav.open { transform: translateX(0); }
+
+/* Desktop sidenav takes space on the right */
+@media (min-width: 768px) {
+  html[dir="rtl"] .app-shell { padding-left: 0; padding-right: 280px; }
+  html[dir="rtl"] .sidenav { transform: translateX(0); }
+}
+
+/* Dashboard hero: keep avatar+name on the right in RTL */
+html[dir="rtl"] .dash__hero { flex-direction: row-reverse; }
+html[dir="rtl"] .dash__hero-r { align-items: flex-start; }
+
+/* Referral card share row stays centered, but flex wrapping reverses naturally */
+
+/* Referral tree rows */
+html[dir="rtl"] .ref-row { flex-direction: row-reverse; }
+
+/* Leaderboard rows */
+html[dir="rtl"] .lb-row { flex-direction: row-reverse; }
+
+/* Claim streak pill — icon-text order stays the same (emoji-first is fine) */
+
+/* Mission cards */
+html[dir="rtl"] .mission-card { flex-direction: row-reverse; }
+html[dir="rtl"] .mission-card__body { text-align: right; }
+
+/* Toasts stay centered; arrows and direction-agnostic icons unaffected */
+
+/* Modals: close button on the left in RTL */
+html[dir="rtl"] .modal__close { right: auto; left: 14px; }
+
+/* Forms (referral inputs) — text-align right */
+html[dir="rtl"] input { text-align: right; }
+
+/* Tables (whitepaper already has its own RTL via dir attribute on the page) */
+
+/* Spinner pointer on the spin wheel: stays at top, no horizontal flip needed */
+
+/* Off-canvas menu icon: lines stay the same; the menu slides from the right */
+
+/* Spin pointer ▼ */
+html[dir="rtl"] .spin__pointer { transform: scaleX(-1); }
+
+/* Number formatting in Arabic locale uses Western Arabic numerals by default
+   with toLocaleString("ar-EG"), but our locale call falls back gracefully. */
+
+/* Margin / padding mirroring for asymmetric spacings */
+html[dir="rtl"] .lf { text-align: right; }
+html[dir="rtl"] .nav-link { flex-direction: row-reverse; }
+html[dir="rtl"] .nav-link span { transform: scaleX(1); /* emoji already RTL-neutral */ }
+
+/* PWA banner position unaffected (centered) */
+

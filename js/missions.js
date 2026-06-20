@@ -1,46 +1,44 @@
 /**
  * NileDogs (NDOG) — Missions module
- * - Daily / weekly / monthly tasks
- * - Achievement badges
- * - Spin wheel (free daily spin)
- * - Lucky box (free 6h)
- * - Community events & challenges
+ * Mission titles & descriptions are looked up via i18n.t() so they
+ * follow the user's chosen language.
  */
 
 import { db, ref, get, set, update, push, onValue, APP_CONFIG } from "./firebase-config.js";
 import { onUser, getCurrentUser } from "./auth.js";
 import { toast, openModal, closeModal, animateCount } from "./app.js";
+import { t, onLangChange } from "./i18n.js";
 
 const MISSIONS = {
   daily: [
-    { id: "d1", icon: "🎁", title: "Claim Daily Reward",  desc: "Claim your daily NDOG", reward: 5,  action: "claim" },
-    { id: "d2", icon: "👥", title: "Share Referral Link", desc: "Share on social media", reward: 5,  action: "share" },
-    { id: "d3", icon: "🎯", title: "Spin the Wheel",      desc: "One free daily spin",   reward: 3,  action: "spin"  },
-    { id: "d4", icon: "📦", title: "Open Lucky Box",      desc: "Open a mystery box",    reward: 3,  action: "lucky" },
-    { id: "d5", icon: "🏆", title: "Check Leaderboard",   desc: "Visit the leaderboard", reward: 2,  action: "leaderboard" }
+    { id: "d1", icon: "🎁", titleKey: "mission.d1.title", descKey: "mission.d1.desc", reward: 5,  action: "claim" },
+    { id: "d2", icon: "👥", titleKey: "mission.d2.title", descKey: "mission.d2.desc", reward: 5,  action: "share" },
+    { id: "d3", icon: "🎯", titleKey: "mission.d3.title", descKey: "mission.d3.desc", reward: 3,  action: "spin"  },
+    { id: "d4", icon: "📦", titleKey: "mission.d4.title", descKey: "mission.d4.desc", reward: 3,  action: "lucky" },
+    { id: "d5", icon: "🏆", titleKey: "mission.d5.title", descKey: "mission.d5.desc", reward: 2,  action: "leaderboard" }
   ],
   weekly: [
-    { id: "w1", icon: "🔥", title: "7-Day Streak",        desc: "Claim 7 days in a row",      reward: 50,  action: "streak", target: 7 },
-    { id: "w2", icon: "👥", title: "Invite 3 Friends",    desc: "Get 3 new referrals",         reward: 100, action: "referrals", target: 3 },
-    { id: "w3", icon: "💎", title: "Reach 500 NDOG",      desc: "Grow your balance",           reward: 25,  action: "balance", target: 500 }
+    { id: "w1", icon: "🔥", titleKey: "mission.w1.title", descKey: "mission.w1.desc", reward: 50,  action: "streak", target: 7 },
+    { id: "w2", icon: "👥", titleKey: "mission.w2.title", descKey: "mission.w2.desc", reward: 100, action: "referrals", target: 3 },
+    { id: "w3", icon: "💎", titleKey: "mission.w3.title", descKey: "mission.w3.desc", reward: 25,  action: "balance", target: 500 }
   ],
   monthly: [
-    { id: "m1", icon: "👑", title: "Founder Status",      desc: "Be a pre-launch member",      reward: 200, action: "founder" },
-    { id: "m2", icon: "🥇", title: "Reach Gold Rank",     desc: "Earn 2,000+ NDOG",            reward: 500, action: "balance", target: 2000 },
-    { id: "m3", icon: "🌐", title: "Top 100 Globally",    desc: "Climb the leaderboard",       reward: 300, action: "rank" }
+    { id: "m1", icon: "👑", titleKey: "mission.m1.title", descKey: "mission.m1.desc", reward: 200, action: "founder" },
+    { id: "m2", icon: "🥇", titleKey: "mission.m2.title", descKey: "mission.m2.desc", reward: 500, action: "balance", target: 2000 },
+    { id: "m3", icon: "🌐", titleKey: "mission.m3.title", descKey: "mission.m3.desc", reward: 300, action: "rank" }
   ],
   badges: [
-    { id: "b1", icon: "👑", title: "Founder",        desc: "Joined before launch",      req: "isFounder" },
-    { id: "b2", icon: "🔥", title: "Streak Master",  desc: "30-day claim streak",        req: "streak30" },
-    { id: "b3", icon: "👥", title: "Network Builder",desc: "10+ referrals",              req: "refs10" },
-    { id: "b4", icon: "🥇", title: "Gold Member",    desc: "Reach Gold tier",            req: "balance2000" },
-    { id: "b5", icon: "💎", title: "Diamond Hands",  desc: "Reach Diamond tier",         req: "balance10000" },
-    { id: "b6", icon: "🏆", title: "Legend",         desc: "Reach Legend tier",          req: "balance50000" }
+    { id: "b1", icon: "👑", titleKey: "mission.b1.title", descKey: "mission.b1.desc", req: "isFounder" },
+    { id: "b2", icon: "🔥", titleKey: "mission.b2.title", descKey: "mission.b2.desc", req: "streak30" },
+    { id: "b3", icon: "👥", titleKey: "mission.b3.title", descKey: "mission.b3.desc", req: "refs10" },
+    { id: "b4", icon: "🥇", titleKey: "mission.b4.title", descKey: "mission.b4.desc", req: "balance2000" },
+    { id: "b5", icon: "💎", titleKey: "mission.b5.title", descKey: "mission.b5.desc", req: "balance10000" },
+    { id: "b6", icon: "🏆", titleKey: "mission.b6.title", descKey: "mission.b6.desc", req: "balance50000" }
   ],
   events: [
-    { id: "e1", icon: "🎉", title: "Launch Countdown Event",  desc: "Join the global launch party on Jan 1, 2028", reward: 1000, status: "Upcoming" },
-    { id: "e2", icon: "🌍", title: "Community Challenge: 1M Referrals", desc: "Help the community reach 1M total referrals", reward: 500, status: "Active" },
-    { id: "e3", icon: "🎁", title: "Weekly Lucky Draw",         desc: "Top 10 referrers each week share 5000 NDOG",  reward: 500, status: "Active" }
+    { id: "e1", icon: "🎉", titleKey: "mission.e1.title", descKey: "mission.e1.desc", reward: 1000, status: "Upcoming" },
+    { id: "e2", icon: "🌍", titleKey: "mission.e2.title", descKey: "mission.e2.desc", reward: 500, status: "Active" },
+    { id: "e3", icon: "🎁", titleKey: "mission.e3.title", descKey: "mission.e3.desc", reward: 500, status: "Active" }
   ]
 };
 
@@ -71,7 +69,6 @@ export function initMissions() {
     }
   });
 
-  // Tabs
   document.querySelectorAll("[data-mtab]").forEach(tab => {
     tab.addEventListener("click", () => {
       document.querySelectorAll("[data-mtab]").forEach(t => t.classList.remove("active"));
@@ -81,15 +78,17 @@ export function initMissions() {
     });
   });
 
-  // Spin modal
   document.getElementById("openSpin")?.addEventListener("click", openSpin);
   document.getElementById("spinNowBtn")?.addEventListener("click", doSpin);
-  // Lucky modal
   document.getElementById("openLucky")?.addEventListener("click", openLucky);
   document.getElementById("luckyOpenBtn")?.addEventListener("click", doLucky);
 
   document.addEventListener("ndog:viewchange", (e) => {
     if (e.detail.view === "missions") renderTab();
+  });
+
+  onLangChange(() => {
+    renderTab();
   });
 
   renderTab();
@@ -99,7 +98,7 @@ function renderTab() {
   const list = document.getElementById("missionsList");
   if (!list) return;
   if (!currentUser) {
-    list.innerHTML = `<div class="empty">Sign in to view your missions.</div>`;
+    list.innerHTML = `<div class="empty">${t("missions.signInFirst")}</div>`;
     return;
   }
   const items = MISSIONS[currentTab] || [];
@@ -110,11 +109,11 @@ function renderTab() {
         <div class="mission-card ${unlocked ? "done" : ""}">
           <div class="mission-card__icon" style="${unlocked ? "" : "filter:grayscale(1) opacity(0.5)"}">${b.icon}</div>
           <div class="mission-card__body">
-            <div class="mission-card__title">${b.title}${unlocked ? " ✓" : ""}</div>
-            <div class="mission-card__desc">${b.desc}</div>
+            <div class="mission-card__title">${t(b.titleKey)}${unlocked ? " ✓" : ""}</div>
+            <div class="mission-card__desc">${t(b.descKey)}</div>
           </div>
           <div class="mission-card__action">
-            <span style="font-size:11px;color:${unlocked ? "var(--neon-green)" : "var(--text-mute)"}">${unlocked ? "Unlocked" : "Locked"}</span>
+            <span style="font-size:11px;color:${unlocked ? "var(--neon-green)" : "var(--text-mute)"}">${unlocked ? t("missions.unlocked") : t("missions.locked")}</span>
           </div>
         </div>`;
     }).join("");
@@ -125,8 +124,8 @@ function renderTab() {
       <div class="mission-card">
         <div class="mission-card__icon">${e.icon}</div>
         <div class="mission-card__body">
-          <div class="mission-card__title">${e.title}</div>
-          <div class="mission-card__desc">${e.desc}</div>
+          <div class="mission-card__title">${t(e.titleKey)}</div>
+          <div class="mission-card__desc">${t(e.descKey)}</div>
           <div class="mission-card__reward">+${e.reward} NDOG</div>
         </div>
         <div class="mission-card__action">
@@ -135,26 +134,24 @@ function renderTab() {
       </div>`).join("");
     return;
   }
-  // tasks
   list.innerHTML = items.map(m => {
     const done = isTaskDone(m, currentUser);
     return `
       <div class="mission-card ${done ? "done" : ""}">
         <div class="mission-card__icon">${m.icon}</div>
         <div class="mission-card__body">
-          <div class="mission-card__title">${m.title}${done ? " ✓" : ""}</div>
-          <div class="mission-card__desc">${m.desc}</div>
+          <div class="mission-card__title">${t(m.titleKey)}${done ? " ✓" : ""}</div>
+          <div class="mission-card__desc">${t(m.descKey)}</div>
           <div class="mission-card__reward">+${m.reward} NDOG</div>
         </div>
         <div class="mission-card__action">
           ${done
-            ? `<button class="btn btn--ghost btn--sm" disabled>Done</button>`
-            : `<button class="btn btn--gold btn--sm" data-mission="${m.id}">Go</button>`}
+            ? `<button class="btn btn--ghost btn--sm" disabled>${t("missions.done")}</button>`
+            : `<button class="btn btn--gold btn--sm" data-mission="${m.id}">${t("missions.go")}</button>`}
         </div>
       </div>`;
   }).join("");
 
-  // Wire "Go" buttons
   list.querySelectorAll("[data-mission]").forEach(btn => {
     btn.addEventListener("click", () => handleMissionAction(btn.dataset.mission));
   });
@@ -165,13 +162,13 @@ function isTaskDone(m, user) {
     case "claim":      return isToday(user.lastClaim);
     case "spin":       return isToday(user.lastSpin);
     case "lucky":      return (Date.now() - (user.lastLucky || 0)) < 6 * 3600 * 1000;
-    case "share":      return false; // could track via storage
+    case "share":      return false;
     case "leaderboard":return false;
     case "streak":     return (user.streak || 0) >= (m.target || 7);
     case "referrals":  return (user.totalReferrals || 0) >= (m.target || 3);
     case "balance":    return (user.balance || 0) >= (m.target || 0);
     case "founder":    return !!user.isFounder;
-    case "rank":       return false; // would need leaderboard position
+    case "rank":       return false;
     default:           return false;
   }
 }
@@ -204,7 +201,7 @@ async function handleMissionAction(missionId) {
       break;
     case "share":
       window.ndogSetView("referral");
-      toast("Share your referral link to complete this mission!", "info");
+      toast(t("missions.shareHint"), "info");
       break;
     case "spin":
       openSpin();
@@ -216,18 +213,15 @@ async function handleMissionAction(missionId) {
       window.ndogSetView("leaderboard");
       break;
     default:
-      toast("This mission is automatically tracked.", "info");
+      toast(t("missions.autoTracked"), "info");
   }
 }
 
-// ───────────────────────────────────────────────────────────────────
-// SPIN WHEEL
-// ───────────────────────────────────────────────────────────────────
 function openSpin() {
   if (!currentUser) return;
   const canSpin = Date.now() - lastSpinAt >= 24 * 3600 * 1000;
   if (!canSpin) {
-    toast("You already spun today. Come back tomorrow!", "err");
+    toast(t("missions.spinDone"), "err");
     return;
   }
   openModal("spinModal");
@@ -245,7 +239,6 @@ function drawWheel(angle) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // outer glow ring
   ctx.beginPath();
   ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
   ctx.strokeStyle = "#ffd700";
@@ -268,7 +261,6 @@ function drawWheel(angle) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Label
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(start + seg / 2);
@@ -279,7 +271,6 @@ function drawWheel(angle) {
     ctx.restore();
   });
 
-  // Hub
   ctx.beginPath();
   ctx.arc(cx, cy, 18, 0, Math.PI * 2);
   ctx.fillStyle = "#0a1f44";
@@ -293,21 +284,18 @@ async function doSpin() {
   if (spinning || !currentUser) return;
   const canSpin = Date.now() - lastSpinAt >= 24 * 3600 * 1000;
   if (!canSpin) {
-    toast("Already spun today!", "err");
+    toast(t("missions.spinDone"), "err");
     return;
   }
   spinning = true;
   const btn = document.getElementById("spinNowBtn");
   btn.disabled = true;
-  btn.textContent = "Spinning…";
+  btn.textContent = t("missions.spinning");
 
-  // Random winning segment
   const winningIdx = Math.floor(Math.random() * SPIN_SEGMENTS.length);
   const segAngle = (Math.PI * 2) / SPIN_SEGMENTS.length;
-  // Pointer is at top (-π/2). We need winning segment center under pointer.
   const targetCenter = -Math.PI / 2;
   const currentSegCenter = spinAngle + winningIdx * segAngle + segAngle / 2;
-  // Spin multiple full turns + delta
   const fullTurns = 6;
   const delta = targetCenter - currentSegCenter;
   const final = spinAngle + fullTurns * Math.PI * 2 + delta;
@@ -315,8 +303,8 @@ async function doSpin() {
   const duration = 4500;
   const startAngle = spinAngle;
   const t0 = performance.now();
-  function step(t) {
-    const p = Math.min(1, (t - t0) / duration);
+  function step(now) {
+    const p = Math.min(1, (now - t0) / duration);
     const eased = 1 - Math.pow(1 - p, 4);
     spinAngle = startAngle + (final - startAngle) * eased;
     drawWheel(spinAngle);
@@ -333,7 +321,7 @@ async function onSpinEnd(idx) {
   const reward = SPIN_SEGMENTS[idx].value;
   const btn = document.getElementById("spinNowBtn");
   btn.disabled = false;
-  btn.textContent = "Spin Again";
+  btn.textContent = t("missions.spinAgain");
 
   lastSpinAt = Date.now();
   try {
@@ -342,7 +330,7 @@ async function onSpinEnd(idx) {
       lastSpin: lastSpinAt
     });
     if (reward > 0) {
-      toast(`🎉 You won ${reward} NDOG!`, "ok", 3000);
+      toast(t("missions.spinWon", { n: reward }), "ok", 3000);
       await push(ref(db, "claims"), {
         userId: currentUser.uid,
         amount: reward,
@@ -350,18 +338,15 @@ async function onSpinEnd(idx) {
         date:   Date.now()
       });
     } else {
-      toast("Better luck next time! 🎡", "info");
+      toast(t("missions.spinNoLuck"), "info");
     }
   } catch (err) {
     console.error("[NDOG] Spin reward failed:", err);
-    toast("Spin recorded but reward failed. Contact support.", "err");
+    toast(t("missions.spinFailed"), "err");
   }
   setTimeout(() => closeModal("spinModal"), 1800);
 }
 
-// ───────────────────────────────────────────────────────────────────
-// LUCKY BOX
-// ───────────────────────────────────────────────────────────────────
 function openLucky() {
   if (!currentUser) return;
   const canOpen = Date.now() - lastLuckyAt >= 6 * 3600 * 1000;
@@ -369,14 +354,14 @@ function openLucky() {
     const remaining = 6 * 3600 * 1000 - (Date.now() - lastLuckyAt);
     const h = Math.floor(remaining / 3600000);
     const m = Math.floor((remaining % 3600000) / 60000);
-    toast(`Lucky box recharges in ${h}h ${m}m`, "err");
+    toast(t("missions.luckyRecharge", { h, m }), "err");
     return;
   }
   openModal("luckyModal");
   const box = document.getElementById("luckyBox");
   if (box) { box.classList.remove("open"); box.textContent = "🎁"; }
   const lb = document.getElementById("luckyOpenBtn");
-  if (lb) { lb.disabled = false; lb.textContent = "Open Box"; }
+  if (lb) { lb.disabled = false; lb.textContent = t("missions.openBox"); }
 }
 
 async function doLucky() {
@@ -386,7 +371,7 @@ async function doLucky() {
   const box = document.getElementById("luckyBox");
   box.classList.add("open");
 
-  const reward = Math.floor(5 + Math.random() * 96); // 5–100
+  const reward = Math.floor(5 + Math.random() * 96);
   lastLuckyAt = Date.now();
 
   setTimeout(async () => {
@@ -396,7 +381,7 @@ async function doLucky() {
         balance:   (currentUser.balance || 0) + reward,
         lastLucky: lastLuckyAt
       });
-      toast(`🎉 You found ${reward} NDOG in the lucky box!`, "ok", 3500);
+      toast(t("missions.luckyWon", { n: reward }), "ok", 3500);
       await push(ref(db, "claims"), {
         userId: currentUser.uid,
         amount: reward,
@@ -406,7 +391,7 @@ async function doLucky() {
     } catch (err) {
       console.error("[NDOG] Lucky reward failed:", err);
     }
-    btn.textContent = "Opened ✓";
+    btn.textContent = t("missions.opened");
     setTimeout(() => closeModal("luckyModal"), 1500);
   }, 700);
 }

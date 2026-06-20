@@ -1,9 +1,5 @@
 /**
  * NileDogs (NDOG) — Daily Claim module
- * - 24h countdown
- * - Streak tracking
- * - Reward multiplier (streak bonus + referral bonus + founder bonus)
- * - Claim history
  */
 
 import {
@@ -13,6 +9,7 @@ import {
 import { onUser, getCurrentUser } from "./auth.js";
 import { animateCount, toast } from "./app.js";
 import { computeLevel } from "./dashboard.js";
+import { t, getLang, onLangChange } from "./i18n.js";
 
 let claimTimer = null;
 let currentUser = null;
@@ -33,8 +30,12 @@ export function initClaim() {
     });
   }
 
-  // Render reward levels (static)
   renderLevelsGrid();
+
+  onLangChange(() => {
+    renderLevelsGrid();
+    if (currentUser) renderClaim();
+  });
 }
 
 function renderLevelsGrid() {
@@ -52,19 +53,12 @@ function renderLevelsGrid() {
 function computeReward(user) {
   let amount = APP_CONFIG.claimBase;
   let multiplier = 1;
-
-  // streak bonus
   const streak = user.streak || 0;
   for (const [days, mult] of Object.entries(APP_CONFIG.streakBonus)) {
     if (streak >= +days) multiplier = mult;
   }
-
-  // referral bonus
   if (user.referredBy) multiplier += APP_CONFIG.referralBonus;
-
-  // founder bonus
   if (user.isFounder) multiplier += 0.5;
-
   amount = Math.round(amount * multiplier);
   return { amount, multiplier };
 }
@@ -77,18 +71,16 @@ function renderClaim() {
   if (!currentUser) return;
   const user = currentUser;
 
-  // Highlight current level
   const curLevel = computeLevel(user.balance || 0);
   document.querySelectorAll("#claimLevelsGrid .claim-level").forEach(el => {
     el.classList.toggle("current", el.dataset.level === curLevel.name);
   });
 
-  // Compute reward
   const { amount, multiplier } = computeReward(user);
   const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setText("claimReward", `+${amount} NDOG`);
   setText("claimMult",   `×${multiplier.toFixed(1)}`);
-  setText("claimStreak", `${user.streak || 0} days`);
+  setText("claimStreak", t("claim.streakDays", { n: user.streak || 0 }));
 
   const btn = document.getElementById("claimBtn");
   const hint = document.getElementById("claimHint");
@@ -99,16 +91,14 @@ function renderClaim() {
   const next = nextClaimTime(user.lastClaim || 0);
 
   if (now >= next) {
-    // Ready to claim
-    if (btn) { btn.disabled = false; btn.textContent = "Claim Daily Reward"; btn.classList.add("btn--gold"); }
-    if (hint) hint.textContent = "Ready to claim";
+    if (btn) { btn.disabled = false; btn.textContent = t("claim.btn"); btn.classList.add("btn--gold"); }
+    if (hint) hint.textContent = t("claim.ready");
     setText("claimCountdown", "");
     if (ringFg) ringFg.style.strokeDashoffset = 0;
     if (claimTimer) { clearInterval(claimTimer); claimTimer = null; }
   } else {
-    // Not yet — start countdown
-    if (btn) { btn.disabled = true; btn.classList.remove("btn--gold"); btn.textContent = "Claimed ✓ — Come back later"; }
-    if (hint) hint.textContent = "Next claim in";
+    if (btn) { btn.disabled = true; btn.classList.remove("btn--gold"); btn.textContent = t("claim.btnClaimed"); }
+    if (hint) hint.textContent = t("claim.nextIn");
 
     if (claimTimer) clearInterval(claimTimer);
     claimTimer = setInterval(() => {
@@ -125,7 +115,6 @@ function renderClaim() {
       setText("claimCountdown",
         `⏳ ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
 
-      // ring fill (0 = full, ringCirc = empty)
       const total = 24 * 3600 * 1000;
       const elapsed = total - remaining;
       const pct = elapsed / total;
@@ -133,7 +122,6 @@ function renderClaim() {
     }, 1000);
   }
 
-  // Claim history (live)
   loadClaimHistory(user.uid);
 }
 
@@ -144,19 +132,18 @@ async function doClaim() {
   const next = nextClaimTime(user.lastClaim || 0);
 
   if (now < next) {
-    toast("You already claimed today. Come back later!", "err");
+    toast(t("claim.alreadyClaimed"), "err");
     return;
   }
 
   const btn = document.getElementById("claimBtn");
   btn.disabled = true;
-  btn.textContent = "Claiming…";
+  btn.textContent = t("claim.btnClaiming");
 
   try {
     const { amount, multiplier } = computeReward(user);
     const streak = (user.streak || 0) + 1;
 
-    // Atomically-ish update user
     await update(ref(db, `users/${user.uid}`), {
       balance:        (user.balance || 0) + amount,
       lastClaim:      now,
@@ -165,7 +152,6 @@ async function doClaim() {
       communityScore: (user.communityScore || 0) + 5
     });
 
-    // Push to claims history
     await push(ref(db, "claims"), {
       userId: user.uid,
       amount,
@@ -175,25 +161,23 @@ async function doClaim() {
       type: "daily"
     });
 
-    // Confetti-ish toast
-    toast(`🎉 You claimed ${amount} NDOG! (×${multiplier.toFixed(1)})`, "ok", 3000);
-    btn.textContent = "Claimed ✓";
+    toast(t("claim.success", { n: amount, m: multiplier.toFixed(1) }), "ok", 3000);
+    btn.textContent = t("claim.btnClaimedShort");
     btn.classList.remove("btn--gold");
 
-    // Re-render (will start countdown)
     setTimeout(renderClaim, 600);
   } catch (err) {
     console.error("[NDOG] Claim failed:", err);
-    toast("Claim failed — please try again.", "err");
+    toast(t("claim.failed"), "err");
     btn.disabled = false;
-    btn.textContent = "Claim Daily Reward";
+    btn.textContent = t("claim.btn");
   }
 }
 
 function loadClaimHistory(uid) {
   const list = document.getElementById("claimHistoryList");
   if (!list) return;
-  list.innerHTML = `<div class="empty">Loading history…</div>`;
+  list.innerHTML = `<div class="empty">${t("claim.loadingHistory")}</div>`;
 
   const q = ref(db, "claims");
   onValue(q, (snap) => {
@@ -205,14 +189,14 @@ function loadClaimHistory(uid) {
     });
     rows.sort((a, b) => (b.date || 0) - (a.date || 0));
     if (!rows.length) {
-      list.innerHTML = `<div class="empty">No claims yet — claim your first reward today!</div>`;
+      list.innerHTML = `<div class="empty">${t("claim.emptyHistory")}</div>`;
       return;
     }
     list.innerHTML = rows.slice(0, 30).map(c => `
       <div class="claim-row">
         <div>
           <div class="claim-row__amt">+${c.amount} NDOG</div>
-          <div class="claim-row__date">${formatDate(c.date)} · 🔥 ${c.streak || 0}-day streak</div>
+          <div class="claim-row__date">${formatDate(c.date)} · 🔥 ${c.streak || 0}</div>
         </div>
         <div>${c.multiplier ? `×${c.multiplier.toFixed(1)}` : ""}</div>
       </div>
@@ -222,7 +206,8 @@ function loadClaimHistory(uid) {
 
 function formatDate(ts) {
   if (!ts) return "—";
-  return new Date(ts).toLocaleString("en-US", {
+  const locale = getLang() === "ar" ? "ar-EG" : "en-US";
+  return new Date(ts).toLocaleString(locale, {
     month: "short", day: "numeric",
     hour: "2-digit", minute: "2-digit"
   });

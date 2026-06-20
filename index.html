@@ -1,5 +1,4 @@
-<!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
@@ -20,7 +19,7 @@
   <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
   <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="64x64" href="./assets/icons/favicon.png" />
-  <link rel="stylesheet" href="./css/styles.css?v=1.0.3" />
+  <link rel="stylesheet" href="./css/styles.css?v=1.1.0" />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
 
   <title>NileDogs (NDOG) — Rewards Ecosystem</title>
@@ -57,36 +56,45 @@
         <h1 class="login__title">NileDogs</h1>
         <p class="login__ticker">$NDOG · Community Rewards</p>
       </div>
-      <p class="login__tagline">
+      <p class="login__tagline" data-i18n-html="login.tagline">
         Join the early adopter program. Earn tokens, invite friends,
         and become a founder before the official launch on
         <strong>January 1, 2028</strong>.
       </p>
 
       <div class="login__countdown" id="launchCountdown">
-        <div class="lc__unit"><span id="lcDays">0</span><small>Days</small></div>
-        <div class="lc__unit"><span id="lcHours">0</span><small>Hrs</small></div>
-        <div class="lc__unit"><span id="lcMins">0</span><small>Min</small></div>
-        <div class="lc__unit"><span id="lcSecs">0</span><small>Sec</small></div>
+        <div class="lc__unit"><span id="lcDays">0</span><small data-i18n="cd.days">Days</small></div>
+        <div class="lc__unit"><span id="lcHours">0</span><small data-i18n="cd.hrs">Hrs</small></div>
+        <div class="lc__unit"><span id="lcMins">0</span><small data-i18n="cd.min">Min</small></div>
+        <div class="lc__unit"><span id="lcSecs">0</span><small data-i18n="cd.sec">Sec</small></div>
       </div>
 
-      <button id="googleLoginBtn" class="btn btn--google">
+      <button id="googleLoginBtn" class="btn btn--google" data-i18n="login.googleBtn">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <path fill="#fff" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.4-1.6 4.1-5.27 4.1-3.17 0-5.76-2.62-5.76-5.86s2.59-5.86 5.76-5.86c1.81 0 3.02.77 3.71 1.43l2.53-2.44C16.9 3.4 14.79 2.5 12.17 2.5 6.99 2.5 2.81 6.68 2.81 11.86S6.99 21.22 12.17 21.22c5.86 0 9.74-4.11 9.74-9.9 0-.66-.07-1.17-.16-1.67z"/>
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
         </svg>
-        Continue with Google
+        <span>Continue with Google</span>
       </button>
 
-      <p class="login__note">
+      <!-- Language switcher -->
+      <div class="login__lang">
+        <button class="lang-pill" data-lang="en" type="button">🇬🇧 EN</button>
+        <button class="lang-pill" data-lang="ar" type="button">🇪🇬 عربي</button>
+      </div>
+
+      <p class="login__note" data-i18n-html="login.note">
         By continuing you agree to the
         <a href="./whitepaper-en.html">Whitepaper</a> and confirm you are 13+.
       </p>
 
       <div class="login__features">
-        <div class="lf"><span>🪙</span><p>Daily NDOG rewards</p></div>
-        <div class="lf"><span>👥</span><p>3-tier referral bonuses</p></div>
-        <div class="lf"><span>🏆</span><p>Global leaderboard</p></div>
-        <div class="lf"><span>🎁</span><p>Missions &amp; spin wheel</p></div>
+        <div class="lf"><span>🪙</span><p data-i18n="login.feat1">Daily NDOG rewards</p></div>
+        <div class="lf"><span>👥</span><p data-i18n="login.feat2">3-tier referral bonuses</p></div>
+        <div class="lf"><span>🏆</span><p data-i18n="login.feat3">Global leaderboard</p></div>
+        <div class="lf"><span>🎁</span><p data-i18n="login.feat4">Missions &amp; spin wheel</p></div>
       </div>
     </div>
   </section>
@@ -103,10 +111,15 @@
         <span class="topbar__logo">🐕</span>
         <span class="topbar__name">NileDogs</span>
       </a>
-      <div class="topbar__balance" id="topbarBalance">
-        <span class="topbar__bal-icon">🪙</span>
-        <span class="topbar__bal-num" id="topbarBalNum">0</span>
-        <span class="topbar__bal-ticker">NDOG</span>
+      <div class="topbar__actions">
+        <button class="topbar__lang" id="langToggle" type="button" aria-label="Switch language">
+          <span id="langToggleLbl">EN</span>
+        </button>
+        <div class="topbar__balance" id="topbarBalance">
+          <span class="topbar__bal-icon">🪙</span>
+          <span class="topbar__bal-num" id="topbarBalNum">0</span>
+          <span class="topbar__bal-ticker">NDOG</span>
+        </div>
       </div>
     </header>
 
@@ -118,25 +131,25 @@
         <div class="sidenav__code" id="sideCode">NDOG—</div>
       </div>
       <nav class="sidenav__links">
-        <a href="#" data-view="dashboard"    class="nav-link active"><span>🏠</span> Dashboard</a>
-        <a href="#" data-view="claim"        class="nav-link"><span>🎁</span> Daily Claim</a>
-        <a href="#" data-view="referral"     class="nav-link"><span>👥</span> Referrals</a>
-        <a href="#" data-view="missions"     class="nav-link"><span>🎯</span> Missions</a>
-        <a href="#" data-view="leaderboard"  class="nav-link"><span>🏆</span> Leaderboard</a>
-        <a href="#" data-view="whitepaper"   class="nav-link"><span>📄</span> Whitepaper</a>
-        <a href="./admin.html"               class="nav-link admin-only hidden"><span>🛡️</span> Admin</a>
+        <a href="#" data-view="dashboard"    class="nav-link active"><span>🏠</span> <span data-i18n="nav.dashboard">Dashboard</span></a>
+        <a href="#" data-view="claim"        class="nav-link"><span>🎁</span> <span data-i18n="nav.claim">Daily Claim</span></a>
+        <a href="#" data-view="referral"     class="nav-link"><span>👥</span> <span data-i18n="nav.referral">Referrals</span></a>
+        <a href="#" data-view="missions"     class="nav-link"><span>🎯</span> <span data-i18n="nav.missions">Missions</span></a>
+        <a href="#" data-view="leaderboard"  class="nav-link"><span>🏆</span> <span data-i18n="nav.leaderboard">Leaderboard</span></a>
+        <a href="#" data-view="whitepaper"   class="nav-link"><span>📄</span> <span data-i18n="nav.whitepaper">Whitepaper</span></a>
+        <a href="./admin.html"               class="nav-link admin-only hidden"><span>🛡️</span> <span data-i18n="nav.admin">Admin</span></a>
       </nav>
-      <button class="btn btn--ghost" id="logoutBtn"><span>⏻</span> Sign Out</button>
+      <button class="btn btn--ghost" id="logoutBtn"><span>⏻</span> <span data-i18n="nav.logout">Sign Out</span></button>
     </aside>
     <div class="sidenav__scrim" id="sidenavScrim"></div>
 
     <!-- BOTTOM NAV -->
     <nav class="bottomnav glass">
-      <a href="#" data-view="dashboard"   class="bn-link active"><span>🏠</span><small>Home</small></a>
-      <a href="#" data-view="claim"       class="bn-link"><span>🎁</span><small>Claim</small></a>
-      <a href="#" data-view="referral"    class="bn-link"><span>👥</span><small>Refer</small></a>
-      <a href="#" data-view="missions"    class="bn-link"><span>🎯</span><small>Missions</small></a>
-      <a href="#" data-view="leaderboard" class="bn-link"><span>🏆</span><small>Ranks</small></a>
+      <a href="#" data-view="dashboard"   class="bn-link active"><span>🏠</span><small data-i18n="bn.home">Home</small></a>
+      <a href="#" data-view="claim"       class="bn-link"><span>🎁</span><small data-i18n="bn.claim">Claim</small></a>
+      <a href="#" data-view="referral"    class="bn-link"><span>👥</span><small data-i18n="bn.refer">Refer</small></a>
+      <a href="#" data-view="missions"    class="bn-link"><span>🎯</span><small data-i18n="bn.missions">Missions</small></a>
+      <a href="#" data-view="leaderboard" class="bn-link"><span>🏆</span><small data-i18n="bn.ranks">Ranks</small></a>
     </nav>
 
     <!-- MAIN VIEWPORT -->
@@ -150,7 +163,7 @@
             <div class="dash__hero-l">
               <img id="dashAvatar" class="dash__avatar" alt="avatar" />
               <div>
-                <div class="dash__hello">Welcome back,</div>
+                <div class="dash__hello" data-i18n="dash.hello">Welcome back,</div>
                 <h2 class="dash__name" id="dashName">User</h2>
                 <div class="dash__meta">
                   <span id="dashJoined">Member since —</span>
@@ -164,7 +177,7 @@
                 <span class="dash__rank-icon">🥉</span>
                 <span id="dashRankName">Bronze</span>
               </div>
-              <button class="btn btn--gold btn--sm" data-view="claim">Claim Today</button>
+              <button class="btn btn--gold btn--sm" data-view="claim" data-i18n="dash.claimToday">Claim Today</button>
             </div>
           </div>
 
@@ -172,7 +185,7 @@
             <div class="stat-card glass">
               <div class="stat-card__icon">🪙</div>
               <div class="stat-card__meta">
-                <div class="stat-card__label">Balance</div>
+                <div class="stat-card__label" data-i18n="dash.balance">Balance</div>
                 <div class="stat-card__value" data-counter id="statBalance">0</div>
                 <div class="stat-card__sub">NDOG</div>
               </div>
@@ -180,25 +193,25 @@
             <div class="stat-card glass">
               <div class="stat-card__icon">⭐</div>
               <div class="stat-card__meta">
-                <div class="stat-card__label">Community Score</div>
+                <div class="stat-card__label" data-i18n="dash.community">Community Score</div>
                 <div class="stat-card__value" data-counter id="statCommunity">0</div>
-                <div class="stat-card__sub">points</div>
+                <div class="stat-card__sub" data-i18n="dash.points">points</div>
               </div>
             </div>
             <div class="stat-card glass">
               <div class="stat-card__icon">💎</div>
               <div class="stat-card__meta">
-                <div class="stat-card__label">Loyalty Score</div>
+                <div class="stat-card__label" data-i18n="dash.loyalty">Loyalty Score</div>
                 <div class="stat-card__value" data-counter id="statLoyalty">0</div>
-                <div class="stat-card__sub">points</div>
+                <div class="stat-card__sub" data-i18n="dash.points">points</div>
               </div>
             </div>
             <div class="stat-card glass">
               <div class="stat-card__icon">👥</div>
               <div class="stat-card__meta">
-                <div class="stat-card__label">Referrals</div>
+                <div class="stat-card__label" data-i18n="dash.referrals">Referrals</div>
                 <div class="stat-card__value" data-counter id="statRefs">0</div>
-                <div class="stat-card__sub">invited</div>
+                <div class="stat-card__sub" data-i18n="dash.invited">invited</div>
               </div>
             </div>
           </div>
@@ -206,8 +219,8 @@
           <!-- Referral code card -->
           <div class="ref-card glass">
             <div class="ref-card__head">
-              <h3>Your Referral Link</h3>
-              <button class="btn btn--ghost btn--sm" id="copyRefBtn">Copy</button>
+              <h3 data-i18n="dash.refLink">Your Referral Link</h3>
+              <button class="btn btn--ghost btn--sm" id="copyRefBtn" data-i18n="common.copy">Copy</button>
             </div>
             <div class="ref-card__code" id="dashRefCode">NDOG—</div>
             <div class="ref-card__link" id="dashRefLink">https://mohamednasr5.github.io/NDOG/?ref=NDOG—</div>
@@ -224,7 +237,7 @@
           <!-- Reward level progress -->
           <div class="level-card glass">
             <div class="level-card__head">
-              <h3>Reward Level</h3>
+              <h3 data-i18n="dash.rewardLevel">Reward Level</h3>
               <span class="level-card__next" id="levelNext">Next: Silver</span>
             </div>
             <div class="level-track">
@@ -237,8 +250,8 @@
           <div class="ea-banner glass" id="earlyAdopterBanner">
             <div class="ea-banner__icon">👑</div>
             <div class="ea-banner__txt">
-              <strong>Founder Badge Unlocked</strong>
-              <p>You joined before launch — you receive priority rewards and a higher reward multiplier forever.</p>
+              <strong data-i18n="dash.founderBadge">Founder Badge Unlocked</strong>
+              <p data-i18n="dash.founderDesc">You joined before launch — you receive priority rewards and a higher reward multiplier forever.</p>
             </div>
           </div>
 
@@ -256,12 +269,12 @@
               </svg>
               <div class="claim__ring-center">
                 <div class="claim__reward" id="claimReward">+10 NDOG</div>
-                <div class="claim__hint" id="claimHint">Ready to claim</div>
+                <div class="claim__hint" id="claimHint" data-i18n="claim.ready">Ready to claim</div>
               </div>
             </div>
-            <button id="claimBtn" class="btn btn--gold btn--lg">Claim Daily Reward</button>
+            <button id="claimBtn" class="btn btn--gold btn--lg" data-i18n="claim.btn">Claim Daily Reward</button>
             <div class="claim__streak">
-              <span>🔥 Streak:</span>
+              <span data-i18n="claim.streakLabel">🔥 Streak:</span>
               <strong id="claimStreak">0 days</strong>
               <span class="claim__mult" id="claimMult">×1.0</span>
             </div>
@@ -269,14 +282,14 @@
           </div>
 
           <div class="claim__levels">
-            <h3>Reward Levels</h3>
+            <h3 data-i18n="claim.levels">Reward Levels</h3>
             <div class="claim__levels-grid" id="claimLevelsGrid"></div>
           </div>
 
           <div class="claim__history glass">
-            <h3>Claim History</h3>
+            <h3 data-i18n="claim.history">Claim History</h3>
             <div class="claim__history-list" id="claimHistoryList">
-              <div class="empty">No claims yet — claim your first reward today!</div>
+              <div class="empty" data-i18n="claim.emptyHistory">No claims yet — claim your first reward today!</div>
             </div>
           </div>
         </div>
@@ -286,8 +299,8 @@
       <section id="view-referral" class="view">
         <div class="view__in">
           <div class="ref__hero glass">
-            <h2>Invite &amp; Earn Big</h2>
-            <p>Share your link. Earn NDOG across <strong>3 levels</strong> of referrals — forever.</p>
+            <h2 data-i18n="ref.title">Invite &amp; Earn Big</h2>
+            <p data-i18n-html="ref.intro">Share your link. Earn NDOG across <strong>3 levels</strong> of referrals — forever.</p>
             <div class="ref__tiers">
               <div class="ref__tier">
                 <div class="ref__tier-l">L1</div>
@@ -305,22 +318,22 @@
           </div>
 
           <div class="ref__stats">
-            <div class="stat-card glass"><div class="stat-card__icon">🎯</div><div class="stat-card__meta"><div class="stat-card__label">Total Referrals</div><div class="stat-card__value" data-counter id="refStatTotal">0</div></div></div>
-            <div class="stat-card glass"><div class="stat-card__icon">✅</div><div class="stat-card__meta"><div class="stat-card__label">Active Referrals</div><div class="stat-card__value" data-counter id="refStatActive">0</div></div></div>
-            <div class="stat-card glass"><div class="stat-card__icon">💰</div><div class="stat-card__meta"><div class="stat-card__label">Referral Earnings</div><div class="stat-card__value" data-counter id="refStatEarn">0</div></div></div>
-            <div class="stat-card glass"><div class="stat-card__icon">📊</div><div class="stat-card__meta"><div class="stat-card__label">Conversion Rate</div><div class="stat-card__value" id="refStatConv">0%</div></div></div>
+            <div class="stat-card glass"><div class="stat-card__icon">🎯</div><div class="stat-card__meta"><div class="stat-card__label" data-i18n="ref.total">Total Referrals</div><div class="stat-card__value" data-counter id="refStatTotal">0</div></div></div>
+            <div class="stat-card glass"><div class="stat-card__icon">✅</div><div class="stat-card__meta"><div class="stat-card__label" data-i18n="ref.active">Active Referrals</div><div class="stat-card__value" data-counter id="refStatActive">0</div></div></div>
+            <div class="stat-card glass"><div class="stat-card__icon">💰</div><div class="stat-card__meta"><div class="stat-card__label" data-i18n="ref.earn">Referral Earnings</div><div class="stat-card__value" data-counter id="refStatEarn">0</div></div></div>
+            <div class="stat-card glass"><div class="stat-card__icon">📊</div><div class="stat-card__meta"><div class="stat-card__label" data-i18n="ref.conv">Conversion Rate</div><div class="stat-card__value" id="refStatConv">0%</div></div></div>
           </div>
 
           <div class="ref__link-card glass">
-            <label>Your Referral Code</label>
+            <label data-i18n="ref.codeLabel">Your Referral Code</label>
             <div class="ref__link-row">
               <input id="refCodeInput" readonly />
-              <button class="btn btn--ghost btn--sm" data-copy-target="refCodeInput">Copy</button>
+              <button class="btn btn--ghost btn--sm" data-copy-target="refCodeInput" data-i18n="common.copy">Copy</button>
             </div>
-            <label>Your Referral Link</label>
+            <label data-i18n="ref.linkLabel">Your Referral Link</label>
             <div class="ref__link-row">
               <input id="refLinkInput" readonly />
-              <button class="btn btn--ghost btn--sm" data-copy-target="refLinkInput">Copy</button>
+              <button class="btn btn--ghost btn--sm" data-copy-target="refLinkInput" data-i18n="common.copy">Copy</button>
             </div>
             <div class="ref-card__share">
               <a class="share-btn share--wa"  data-share="whatsapp">💬</a>
@@ -333,9 +346,9 @@
           </div>
 
           <div class="ref__tree glass">
-            <h3>Referral Network</h3>
+            <h3 data-i18n="ref.network">Referral Network</h3>
             <div class="ref__tree-list" id="refTreeList">
-              <div class="empty">No referrals yet — share your link to grow your network.</div>
+              <div class="empty" data-i18n="ref.empty">No referrals yet — share your link to grow your network.</div>
             </div>
           </div>
         </div>
@@ -345,27 +358,27 @@
       <section id="view-missions" class="view">
         <div class="view__in">
           <div class="missions__tabs">
-            <button class="tab active" data-mtab="daily">Daily</button>
-            <button class="tab" data-mtab="weekly">Weekly</button>
-            <button class="tab" data-mtab="monthly">Monthly</button>
-            <button class="tab" data-mtab="badges">Badges</button>
-            <button class="tab" data-mtab="events">Events</button>
+            <button class="tab active" data-mtab="daily" data-i18n="missions.daily">Daily</button>
+            <button class="tab" data-mtab="weekly" data-i18n="missions.weekly">Weekly</button>
+            <button class="tab" data-mtab="monthly" data-i18n="missions.monthly">Monthly</button>
+            <button class="tab" data-mtab="badges" data-i18n="missions.badges">Badges</button>
+            <button class="tab" data-mtab="events" data-i18n="missions.events">Events</button>
           </div>
 
           <div class="missions__list" id="missionsList"></div>
 
           <div class="missions__fun glass">
-            <h3>Mini Games</h3>
+            <h3 data-i18n="missions.miniGames">Mini Games</h3>
             <div class="missions__fun-grid">
               <button class="game-card" id="openSpin">
                 <span class="game-card__icon">🎡</span>
-                <strong>Spin Wheel</strong>
-                <small>Free daily spin</small>
+                <strong data-i18n="missions.spin">Spin Wheel</strong>
+                <small data-i18n="missions.spinSub">Free daily spin</small>
               </button>
               <button class="game-card" id="openLucky">
                 <span class="game-card__icon">📦</span>
-                <strong>Lucky Box</strong>
-                <small>Open every 6h</small>
+                <strong data-i18n="missions.lucky">Lucky Box</strong>
+                <small data-i18n="missions.luckySub">Open every 6h</small>
               </button>
             </div>
           </div>
@@ -376,9 +389,9 @@
       <section id="view-leaderboard" class="view">
         <div class="view__in">
           <div class="lb__tabs">
-            <button class="tab active" data-ltab="global">🌍 Global</button>
-            <button class="tab" data-ltab="country">🏳️ Country</button>
-            <button class="tab" data-ltab="referral">👥 Referral</button>
+            <button class="tab active" data-ltab="global" data-i18n="lb.global">🌍 Global</button>
+            <button class="tab" data-ltab="country" data-i18n="lb.country">🏳️ Country</button>
+            <button class="tab" data-ltab="referral" data-i18n="lb.referral">👥 Referral</button>
           </div>
           <div class="lb__podium" id="lbPodium"></div>
           <div class="lb__list" id="lbList"></div>
@@ -389,21 +402,21 @@
       <section id="view-whitepaper" class="view">
         <div class="view__in">
           <div class="wp__hero glass">
-            <h2>NileDogs Whitepaper</h2>
-            <p>Read the full vision, tokenomics, and roadmap.</p>
+            <h2 data-i18n="wp.title">NileDogs Whitepaper</h2>
+            <p data-i18n="wp.subtitle">Read the full vision, tokenomics, and roadmap.</p>
             <div class="wp__links">
-              <a class="btn btn--gold" href="./whitepaper-en.html">English Whitepaper</a>
-              <a class="btn btn--ghost" href="./whitepaper-ar.html">النسخة العربية</a>
+              <a class="btn btn--gold" href="./whitepaper-en.html" data-i18n="wp.en">English Whitepaper</a>
+              <a class="btn btn--ghost" href="./whitepaper-ar.html" data-i18n="wp.ar">النسخة العربية</a>
             </div>
           </div>
           <div class="wp__quick glass">
-            <h3>Quick Highlights</h3>
-            <ul class="wp__quick-list">
-              <li><strong>Launch:</strong> January 1, 2028 — mainnet activation.</li>
-              <li><strong>Early Adopter Program:</strong> Founder Badge + 1.5× reward multiplier for life.</li>
-              <li><strong>Distribution:</strong> 60% community, 15% team (4y vest), 10% liquidity, 10% partnerships, 5% reserve.</li>
-              <li><strong>Referral Rewards:</strong> 3-tier system (L1: 50, L2: 20, L3: 10 NDOG).</li>
-              <li><strong>Anti-Fraud:</strong> Device fingerprint + rate limiting + admin review.</li>
+            <h3 data-i18n="wp.quickTitle">Quick Highlights</h3>
+            <ul class="wp__quick-list" id="wpQuickList">
+              <li data-i18n-html="wp.q1"><strong>Launch:</strong> January 1, 2028 — mainnet activation.</li>
+              <li data-i18n-html="wp.q2"><strong>Early Adopter Program:</strong> Founder Badge + 1.5× reward multiplier for life.</li>
+              <li data-i18n-html="wp.q3"><strong>Distribution:</strong> 60% community, 15% team (4y vest), 10% liquidity, 10% partnerships, 5% reserve.</li>
+              <li data-i18n-html="wp.q4"><strong>Referral Rewards:</strong> 3-tier system (L1: 50, L2: 20, L3: 10 NDOG).</li>
+              <li data-i18n-html="wp.q5"><strong>Anti-Fraud:</strong> Device fingerprint + rate limiting + admin review.</li>
             </ul>
           </div>
         </div>
@@ -417,9 +430,9 @@
     <div class="modal__backdrop" data-close-modal></div>
     <div class="modal__panel glass">
       <button class="modal__close" data-close-modal>×</button>
-      <h3>Scan to Join</h3>
+      <h3 data-i18n="modal.qrTitle">Scan to Join</h3>
       <div id="qrCanvas" class="qr-canvas"></div>
-      <p class="modal__hint">Point your camera at the QR code to start earning NDOG.</p>
+      <p class="modal__hint" data-i18n="modal.qrHint">Point your camera at the QR code to start earning NDOG.</p>
     </div>
   </div>
 
@@ -428,13 +441,13 @@
     <div class="modal__backdrop" data-close-modal></div>
     <div class="modal__panel glass">
       <button class="modal__close" data-close-modal>×</button>
-      <h3>Daily Spin Wheel</h3>
+      <h3 data-i18n="modal.spinTitle">Daily Spin Wheel</h3>
       <div class="spin__wrap">
         <canvas id="spinCanvas" width="320" height="320"></canvas>
         <div class="spin__pointer">▼</div>
       </div>
-      <button id="spinNowBtn" class="btn btn--gold btn--lg">Spin Now</button>
-      <p class="modal__hint">One free spin every 24 hours.</p>
+      <button id="spinNowBtn" class="btn btn--gold btn--lg" data-i18n="modal.spinNow">Spin Now</button>
+      <p class="modal__hint" data-i18n="modal.spinHint">One free spin every 24 hours.</p>
     </div>
   </div>
 
@@ -443,10 +456,10 @@
     <div class="modal__backdrop" data-close-modal></div>
     <div class="modal__panel glass">
       <button class="modal__close" data-close-modal>×</button>
-      <h3>Lucky Box</h3>
+      <h3 data-i18n="modal.luckyTitle">Lucky Box</h3>
       <div class="lucky__box" id="luckyBox">🎁</div>
-      <button id="luckyOpenBtn" class="btn btn--gold btn--lg">Open Box</button>
-      <p class="modal__hint">Mystery reward between 5 and 100 NDOG.</p>
+      <button id="luckyOpenBtn" class="btn btn--gold btn--lg" data-i18n="modal.luckyOpen">Open Box</button>
+      <p class="modal__hint" data-i18n="modal.luckyHint">Mystery reward between 5 and 100 NDOG.</p>
     </div>
   </div>
 
@@ -455,9 +468,9 @@
     <div class="modal__backdrop"></div>
     <div class="modal__panel glass">
       <div class="banned__icon">⛔</div>
-      <h3>Account Suspended</h3>
-      <p>Your account has been suspended for violating community rules. Contact support if you believe this is a mistake.</p>
-      <button class="btn btn--ghost" id="bannedLogout">Sign Out</button>
+      <h3 data-i18n="modal.bannedTitle">Account Suspended</h3>
+      <p data-i18n="modal.bannedDesc">Your account has been suspended for violating community rules. Contact support if you believe this is a mistake.</p>
+      <button class="btn btn--ghost" id="bannedLogout" data-i18n="nav.logout">Sign Out</button>
     </div>
   </div>
 
@@ -490,6 +503,6 @@
       }, FAILSAFE_MS);
     })();
   </script>
-  <script type="module" src="./js/app.js?v=1.0.3"></script>
+  <script type="module" src="./js/app.js?v=1.1.0"></script>
 </body>
 </html>

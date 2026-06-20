@@ -22,6 +22,8 @@ const APP_SHELL = [
   "./whitepaper-ar.html",
   "./manifest.json",
   "./css/styles.css",
+  "./js/i18n.js",
+  "./js/share-utils.js",
   "./js/firebase-config.js",
   "./js/app.js",
   "./js/auth.js",

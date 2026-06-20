@@ -1,12 +1,15 @@
 /**
  * NileDogs (NDOG) — Dashboard module
  * Binds user data to the dashboard view + top bar.
+ * Imports shareLink/generateQR from share-utils.js (not referral.js)
+ * to break the circular dependency: app.js → dashboard.js → referral.js → app.js
  */
 
 import { db, ref, onValue, APP_CONFIG } from "./firebase-config.js";
 import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, copyText, toast, openModal } from "./app.js";
-import { shareLink, generateQR } from "./referral.js";
+//import { animateCount, copyText, toast, openModal } from "./app.js";
+import { shareLink, generateQR } from "./share-utils.js";
+import { t, getLang, onLangChange } from "./i18n.js";
 
 let bound = false;
 
@@ -14,12 +17,18 @@ export function bindDashboard() {
   if (bound) return;
   bound = true;
 
+  let lastUser = null;
+
   onUser((user) => {
     if (!user) return;
+    lastUser = user;
     renderDashboard(user);
   });
 
-  // QR trigger from dashboard
+  onLangChange(() => {
+    if (lastUser) renderDashboard(lastUser);
+  });
+
   document.getElementById("qrTrigger")?.addEventListener("click", () => {
     const u = getCurrentUser();
     if (!u) return;
@@ -27,7 +36,6 @@ export function bindDashboard() {
     openModal("qrModal");
   });
 
-  // share buttons on dashboard
   document.querySelectorAll("#view-dashboard .ref-card__share [data-share]").forEach(btn => {
     btn.addEventListener("click", () => {
       const u = getCurrentUser();
@@ -39,33 +47,20 @@ export function bindDashboard() {
 
 function renderDashboard(user) {
   if (!user) return;
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const setSrc = (id, val) => { const el = document.getElementById(id); if (el && val) el.src = val; };
 
-  // Helper: safe text setter
-  const setText = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
-  const setSrc = (id, val) => {
-    const el = document.getElementById(id);
-    if (el && val) el.src = val;
-  };
-
-  // Avatar
   setSrc("dashAvatar", user.photoURL);
-
-  // Name & meta
   setText("dashName",    user.name || "User");
-  setText("dashJoined",  `Member since ${formatDate(user.createdAt)}`);
-  setText("dashCountry", `🌍 ${user.country || "Global"}`);
+  setText("dashJoined",  t("dash.memberSince", { date: formatDate(user.createdAt) }));
+  setText("dashCountry", `🌍 ${user.country || t("lb.globalLabel")}`);
 
-  // Stats
   animateCount(document.getElementById("statBalance"),   user.balance || 0);
   animateCount(document.getElementById("statCommunity"), user.communityScore || 0);
   animateCount(document.getElementById("statLoyalty"),   user.loyaltyScore || 0);
   animateCount(document.getElementById("statRefs"),      user.totalReferrals || 0);
   animateCount(document.getElementById("topbarBalNum"),  user.balance || 0);
 
-  // Rank chip
   const level = computeLevel(user.balance || 0);
   const rankChip = document.getElementById("dashRankChip");
   if (rankChip) {
@@ -73,18 +68,13 @@ function renderDashboard(user) {
   }
   setText("dashRankName", level.name);
 
-  // Referral code & link
   setText("dashRefCode", user.referralCode || "NDOG—");
   setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
 
-  // Level progress
   renderLevelProgress(user.balance || 0);
 
-  // Early adopter banner
   const ea = document.getElementById("earlyAdopterBanner");
-  if (ea) {
-    ea.style.display = user.isFounder ? "flex" : "none";
-  }
+  if (ea) { ea.style.display = user.isFounder ? "flex" : "none"; }
 }
 
 function renderLevelProgress(balance) {
@@ -96,16 +86,18 @@ function renderLevelProgress(balance) {
 
   if (!next) {
     if (fill) fill.style.width = "100%";
-    if (nextLbl) nextLbl.textContent = "Max level reached 👑";
+    if (nextLbl) nextLbl.textContent = t("dash.maxLevel");
   } else {
     const prevMin = current.min;
     const range = next.min - prevMin;
     const pct = Math.min(100, ((balance - prevMin) / range) * 100);
     if (fill) fill.style.width = pct + "%";
-    if (nextLbl) nextLbl.textContent = `Next: ${next.name} (${(next.min - balance).toLocaleString()} NDOG to go)`;
+    if (nextLbl) nextLbl.textContent = t("dash.nextLevel", {
+      name: next.name,
+      remaining: (next.min - balance).toLocaleString()
+    });
   }
 
-  // Badges
   const wrap = document.getElementById("levelBadges");
   if (wrap) {
     wrap.innerHTML = levels.map(l => `
@@ -127,5 +119,6 @@ export function computeLevel(balance) {
 function formatDate(ts) {
   if (!ts) return "—";
   const d = new Date(ts);
-  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const locale = getLang() === "ar" ? "ar-EG" : "en-US";
+  return d.toLocaleDateString(locale, { month: "short", year: "numeric" });
 }

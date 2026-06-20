@@ -16,7 +16,7 @@ import {
   signOut, onAuthStateChanged,
   generateReferralCode, getDeviceFingerprint
 } from "./firebase-config.js";
-
+export { APP_CONFIG };
 let currentUserData = null;
 let listeners = [];
 

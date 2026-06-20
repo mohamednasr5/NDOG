@@ -41,13 +41,16 @@ export function initClaim() {
 function renderLevelsGrid() {
   const grid = document.getElementById("claimLevelsGrid");
   if (!grid) return;
-  grid.innerHTML = APP_CONFIG.rewardLevels.map(l => `
-    <div class="claim-level" data-level="${l.name}">
+  grid.innerHTML = APP_CONFIG.rewardLevels.map(l => {
+    const levelName = t(l.nameKey || l.name);
+    return `
+    <div class="claim-level" data-level="${l.nameKey || l.name}">
       <div class="claim-level__icon">${l.icon}</div>
-      <div class="claim-level__name" style="color:${l.color}">${l.name}</div>
+      <div class="claim-level__name" style="color:${l.color}">${levelName}</div>
       <div class="claim-level__req">${l.min.toLocaleString()}+</div>
     </div>
-  `).join("");
+  `;
+  }).join("");
 }
 
 function computeReward(user) {
@@ -73,7 +76,7 @@ function renderClaim() {
 
   const curLevel = computeLevel(user.balance || 0);
   document.querySelectorAll("#claimLevelsGrid .claim-level").forEach(el => {
-    el.classList.toggle("current", el.dataset.level === curLevel.name);
+    el.classList.toggle("current", el.dataset.level === (curLevel.nameKey || curLevel.name));
   });
 
   const { amount, multiplier } = computeReward(user);

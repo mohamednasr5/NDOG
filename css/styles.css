@@ -309,7 +309,8 @@ input { font: inherit; }
   border-radius: var(--r-md); color: var(--text-dim); font-weight: 600;
   transition: background .2s, color .2s, transform .15s;
 }
-.nav-link span { font-size: 18px; width: 24px; text-align: center; }
+.nav-link__icon { font-size: 18px; width: 24px; flex: none; text-align: center; line-height: 1; }
+.nav-link__label { flex: 1; line-height: 1.3; }
 .nav-link:hover { background: rgba(255,255,255,0.05); color: var(--text); }
 .nav-link.active {
   background: linear-gradient(135deg, rgba(30,144,255,0.18), rgba(255,215,0,0.10));
@@ -403,16 +404,18 @@ input { font: inherit; }
 .share-btn {
   width: 40px; height: 40px; border-radius: 50%;
   display: grid; place-items: center; font-size: 18px;
+  color: var(--text-dim);
   background: rgba(255,255,255,0.05); border: 1px solid var(--glass-bd);
-  transition: transform .2s, box-shadow .2s, background .2s;
+  transition: transform .2s, box-shadow .2s, background .2s, color .2s;
 }
+.share-btn svg { display: block; }
 .share-btn:hover { transform: translateY(-2px) scale(1.05); }
-.share--wa:hover  { background: #25D366; color: #fff; box-shadow: 0 0 16px #25D366; }
-.share--tg:hover  { background: #229ED9; color: #fff; box-shadow: 0 0 16px #229ED9; }
-.share--fb:hover  { background: #1877F2; color: #fff; box-shadow: 0 0 16px #1877F2; }
-.share--x:hover   { background: #000; color: #fff; box-shadow: 0 0 16px #fff; }
-.share--ms:hover  { background: #0064FF; color: #fff; box-shadow: 0 0 16px #0064FF; }
-.share--qr:hover  { background: var(--gold); color: #1a1306; box-shadow: var(--glow-gold); }
+.share--wa:hover  { background: #25D366; color: #fff; box-shadow: 0 0 16px #25D366; border-color: #25D366; }
+.share--tg:hover  { background: #229ED9; color: #fff; box-shadow: 0 0 16px #229ED9; border-color: #229ED9; }
+.share--fb:hover  { background: #1877F2; color: #fff; box-shadow: 0 0 16px #1877F2; border-color: #1877F2; }
+.share--x:hover   { background: #000; color: #fff; box-shadow: 0 0 16px rgba(255,255,255,0.4); border-color: #000; }
+.share--ms:hover  { background: #0064FF; color: #fff; box-shadow: 0 0 16px #0064FF; border-color: #0064FF; }
+.share--qr:hover  { background: var(--gold); color: #1a1306; box-shadow: var(--glow-gold); border-color: var(--gold); }
 
 .level-card { padding: 18px; border-radius: var(--r-lg); }
 .level-card__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -474,13 +477,15 @@ input { font: inherit; }
 .claim__levels h3 { font-size: 15px; margin-bottom: 10px; padding: 0 4px; }
 .claim__levels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .claim-level {
-  padding: 12px 6px; border-radius: var(--r-md); text-align: center;
+  padding: 14px 6px; border-radius: var(--r-md); text-align: center;
   background: var(--glass-bg); border: 1px solid var(--glass-bd);
+  transition: transform .2s, border-color .2s, box-shadow .2s;
 }
-.claim-level__icon { font-size: 22px; }
-.claim-level__name { font-size: 10px; font-weight: 700; margin-top: 4px; }
-.claim-level__req { font-size: 9px; color: var(--text-mute); }
-.claim-level.current { border-color: var(--gold); box-shadow: var(--glow-gold); }
+.claim-level:hover { transform: translateY(-2px); border-color: rgba(255,215,0,0.3); }
+.claim-level__icon { font-size: 22px; line-height: 1; }
+.claim-level__name { font-size: 11px; font-weight: 700; margin-top: 6px; }
+.claim-level__req { font-size: 9px; color: var(--text-mute); margin-top: 2px; }
+.claim-level.current { border-color: var(--gold); box-shadow: var(--glow-gold); background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(30,144,255,0.06)); }
 
 .claim__history { padding: 18px; border-radius: var(--r-lg); }
 .claim__history h3 { font-size: 15px; margin-bottom: 12px; }
@@ -898,7 +903,8 @@ html[dir="rtl"] .spin__pointer { transform: scaleX(-1); }
 /* Margin / padding mirroring for asymmetric spacings */
 html[dir="rtl"] .lf { text-align: right; }
 html[dir="rtl"] .nav-link { flex-direction: row-reverse; }
-html[dir="rtl"] .nav-link span { transform: scaleX(1); /* emoji already RTL-neutral */ }
+html[dir="rtl"] .nav-link__icon { transform: scaleX(1); /* emoji already RTL-neutral */ }
+html[dir="rtl"] .nav-link__label { text-align: right; }
 
 /* PWA banner position unaffected (centered) */
 

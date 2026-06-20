@@ -62,11 +62,12 @@ function renderDashboard(user) {
   animateCount(document.getElementById("topbarBalNum"),  user.balance || 0);
 
   const level = computeLevel(user.balance || 0);
+  const levelName = t(level.nameKey || level.name);
   const rankChip = document.getElementById("dashRankChip");
   if (rankChip) {
-    rankChip.innerHTML = `<span class="dash__rank-icon">${level.icon}</span><span>${level.name}</span>`;
+    rankChip.innerHTML = `<span class="dash__rank-icon">${level.icon}</span><span>${levelName}</span>`;
   }
-  setText("dashRankName", level.name);
+  setText("dashRankName", levelName);
 
   setText("dashRefCode", user.referralCode || "NDOG—");
   setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);

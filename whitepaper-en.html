@@ -143,14 +143,14 @@
     <!-- ABSTRACT -->
     <section class="wp-section" id="abstract">
       <h2>1. Abstract</h2>
-      <p>NileDogs (<strong>NDOG</strong>) is a community-driven rewards ecosystem that transforms everyday engagement — claiming, referring, completing missions, climbing leaderboards — into a transparent, on-chain-style reward ledger. Built on Firebase Realtime Database and a pure front-end stack (HTML5, CSS3, vanilla ES6+), NileDogs ships as an installable Progressive Web App (PWA) that works on Android, iPhone, and desktop, with offline caching, push notifications, and a futuristic dark-mode UI.</p>
+      <p>NileDogs (<strong>NDOG</strong>) is a community-driven rewards ecosystem that transforms everyday engagement — claiming, referring, completing missions, climbing leaderboards — into a transparent, on-chain-style reward ledger. Built on a secure cloud infrastructure with a pure front-end stack (HTML5, CSS3, vanilla ES6+), NileDogs ships as an installable Progressive Web App (PWA) that works on Android, iPhone, and desktop, with offline caching, push notifications, and a futuristic dark-mode UI.</p>
       <p>The platform launches officially on <strong>January 1, 2028</strong>. Until then, every user who joins is recognized as a <strong>Founder</strong> and receives a permanent reward multiplier, an exclusive Founder Badge, and priority access to future benefits. NDOG is not just a token — it is the unit of reputation, loyalty, and influence inside the NileDogs community.</p>
     </section>
 
     <!-- VISION -->
     <section class="wp-section" id="vision">
       <h2>2. Vision</h2>
-      <p>Most reward apps fail in one of three ways: they reward only the few, they require complex onboarding, or they centralize trust in opaque operators. NileDogs rejects all three. Our vision is a reward network where <strong>everyone who contributes is visible, everyone who refers is rewarded across three tiers, and every action is logged immutably in a shared database</strong> that the community can audit.</p>
+      <p>Most reward apps fail in one of three ways: they reward only the few, they require complex onboarding, or they centralize trust in opaque operators. NileDogs rejects all three. Our vision is a reward network where <strong>everyone who contributes is visible, everyone who refers is rewarded across three tiers, and every action is logged immutably in a secure ledger</strong> that respects user privacy while maintaining community transparency.</p>
       <p>We chose the Nile as our namesake because it represents flow, life, and continuity. NDOG flows from the community back to the community — through claims, referrals, missions, and events — sustaining a self-reinforcing cycle of engagement that grows stronger as more users join.</p>
       <blockquote>"Be early. Stay loyal. Build the pack."</blockquote>
     </section>
@@ -174,7 +174,7 @@
     <section class="wp-section" id="solution">
       <h2>4. The NileDogs Solution</h2>
       <h3>4.1 Transparent Realtime Ledger</h3>
-      <p>All user balances, claims, referrals, and missions are stored in a Firebase Realtime Database and visible to authenticated users. The leaderboard is a live, public view of the entire community — no hidden rankings.</p>
+      <p>All user balances, claims, referrals, and missions are securely stored and visible to authenticated users. The leaderboard is a live, public view of the entire community — no hidden rankings or favoritism.</p>
       <h3>4.2 Three-Tier Referral Rewards</h3>
       <p>When a user joins via your link, you earn <strong>+50 NDOG (Level 1)</strong>. Their referrals earn you <strong>+20 NDOG (Level 2)</strong>. And their referrals' referrals earn you <strong>+10 NDOG (Level 3)</strong>. Your network keeps paying you forever.</p>
       <h3>4.3 Zero-Friction Onboarding</h3>
@@ -239,13 +239,13 @@
       <h3>6.4 Leaderboard</h3>
       <p>Three live rankings: <strong>Global</strong>, <strong>Country</strong>, and <strong>Referral</strong>. A podium celebrates the top three; the list shows ranks 4–50 with the current user highlighted.</p>
       <h3>6.5 Admin Panel</h3>
-      <p>A hidden, secure admin dashboard (gated by Firebase UID allow-list) for user management, manual reward adjustments, bans, task creation, notifications, events, analytics, and CSV exports.</p>
+      <p>A secure, role-based admin dashboard for team management, reward adjustments, user moderation, task creation, notifications, event management, and performance analytics.</p>
     </section>
 
     <!-- REFERRAL -->
     <section class="wp-section" id="referral">
       <h2>7. Referral System</h2>
-      <p>Every user receives a unique referral code (e.g. <code>NDOG12345</code>) and a shareable link (<code>https://mohamednasr5.github.io/NDOG/?ref=NDOG12345</code>) on signup. The link works on every platform.</p>
+      <p>Every user receives a unique referral code (e.g. <code>NDOG12345</code>) and a shareable link (<code>https://ndogcoin.com/?ref=NDOG12345</code>) on signup. The link works on every platform.</p>
       <h3>7.1 Sharing Channels</h3>
       <p><span class="pill">WhatsApp</span><span class="pill">Telegram</span><span class="pill">Facebook</span><span class="pill">X</span><span class="pill">Messenger</span><span class="pill">QR Code</span><span class="pill">Copy link</span></p>
       <h3>7.2 Three-Tier Reward Structure</h3>
@@ -282,9 +282,9 @@
     <section class="wp-section" id="security">
       <h2>9. Security &amp; Anti-Fraud</h2>
       <h3>9.1 Authentication</h3>
-      <p>Google OAuth 2.0 via Firebase Authentication. Sessions persist locally so users stay logged in across browser restarts. Sign-out is one tap.</p>
-      <h3>9.2 Database Security Rules</h3>
-      <p>Firebase Realtime Database security rules enforce: users can read all public data, but can only write their own records; admin-only writes for tasks, events, notifications, bans, and balance adjustments. Claim amounts are validated server-side to a maximum of 1000 per entry.</p>
+      <p>Secure OAuth 2.0 authentication via Google Sign-In. Sessions persist locally so users stay logged in across browser restarts. Sign-out is one tap.</p>
+      <h3>9.2 Data Security & Privacy</h3>
+      <p>NileDogs employs industry-standard security practices: users can view public community data while their personal records remain private; only authorized team members can modify system data. All claim amounts are validated server-side with strict limits. User privacy is protected at all times.</p>
       <h3>9.3 Anti-Multi-Account Protection</h3>
       <p>On first login, the client generates a device fingerprint combining user agent, language, screen resolution, timezone, and a random token stored in <code>localStorage</code>. The fingerprint is written to <code>/deviceFingerprints/{fp}</code>. If a different UID attempts to use the same fingerprint, the account is flagged for admin review in <code>/flaggedAccounts</code>.</p>
       <h3>9.4 Rate Limiting</h3>
@@ -297,7 +297,7 @@
       <h3>9.5 Admin Review</h3>
       <p>Flagged accounts appear in the admin dashboard. Admins can ban, deduct rewards, or delete accounts. Banned accounts see a suspension modal and cannot access the app shell.</p>
       <h3>9.6 Transport Security</h3>
-      <p>GitHub Pages enforces HTTPS. Firebase SDK uses HTTPS for all reads and writes. Service worker caches only static assets; API calls always go to the network.</p>
+      <p>All communications use HTTPS encryption. The service worker caches only static assets; real-time data always fetches fresh from the network to ensure accuracy and security.</p>
     </section>
 
     <!-- ROADMAP -->

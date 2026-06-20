@@ -1,6 +1,8 @@
 /**
  * NileDogs (NDOG) — Authentication Module
- * v1.1.0 fixes:
+ * v1.2.0 fixes:
+ *   • Fixed mobile redirect flow: getRedirectResult called once in initAuth only.
+ *   • Removed handleRedirectResult (redundant); all redirect logic now in initAuth.
  *   • Single-flight provisioning lock prevents double-provisioning race.
  *   • Removed `firebaseUser.name` typo (Firebase User has no `.name`).
  *   • Friendly, localized error messages.
@@ -72,17 +74,6 @@ export async function googleLogin() {
     const e = new Error(friendly);
     e.original = err;
     throw e;
-  }
-}
-
-export async function handleRedirectResult() {
-  try {
-    return await getRedirectResult(auth);
-  } catch (err) {
-    console.error("[NDOG] Redirect result failed:", err.code, err.message);
-    document.dispatchEvent(new CustomEvent("ndog:authError", {
-      detail: { message: friendlyAuthError(err) }
-    }));
   }
 }
 
@@ -276,23 +267,25 @@ function guessCountry() {
 }
 
 export async function initAuth(onReady) {
-  // IMPORTANT: Call getRedirectResult FIRST, before onAuthStateChanged.
-  // On mobile, signInWithRedirect redirects to Google and back.
-  // If we don't consume the redirect result here, the auth state may
-  // never resolve and the user stays stuck on the login screen.
+  // CRITICAL: Call getRedirectResult FIRST and ONCE, before any other Firebase operations.
+  // On mobile, signInWithRedirect redirects to Google and back to this page.
+  // If we don't consume the redirect result here, the auth state will never settle
+  // and the user gets stuck on the login screen indefinitely.
+  let redirectResult = null;
   try {
-    const redirectResult = await getRedirectResult(auth);
-    if (redirectResult) {
-      console.log("[NDOG] Redirect sign-in resolved for:", redirectResult.user?.uid);
+    redirectResult = await getRedirectResult(auth);
+    if (redirectResult?.user) {
+      console.log("[NDOG] Mobile redirect sign-in resolved for:", redirectResult.user.uid);
     }
   } catch (err) {
-    console.error("[NDOG] Redirect result failed:", err.code, err.message);
+    console.error("[NDOG] Redirect result error:", err.code, err.message);
     document.dispatchEvent(new CustomEvent("ndog:authError", {
       detail: { message: friendlyAuthError(err) }
     }));
   }
 
-  // Now listen for auth state changes (fires immediately with current state)
+  // Now listen for auth state changes (fires immediately with current state).
+  // This will pick up the redirectResult user if one exists.
   onAuthStateChanged(auth, (fbUser) => {
     if (!fbUser) {
       emit(null);

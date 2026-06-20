@@ -9,7 +9,9 @@
  *   2. Realtime Database  → Create database (production mode)
  *   3. Hosting            → (optional) deploy rules separately
  *   4. Project Settings → Authorized domains → add:
- *        - mohamednasr5.github.io
+ *        - ndogcoin.com
+ *        - www.ndogcoin.com
+ *        - localhost
  *
  * The Firebase SDK is loaded via ES module CDN imports (no bundler).
  * ------------------------------------------------------------------
@@ -67,7 +69,7 @@ export const firebaseConfig = {
 export const APP_CONFIG = {
   name:           "NileDogs",
   ticker:         "NDOG",
-  domain:         "https://mohamednasr5.github.io/NDOG/",
+  domain:         "https://ndogcoin.com/",
   launchDate:     new Date("2028-01-01T00:00:00Z"),
   referralReward: { l1: 50, l2: 20, l3: 10 },   // NDOG per referred user
   claimBase:      10,                            // base daily claim amount

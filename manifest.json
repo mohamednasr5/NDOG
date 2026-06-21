@@ -1,0 +1,10 @@
+{
+  "name": "NileDogs (NDOG)",
+  "short_name": "NileDogs",
+  "description": "Community-driven reward platform - Earn NDOG tokens daily",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e27",
+  "theme_color": "#0a0e27",
+  "orientation": "portrait"
+}

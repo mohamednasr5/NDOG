@@ -1,23 +1,12 @@
 /** 
  * NileDogs (NDOG) — Authentication Module
- * v2.0.0 COMPLETE MOBILE LOGIN FIX:
- *   • CRITICAL: onAuthStateChanged is now set up FIRST, before getRedirectResult.
- *     Previously, if getRedirectResult() threw an error (very common on mobile
- *     due to storage partitioning), the function returned early and NEVER set
- *     up onAuthStateChanged — leaving authenticated users stuck on the login
- *     screen forever. This was the #1 cause of "login doesn't work on mobile".
- *   • Uses get() for initial user data load instead of onValue(), eliminating
- *     the race condition where onValue fires twice (once for "not found" and
- *     again after provisioning writes data), causing duplicate provisioning
- *     and/or emit(null) wiping the authenticated state.
- *   • After successful initial load, onValue() is set up for real-time updates
- *     only — it never needs to handle provisioning.
- *   • setPersistence is now properly awaited before any auth operations.
- *   • PWA standalone flow improved: tries popup first, then redirect, with
- *     clear fallback messaging instead of the unreliable window.open() trick.
- *   • Better error recovery: if provisioning fails due to DB issues, the user
- *     is still shown the dashboard with minimal data instead of being kicked
- *     back to the login screen.
+ * v2.0.1 MOBILE REDIRECT FIX:
+ *   • عند العودة من Google ولم يتم التعرف على المستخدم (خاصة في Safari/mobile)
+ *     نقوم بإعادة تحميل الصفحة قسراً بدلاً من مجرد عرض خطأ، لأن sessionStorage
+ *     يتم مسحه أحياناً أثناء عملية الـ redirect، مما يفقدنا نتيجة getRedirectResult.
+ *   • إضافة مهلة أمان (timeout) للتأكد من اكتمال المصادقة بعد العودة من Google.
+ *   • استخدام auth.currentUser كمرجع مباشر بدلاً من الاعتماد على currentUserData
+ *     في مرحلة getRedirectResult لتجنب سباق العمليات (race condition).
  */
 
 import {
@@ -537,6 +526,20 @@ export async function initAuth(onReady) {
       // back, but there is no result. This is the classic "silently lost
       // across the redirect" failure on mobile.
       console.warn("[NDOG] Expected a redirect result but got none");
+      
+      // ═══════════════════════════════════════════════════════════
+      // ✅ الإصلاح الجذري لمشكلة الموبايل:
+      // إذا كنا عائدين من إعادة التوجيه ولم يتم التعرف على المستخدم،
+      // نعيد تحميل الصفحة قسراً. هذا يحل مشكلة فقدان الجلسة في الهواتف
+      // لأن إعادة التحميل ستجبر Firebase على إعادة قراءة الحالة المخزنة
+      // في localStorage (التي تكون قد حُفظت أصلاً أثناء عملية المصادقة).
+      // ═══════════════════════════════════════════════════════════
+      if (!auth.currentUser) {
+        console.log("[NDOG] No user detected after redirect. Forcing reload to re-initialize auth.");
+        location.reload();
+        return;
+      }
+
       document.dispatchEvent(new CustomEvent("ndog:authError", {
         detail: { message: t("auth.errRedirectIncomplete") }
       }));
@@ -555,6 +558,21 @@ export async function initAuth(onReady) {
         }));
       }
     }, 2000);
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // 🛡️ مهلة أمان إضافية للموبايل:
+  // إذا كانت عملية redirectPending ومازال auth.currentUser فارغاً بعد 2.5 ثانية،
+  // نعيد التحميل لإنقاذ الجلسة.
+  // ─────────────────────────────────────────────────────────────────
+  if (sessionStorage.getItem("ndog_redirect_pending") === "1") {
+    setTimeout(() => {
+      if (!auth.currentUser) {
+        console.warn("[NDOG] Redirect recovery timeout — forcing reload.");
+        sessionStorage.removeItem("ndog_redirect_pending");
+        location.reload();
+      }
+    }, 2500);
   }
 
   console.log("[NDOG] === AUTH INITIALIZATION COMPLETE ===");

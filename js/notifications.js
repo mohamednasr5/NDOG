@@ -8,9 +8,7 @@
  */
 
 import { db, ref, onValue } from "./firebase-config.js";
-import { toast } from "./app.js";
-
-let permissionAsked = false;
+import { toast } from "./utils.js";
 
 export function initNotifications() {
   // Ask for push permission lazily (after first user gesture)

@@ -1,12 +1,14 @@
 /**
- * NileDogs (NDOG) — Authentication Module
- * --------------------------------------------
+ * NileDogs (NDOG) — Authentication Module (FIXED v1.3.0)
+ * ✅ Fixed race condition: getRedirectResult() now called before onAuthStateChanged
+ * 
  * Handles the full login / logout lifecycle:
- *   1. Listens for Firebase auth state changes.
- *   2. On sign-in: checks ban, fingerprint, creates profile if new,
+ *   1. Calls getRedirectResult() first to handle mobile redirect flow
+ *   2. Listens for Firebase auth state changes.
+ *   3. On sign-in: checks ban, fingerprint, creates profile if new,
  *      processes referral codes, loads data, then shows the app shell.
- *   3. On sign-out: clears local state and shows the login screen.
- *   4. Checks URL for ?ref= referral code and stores in sessionStorage.
+ *   4. On sign-out: clears local state and shows the login screen.
+ *   5. Checks URL for ?ref= referral code and stores in sessionStorage.
  */
 (function () {
   'use strict';
@@ -24,139 +26,65 @@
   function guessCountry() {
     try {
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-      // timezones look like "Europe/London" or "America/New_York"
       var parts = tz.split('/');
       if (parts.length >= 2) {
-        // Map common cities / regions
         var cityMap = {
-          'America/New_York': 'US',
-          'America/Chicago': 'US',
-          'America/Denver': 'US',
-          'America/Los_Angeles': 'US',
-          'America/Anchorage': 'US',
-          'America/Sao_Paulo': 'BR',
-          'America/Argentina/Buenos_Aires': 'AR',
-          'America/Mexico_City': 'MX',
-          'America/Bogota': 'CO',
-          'America/Lima': 'PE',
-          'America/Santiago': 'CL',
-          'America/Toronto': 'CA',
-          'America/Vancouver': 'CA',
-          'America/Montevideo': 'UY',
-          'America/Caracas': 'VE',
-          'America/Havana': 'CU',
-          'America/Guatemala': 'GT',
-          'America/El_Salvador': 'SV',
-          'America/Tegucigalpa': 'HN',
-          'America/Managua': 'NI',
-          'America/San_Jose': 'CR',
-          'America/Panama': 'PA',
-          'America/Detroit': 'US',
-          'America/Indianapolis': 'US',
-          'Europe/London': 'GB',
-          'Europe/Paris': 'FR',
-          'Europe/Berlin': 'DE',
-          'Europe/Madrid': 'ES',
-          'Europe/Rome': 'IT',
-          'Europe/Amsterdam': 'NL',
-          'Europe/Brussels': 'BE',
-          'Europe/Vienna': 'AT',
-          'Europe/Zurich': 'CH',
-          'Europe/Stockholm': 'SE',
-          'Europe/Oslo': 'NO',
-          'Europe/Copenhagen': 'DK',
-          'Europe/Helsinki': 'FI',
-          'Europe/Warsaw': 'PL',
-          'Europe/Prague': 'CZ',
-          'Europe/Budapest': 'HU',
-          'Europe/Bucharest': 'RO',
-          'Europe/Athens': 'GR',
-          'Europe/Lisbon': 'PT',
-          'Europe/Dublin': 'IE',
-          'Europe/Istanbul': 'TR',
-          'Europe/Moscow': 'RU',
-          'Europe/Kiev': 'UA',
-          'Europe/Minsk': 'BY',
-          'Europe/Sofia': 'BG',
-          'Europe/Zagreb': 'HR',
-          'Europe/Belgrade': 'RS',
-          'Europe/Tallinn': 'EE',
-          'Europe/Riga': 'LV',
-          'Europe/Vilnius': 'LT',
-          'Europe/Tirane': 'AL',
-          'Europe/Skopje': 'MK',
-          'Europe/Podgorica': 'ME',
-          'Europe/Sarajevo': 'BA',
-          'Europe/Ljubljana': 'SI',
-          'Europe/Bratislava': 'SK',
-          'Europe/Kaliningrad': 'RU',
-          'Europe/Volgograd': 'RU',
-          'Europe/Samara': 'RU',
-          'Asia/Dubai': 'AE',
-          'Asia/Riyadh': 'SA',
-          'Asia/Qatar': 'QA',
-          'Asia/Kuwait': 'KW',
-          'Asia/Bahrain': 'BH',
-          'Asia/Muscat': 'OM',
-          'Asia/Baghdad': 'IQ',
-          'Asia/Tehran': 'IR',
-          'Asia/Karachi': 'PK',
-          'Asia/Kolkata': 'IN',
-          'Asia/Colombo': 'LK',
-          'Asia/Dhaka': 'BD',
-          'Asia/Kathmandu': 'NP',
-          'Asia/Almaty': 'KZ',
-          'Asia/Tashkent': 'UZ',
-          'Asia/Bangkok': 'TH',
-          'Asia/Ho_Chi_Minh': 'VN',
-          'Asia/Phnom_Penh': 'KH',
-          'Asia/Vientiane': 'LA',
-          'Asia/Yangon': 'MM',
-          'Asia/Jakarta': 'ID',
-          'Asia/Kuala_Lumpur': 'MY',
-          'Asia/Singapore': 'SG',
-          'Asia/Manila': 'PH',
-          'Asia/Shanghai': 'CN',
-          'Asia/Hong_Kong': 'HK',
-          'Asia/Taipei': 'TW',
-          'Asia/Seoul': 'KR',
-          'Asia/Tokyo': 'JP',
-          'Asia/Macau': 'MO',
-          'Asia/Ulaanbaatar': 'MN',
-          'Africa/Cairo': 'EG',
-          'Africa/Lagos': 'NG',
-          'Africa/Johannesburg': 'ZA',
-          'Africa/Nairobi': 'KE',
-          'Africa/Casablanca': 'MA',
-          'Africa/Tunis': 'TN',
-          'Africa/Algiers': 'DZ',
-          'Africa/Khartoum': 'SD',
-          'Africa/Addis_Ababa': 'ET',
-          'Africa/Dar_es_Salaam': 'TZ',
-          'Africa/Accra': 'GH',
-          'Africa/Abidjan': 'CI',
-          'Africa/Dakar': 'SN',
-          'Australia/Sydney': 'AU',
-          'Australia/Melbourne': 'AU',
-          'Australia/Brisbane': 'AU',
-          'Australia/Perth': 'AU',
-          'Australia/Adelaide': 'AU',
-          'Pacific/Auckland': 'NZ',
-          'Pacific/Fiji': 'FJ',
-          'Pacific/Honolulu': 'US',
-          'Pacific/Guam': 'GU',
+          'America/New_York': 'US', 'America/Chicago': 'US', 'America/Denver': 'US',
+          'America/Los_Angeles': 'US', 'America/Anchorage': 'US', 'America/Sao_Paulo': 'BR',
+          'America/Argentina/Buenos_Aires': 'AR', 'America/Mexico_City': 'MX',
+          'America/Bogota': 'CO', 'America/Lima': 'PE', 'America/Santiago': 'CL',
+          'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Montevideo': 'UY',
+          'America/Caracas': 'VE', 'America/Havana': 'CU', 'America/Guatemala': 'GT',
+          'America/El_Salvador': 'SV', 'America/Tegucigalpa': 'HN', 'America/Managua': 'NI',
+          'America/San_Jose': 'CR', 'America/Panama': 'PA', 'America/Detroit': 'US',
+          'America/Indianapolis': 'US', 'Europe/London': 'GB', 'Europe/Paris': 'FR',
+          'Europe/Berlin': 'DE', 'Europe/Madrid': 'ES', 'Europe/Rome': 'IT',
+          'Europe/Amsterdam': 'NL', 'Europe/Brussels': 'BE', 'Europe/Vienna': 'AT',
+          'Europe/Zurich': 'CH', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO',
+          'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI', 'Europe/Warsaw': 'PL',
+          'Europe/Prague': 'CZ', 'Europe/Budapest': 'HU', 'Europe/Bucharest': 'RO',
+          'Europe/Athens': 'GR', 'Europe/Lisbon': 'PT', 'Europe/Dublin': 'IE',
+          'Europe/Istanbul': 'TR', 'Europe/Moscow': 'RU', 'Europe/Kiev': 'UA',
+          'Europe/Minsk': 'BY', 'Europe/Sofia': 'BG', 'Europe/Zagreb': 'HR',
+          'Europe/Belgrade': 'RS', 'Europe/Tallinn': 'EE', 'Europe/Riga': 'LV',
+          'Europe/Vilnius': 'LT', 'Europe/Tirane': 'AL', 'Europe/Skopje': 'MK',
+          'Europe/Podgorica': 'ME', 'Europe/Sarajevo': 'BA', 'Europe/Ljubljana': 'SI',
+          'Europe/Bratislava': 'SK', 'Europe/Kaliningrad': 'RU', 'Europe/Volgograd': 'RU',
+          'Europe/Samara': 'RU', 'Asia/Dubai': 'AE', 'Asia/Riyadh': 'SA',
+          'Asia/Qatar': 'QA', 'Asia/Kuwait': 'KW', 'Asia/Bahrain': 'BH',
+          'Asia/Muscat': 'OM', 'Asia/Baghdad': 'IQ', 'Asia/Tehran': 'IR',
+          'Asia/Karachi': 'PK', 'Asia/Kolkata': 'IN', 'Asia/Colombo': 'LK',
+          'Asia/Dhaka': 'BD', 'Asia/Kathmandu': 'NP', 'Asia/Almaty': 'KZ',
+          'Asia/Tashkent': 'UZ', 'Asia/Bangkok': 'TH', 'Asia/Ho_Chi_Minh': 'VN',
+          'Asia/Phnom_Penh': 'KH', 'Asia/Vientiane': 'LA', 'Asia/Yangon': 'MM',
+          'Asia/Jakarta': 'ID', 'Asia/Kuala_Lumpur': 'MY', 'Asia/Singapore': 'SG',
+          'Asia/Manila': 'PH', 'Asia/Shanghai': 'CN', 'Asia/Hong_Kong': 'HK',
+          'Asia/Taipei': 'TW', 'Asia/Seoul': 'KR', 'Asia/Tokyo': 'JP',
+          'Asia/Macau': 'MO', 'Asia/Ulaanbaatar': 'MN', 'Africa/Cairo': 'EG',
+          'Africa/Lagos': 'NG', 'Africa/Johannesburg': 'ZA', 'Africa/Nairobi': 'KE',
+          'Africa/Casablanca': 'MA', 'Africa/Tunis': 'TN', 'Africa/Algiers': 'DZ',
+          'Africa/Khartoum': 'SD', 'Africa/Addis_Ababa': 'ET', 'Africa/Dar_es_Salaam': 'TZ',
+          'Africa/Accra': 'GH', 'Africa/Abidjan': 'CI', 'Africa/Dakar': 'SN',
+          'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU', 'Australia/Brisbane': 'AU',
+          'Australia/Perth': 'AU', 'Australia/Adelaide': 'AU', 'Pacific/Auckland': 'NZ',
+          'Pacific/Fiji': 'FJ', 'Pacific/Honolulu': 'US', 'Pacific/Guam': 'GU',
         };
         var mapped = cityMap[tz];
         if (mapped) return mapped;
-
-        // Fallback: use the region part (e.g. "Africa" → not useful, skip)
-        // If the city part matches a known country subdivision, we still return XX
-        return 'XX';
       }
-    } catch (e) {
-      // ignore
+      return 'XX';
+    } catch (err) {
+      return 'XX';
     }
-    return 'XX';
+  }
+
+  /**
+   * Escape HTML to prevent XSS in ban modal.
+   */
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   /**
@@ -185,6 +113,9 @@
     /**
      * Kick off the auth listener. Should be called once after all
      * scripts have loaded.
+     * 
+     * FIXED: Now calls getRedirectResult() BEFORE onAuthStateChanged()
+     * This fixes the mobile redirect race condition.
      */
     init: function () {
       var self = this;
@@ -210,16 +141,41 @@
         });
       }
 
-      window.NDOG.auth.onAuthStateChanged(function (user) {
-        if (user) {
-          window.NDOG.currentUser = user;
-          self.handleLogin(user);
-        } else {
-          window.NDOG.currentUser = null;
-          window.NDOG.userProfile = null;
-          self.showLoginScreen();
-        }
-      });
+      // ============================================================
+      // CRITICAL FIX: Handle getRedirectResult BEFORE onAuthStateChanged
+      // This prevents race conditions on mobile where redirect flow
+      // may not be captured by onAuthStateChanged alone.
+      // ============================================================
+      window.NDOG.auth.getRedirectResult()
+        .then(function(result) {
+          if (result && result.user) {
+            console.log('[NDOG.Auth] ✅ Redirect result received for:', result.user.uid);
+            // The user will be caught by onAuthStateChanged next
+          } else {
+            console.log('[NDOG.Auth] No redirect result');
+          }
+        })
+        .catch(function(err) {
+          // Common errors: auth/popup-closed-by-user, etc.
+          // Don't fail — just log and continue
+          if (err.code !== 'auth/popup-closed-by-user') {
+            console.warn('[NDOG.Auth] getRedirectResult error:', err.code, err.message);
+          }
+        })
+        .finally(function() {
+          // Now set up the state listener
+          // This will catch both new logins and existing sessions
+          window.NDOG.auth.onAuthStateChanged(function (user) {
+            if (user) {
+              window.NDOG.currentUser = user;
+              self.handleLogin(user);
+            } else {
+              window.NDOG.currentUser = null;
+              window.NDOG.userProfile = null;
+              self.showLoginScreen();
+            }
+          });
+        });
     },
 
     /* ---------------------------------------------------------------- */
@@ -233,13 +189,11 @@
     loginWithGoogle: async function () {
       try {
         var provider = new window.firebase.auth.GoogleAuthProvider();
-        // Request basic profile + email
         provider.addScope('profile');
         provider.addScope('email');
         var result = await window.NDOG.auth.signInWithPopup(provider);
         return result.user;
       } catch (error) {
-        // Handle common errors gracefully
         if (error.code === 'auth/popup-closed-by-user') {
           window.NDOG.Notify.info('Sign-in popup was closed.');
         } else {
@@ -254,12 +208,10 @@
      */
     logout: async function () {
       try {
-        // Stop any running listeners / animations
         if (window.NDOG.Particles) window.NDOG.Particles.destroy();
 
         await window.NDOG.auth.signOut();
 
-        // Clear local session data (but keep fingerprint token)
         var fpToken = localStorage.getItem('ndog_fp_token');
         localStorage.clear();
         if (fpToken) localStorage.setItem('ndog_fp_token', fpToken);
@@ -295,20 +247,16 @@
     handleLogin: async function (user) {
       var uid = user.uid;
 
-      // 1. Show preloader
       this.showPreloader(true);
 
       try {
-        // 2. Check ban status
         var isBanned = await this.checkBan(uid);
-        if (isBanned) return; // showBannedModal already called
+        if (isBanned) return;
 
-        // 3. Device fingerprint check
         if (window.NDOG.Security) {
           var fingerprint = window.NDOG.Security.generateFingerprint();
           var duplicate = await window.NDOG.DB.checkFingerprint(fingerprint, uid);
           if (duplicate) {
-            // Flag the account but still let them in (admin will review)
             await window.NDOG.DB.flagAccount(uid, 'Multi-account suspected', {
               fingerprint: fingerprint,
               existingUid: duplicate.uid,
@@ -319,17 +267,14 @@
               existingUid: duplicate.uid,
             });
           }
-          // Store current fingerprint
           await window.NDOG.DB.storeFingerprint(fingerprint, uid);
         }
 
-        // 4. Load or create user profile
         var profileSnap = await window.NDOG.db.ref('users/' + uid).once('value');
         var profile = profileSnap.val();
         var isNewUser = !profile;
 
         if (isNewUser) {
-          // Create profile
           var refCode = window.NDOG.DB.generateReferralCode();
           var country = guessCountry();
 
@@ -350,61 +295,45 @@
             claimCount: 0,
             spinCount: 0,
             luckyBoxCount: 0,
+            lastClaim: 0,
+            lastSpin: 0,
+            lastLuckyBox: 0,
             createdAt: window.firebase.database.ServerValue.TIMESTAMP,
             lastLogin: window.firebase.database.ServerValue.TIMESTAMP,
             isBanned: false,
             banReason: '',
+            suspiciousScore: 0,
           };
 
           await window.NDOG.DB.createUserProfile(uid, profile);
-          // Re-read to get server timestamps
-          var freshSnap = await window.NDOG.db.ref('users/' + uid).once('value');
-          profile = freshSnap.val();
+          console.log('[NDOG.Auth] New user created:', uid);
 
-          // Log registration analytics
-          try {
-            window.NDOG.db.ref('analytics/totalUsers').transaction(function (c) {
-              return (c || 0) + 1;
-            });
-          } catch (e) {
-            // ignore
-          }
-
-          window.NDOG.Notify.success('Welcome to NileDogs! 🐕');
+          // Process referral for new users
+          await this.processReferral(uid, profile);
         } else {
-          // Update lastLogin
-          await window.NDOG.DB.updateUserProfile(uid, {
+          // Update lastLogin for existing users
+          await window.NDOG.db.ref('users/' + uid).update({
             lastLogin: window.firebase.database.ServerValue.TIMESTAMP,
-            photoURL: user.photoURL || profile.photoURL || '',
-            displayName: user.displayName || profile.displayName || '',
           });
         }
 
-        // 5. Process referral code from URL (only for new users)
-        if (isNewUser) {
-          await this.processReferral(uid, profile);
+        // Update rank
+        var rank = computeRank(profile.totalEarned || 0);
+        if (profile.rank !== rank) {
+          await window.NDOG.db.ref('users/' + uid).update({ rank: rank });
+          profile.rank = rank;
         }
 
-        // 6. Recompute rank from totalEarned
-        if (profile) {
-          var rank = computeRank(profile.totalEarned || 0);
-          if (rank !== profile.rank) {
-            await window.NDOG.DB.updateUserProfile(uid, { rank: rank });
-            profile.rank = rank;
-          }
-        }
-
-        // 7. Set global state
         window.NDOG.userProfile = profile;
 
-        // 8. Show app shell
+        // Show app shell
         this.showAppShell();
         this.showPreloader(false);
 
-        // 9. Initialize sub-modules
+        // Initialize sub-modules
         this.initModules(profile);
 
-        // 10. Check admin role
+        // Check admin role
         this.checkAdminRole(uid);
 
         // Update leaderboard entry
@@ -440,7 +369,6 @@
         var banData = snap.val();
         if (banData) {
           this.showBannedModal(banData.reason || 'Violation of terms of service.');
-          // Also sign out
           window.NDOG.auth.signOut();
           return true;
         }
@@ -456,7 +384,6 @@
      * @param {string} reason
      */
     showBannedModal: function (reason) {
-      // Ensure modal container exists or create one
       var existing = document.getElementById('bannedModal');
       if (existing) existing.remove();
 
@@ -492,15 +419,12 @@
       var refCode = params.get('ref');
       if (refCode && refCode.trim().length > 0) {
         sessionStorage.setItem('ndog_ref', refCode.trim());
-        // Clean the URL
         window.history.replaceState({}, '', window.location.pathname + window.location.hash);
       }
     },
 
     /**
      * Process the stored referral code for a newly registered user.
-     * Finds the referrer by referralCode, then triggers 3-level rewards.
-     *
      * @param {string} uid      – new user's UID
      * @param {object} profile  – the new user's profile (already saved)
      */
@@ -509,7 +433,6 @@
       if (!refCode) return;
 
       try {
-        // Find the user whose referralCode matches
         var snap = await window.NDOG.db
           .ref('users')
           .orderByChild('referralCode')
@@ -524,21 +447,14 @@
           return;
         }
 
-        // Get the referrer's UID
         var referrerUid = Object.keys(data)[0];
         if (referrerUid === uid) {
-          // Can't refer yourself
           sessionStorage.removeItem('ndog_ref');
           return;
         }
 
-        // Update the new user's profile with referredBy
         await window.NDOG.DB.updateUserProfile(uid, { referredBy: referrerUid });
-
-        // Process 3-level referral rewards
         await window.NDOG.DB.processReferral(referrerUid, uid, refCode);
-
-        // Update referral counts
         await window.NDOG.DB.updateReferralCounts(referrerUid);
 
         window.NDOG.Notify.success('Referral code applied! You and your referrer earned rewards.');
@@ -549,132 +465,144 @@
       sessionStorage.removeItem('ndog_ref');
     },
 
-    /* ---------------------------------------------------------------- */
-    /*  UI toggles                                                         */
-    /* ---------------------------------------------------------------- */
+    /* ────────────────────────────────────────────────────
+       UI State Management
+    ──────────────────────────────────────────────────── */
 
-    /**
-     * Show / hide the preloader overlay.
-     * @param {boolean} show
-     */
-    showPreloader: function (show) {
-      var el = document.getElementById('preloader');
-      if (!el) return;
-      if (show) {
-        el.classList.remove('done');
-        el.style.display = '';
-      } else {
-        el.classList.add('done');
-        // Fade out after animation
-        setTimeout(function () {
-          el.style.display = 'none';
-        }, 500);
-      }
-    },
-
-    /**
-     * Show the login screen, hide the app shell.
-     */
     showLoginScreen: function () {
-      var loginEl = document.getElementById('loginScreen');
-      var appEl = document.getElementById('appShell');
-      var preloader = document.getElementById('preloader');
-
-      if (loginEl) {
-        loginEl.classList.remove('hidden');
-        loginEl.style.display = '';
+      var loginScreen = document.getElementById('loginScreen');
+      var appShell = document.getElementById('appShell');
+      if (loginScreen) {
+        loginScreen.classList.remove('hidden');
+        loginScreen.style.opacity = '1';
+        loginScreen.style.visibility = 'visible';
       }
-      if (appEl) {
-        appEl.classList.add('hidden');
+      if (appShell) {
+        appShell.classList.add('hidden');
       }
-      if (preloader) {
-        preloader.classList.add('done');
-        setTimeout(function () {
-          if (preloader.parentNode) preloader.style.display = 'none';
-        }, 600);
-      }
-
-      // Start particles on the login screen
-      if (window.NDOG.Particles) window.NDOG.Particles.init();
     },
 
-    /**
-     * Show the app shell, hide the login screen.
-     */
     showAppShell: function () {
-      var loginEl = document.getElementById('loginScreen');
-      var appEl = document.getElementById('appShell');
+      var appShell = document.getElementById('appShell');
+      var loginScreen = document.getElementById('loginScreen');
+      if (appShell) {
+        appShell.classList.remove('hidden');
+      }
+      if (loginScreen) {
+        loginScreen.classList.add('hidden');
+        loginScreen.style.opacity = '0';
+        loginScreen.style.visibility = 'hidden';
+      }
+    },
+
+    showPreloader: function (show) {
       var preloader = document.getElementById('preloader');
-
-      if (loginEl) loginEl.classList.add('hidden');
-      if (appEl) {
-        appEl.classList.remove('hidden');
-        appEl.style.display = '';
-      }
       if (preloader) {
-        preloader.classList.add('done');
-        setTimeout(function () {
-          if (preloader.parentNode) preloader.style.display = 'none';
-        }, 600);
+        if (show) {
+          preloader.style.opacity = '1';
+          preloader.style.visibility = 'visible';
+          preloader.classList.remove('done');
+        } else {
+          preloader.classList.add('done');
+          setTimeout(function () {
+            if (preloader.parentNode) {
+              preloader.remove();
+            }
+          }, 600);
+        }
       }
     },
 
-    /* ---------------------------------------------------------------- */
-    /*  Sub-module initialization                                          */
-    /* ---------------------------------------------------------------- */
-
-    /**
-     * Initialize all app modules after successful login.
-     * Each module's init() is called only if it exists.
-     * @param {object} profile
-     */
     initModules: function (profile) {
-      // Particles (keep running or restart)
-      if (window.NDOG.Particles) window.NDOG.Particles.init();
+      if (window.NDOG.UI && typeof window.NDOG.UI.init === 'function') {
+        try {
+          window.NDOG.UI.init();
+        } catch (err) {
+          console.error('[NDOG.Auth] Error initializing UI:', err);
+        }
+      }
 
-      // Referrals
-      if (window.NDOG.Referrals) window.NDOG.Referrals.init(profile);
+      if (window.NDOG.Claim && typeof window.NDOG.Claim.init === 'function') {
+        try {
+          window.NDOG.Claim.init();
+        } catch (err) {
+          console.error('[NDOG.Auth] Error initializing Claim:', err);
+        }
+      }
 
-      // Any other modules can be initialized here in the future
-      // e.g., window.NDOG.Claim.init(profile);
-      // e.g., window.NDOG.Missions.init(profile);
-      // e.g., window.NDOG.Airdrop.init(profile);
+      if (window.NDOG.Referrals && typeof window.NDOG.Referrals.init === 'function') {
+        try {
+          window.NDOG.Referrals.init();
+        } catch (err) {
+          console.error('[NDOG.Auth] Error initializing Referrals:', err);
+        }
+      }
+
+      if (window.NDOG.Missions && typeof window.NDOG.Missions.init === 'function') {
+        try {
+          window.NDOG.Missions.init();
+        } catch (err) {
+          console.error('[NDOG.Auth] Error initializing Missions:', err);
+        }
+      }
+
+      if (window.NDOG.Leaderboard && typeof window.NDOG.Leaderboard.init === 'function') {
+        try {
+          window.NDOG.Leaderboard.init();
+        } catch (err) {
+          console.error('[NDOG.Auth] Error initializing Leaderboard:', err);
+        }
+      }
+
+      if (window.NDOG.Staking && typeof window.NDOG.Staking.init === 'function') {
+        try {
+          window.NDOG.Staking.init();
+        } catch (err) {
+          console.error('[NDOG.Auth] Error initializing Staking:', err);
+        }
+      }
+
+      if (window.NDOG.Airdrop && typeof window.NDOG.Airdrop.init === 'function') {
+        try {
+          window.NDOG.Airdrop.init();
+        } catch (err) {
+          console.error('[NDOG.Auth] Error initializing Airdrop:', err);
+        }
+      }
     },
 
-    /* ---------------------------------------------------------------- */
-    /*  Admin check                                                        */
-    /* ---------------------------------------------------------------- */
+    checkAdminRole: async function (uid) {
+      try {
+        var snap = await window.NDOG.db.ref('admins/' + uid).once('value');
+        if (snap.val()) {
+          if (window.NDOG.Admin && typeof window.NDOG.Admin.init === 'function') {
+            window.NDOG.Admin.init();
+          }
+        }
+      } catch (err) {
+        console.error('[NDOG.Auth] checkAdminRole error:', err);
+      }
+    },
 
     /**
-     * Check if the current user is an admin and show admin UI elements.
-     * @param {string} uid
+     * Refresh user session and profile data
      */
-    checkAdminRole: function (uid) {
-      window.NDOG.DB.getAdminRole(uid, function (snap) {
-        var role = snap.val();
-        if (role) {
-          window.NDOG.isAdmin = true;
-          window.NDOG.adminRole = role.role || role;
-
-          // Show admin link/button if it exists in the DOM
-          var adminLinks = document.querySelectorAll('[data-admin-only]');
-          for (var i = 0; i < adminLinks.length; i++) {
-            adminLinks[i].style.display = '';
+    refreshSession: async function () {
+      if (!window.NDOG.currentUser) return;
+      
+      try {
+        var uid = window.NDOG.currentUser.uid;
+        var snap = await window.NDOG.db.ref('users/' + uid).once('value');
+        var profile = snap.val();
+        if (profile) {
+          window.NDOG.userProfile = profile;
+          if (window.NDOG.UI && typeof window.NDOG.UI.updateDashboard === 'function') {
+            window.NDOG.UI.updateDashboard();
           }
-
-          console.log('[NDOG.Auth] Admin role detected:', window.NDOG.adminRole);
         }
-      });
-    },
+      } catch (err) {
+        console.error('[NDOG.Auth] refreshSession error:', err);
+      }
+    }
   };
-
-  /* ------------------------------------------------------------------ */
-  /*  Internal                                                            */
-  /* ------------------------------------------------------------------ */
-
-  function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str || ''));
-    return div.innerHTML;
-  }
 })();

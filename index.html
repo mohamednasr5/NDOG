@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#0a1f44" />
   
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- ✅ سياسة أمان المحتوى (CSP) المُصحَّحة                      -->
+  <!-- ✅ سياسة أمان المحتوى (CSP) المُصحَّحة - إضافة apis.google.com -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self' https://www.gstatic.com;
-    script-src 'self' https://www.gstatic.com 'unsafe-eval' 'unsafe-inline';
+    default-src 'self' https://www.gstatic.com https://apis.google.com;
+    script-src 'self' https://www.gstatic.com https://apis.google.com 'unsafe-eval' 'unsafe-inline';
     style-src 'self' https://www.gstatic.com 'unsafe-inline';
-    connect-src 'self' https://www.gstatic.com wss://*.firebasedatabase.app https://*.firebasedatabase.app;
+    connect-src 'self' https://www.gstatic.com wss://*.firebasedatabase.app https://*.firebasedatabase.app https://apis.google.com;
     img-src 'self' data: https:;
     font-src 'self' https://www.gstatic.com data:;
   ">
@@ -51,6 +51,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="./assets/icons/favicon.png" />
   <link rel="stylesheet" href="./css/styles.css?v=2.0.3" />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://apis.google.com" crossorigin />
 
   <title>NileDogs (NDOG) — منصة مكافآت مجتمعية | برنامج المؤسسين المبكر</title>
 
@@ -643,6 +644,6 @@
       });
     })();
   </script>
-  <script type="module" src="./js/app.js?v=2.0.3"></script>
+  <script type="module" src="./js/app.js?v=2.0.4"></script>
 </body>
 </html>

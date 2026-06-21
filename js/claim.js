@@ -7,7 +7,7 @@ import {
   APP_CONFIG, serverTimestamp
 } from "./firebase-config.js";
 import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, toast } from "./app.js";
+import { animateCount, toast } from "./utils.js";
 import { computeLevel } from "./dashboard.js";
 import { t, getLang, onLangChange } from "./i18n.js";
 

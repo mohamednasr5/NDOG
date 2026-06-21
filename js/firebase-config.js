@@ -54,7 +54,7 @@ import {
 // ───────────────────────────────────────────────────────────────────
 export const firebaseConfig = {
   apiKey:            "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
-  authDomain:        "ndogcoin.com",
+  authDomain:        "ndog-a3265.firebaseapp.com",
   databaseURL:       "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
   projectId:         "ndog-a3265",
   storageBucket:     "ndog-a3265.firebasestorage.app",

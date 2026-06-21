@@ -5,11 +5,11 @@
  * to break the circular dependency: app.js → dashboard.js → referral.js → app.js
  */
 
-import { APP_CONFIG } from "./firebase-config.js";
-import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, openModal } from "./utils.js";
-import { t, getLang, onLangChange } from "./i18n.js";
-import { shareLink, generateQR } from "./share-utils.js";
+import { APP_CONFIG } from "./firebase-config.js?v=2.0.5";
+import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
+import { animateCount, openModal } from "./utils.js?v=2.0.5";
+import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
+import { shareLink, generateQR } from "./share-utils.js?v=2.0.5";
 
 let bound = false;
 
@@ -127,7 +127,7 @@ function renderLevelProgress(balance) {
   }
 }
 
-function computeLevel(balance) {
+export function computeLevel(balance) {
   const levels = APP_CONFIG.rewardLevels || [];
   let current = levels[0] || { min: 0, name: "Bronze", nameKey: "dash.level.bronze" };
 

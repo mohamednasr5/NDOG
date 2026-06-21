@@ -306,9 +306,25 @@ function registerSW() {
   // stale-cache debugging headaches).
   if (location.protocol !== "https:" && location.hostname !== "localhost") return;
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=2.0.0")
+    navigator.serviceWorker.register("./service-worker.js?v=2.0.1")
       .then(reg => {
         console.log("[NDOG] SW registered:", reg.scope);
+
+        // When a new SW is installed and waiting, tell it to skipWaiting
+        // so it activates immediately (no need to close all tabs).
+        reg.addEventListener("updatefound", () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                console.log("[NDOG] New SW installed, requesting skipWaiting");
+                newWorker.postMessage({ type: "SKIP_WAITING" });
+              }
+            });
+          }
+        });
+
+        // Reload the page when the new SW takes control
         let refreshing = false;
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           if (refreshing) return;
@@ -316,6 +332,16 @@ function registerSW() {
           console.log("[NDOG] New SW activated — reloading");
           window.location.reload();
         });
+
+        // Listen for SW_UPDATED message (sent by SW on activate)
+        // This handles the case where SW activates before we register the listener
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data?.type === "SW_UPDATED") {
+            console.log("[NDOG] SW update confirmed, version:", event.data.version);
+          }
+        });
+
+        // Check for SW updates every 5 minutes
         setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000);
       })
       .catch(err => console.warn("[NDOG] SW failed:", err));
@@ -337,13 +363,28 @@ function hidePreloader() {
 setTimeout(() => {
   const p = document.getElementById("preloader");
   if (p && !p.classList.contains("done")) {
-    console.warn("[NDOG] Forcing preloader hide after timeout");
+    console.warn("[NDOG] Failsafe: forcing preloader hide");
     p.classList.add("done");
     setTimeout(() => p.remove(), 600);
     const shell = document.getElementById("appShell");
     const login = document.getElementById("loginScreen");
     if (shell?.classList.contains("hidden") && login?.classList.contains("hidden")) {
       login?.classList.remove("hidden");
+    }
+    // If the app shell is still hidden, modules likely failed to load.
+    // Offer a reload to clear stale cache.
+    if (shell?.classList.contains("hidden")) {
+      const msg = document.createElement("div");
+      msg.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#ffd700;color:#0a1f44;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);";
+      msg.textContent = "\u26A1 Update available — tap to reload";
+      msg.addEventListener("click", () => {
+        // Clear all caches before reloading to bust stale service worker
+        if ("caches" in window) {
+          caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
+        }
+        setTimeout(() => location.reload(), 300);
+      });
+      document.body.appendChild(msg);
     }
   }
 }, 6000);

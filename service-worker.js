@@ -1,90 +1,116 @@
 /**
- * NileDogs (NDOG) — Service Worker
+ * NileDogs (NDOG) — Service Worker  v2.0.1
  * ------------------------------------------------------------------
- * Strategy:
- *   - Precache app shell (HTML/CSS/JS + manifest + icons)
- *   - Cache-first for static assets
- *   - Stale-while-revalidate for Firebase SDK (CDN)
- *   - Network-first for navigation requests
- *   - Offline fallback page when everything else fails
+ * CRITICAL FIX: Previous version used cache-first for JS files, which
+ * caused the browser to serve stale cached auth.js after deployment.
+ * The old cached auth.js didn't have the `getCurrentUser` named export,
+ * breaking the entire app with "does not provide an export" error.
+ *
+ * New strategy:
+ *   - JS module files  → NETWORK-FIRST (always fetch fresh, cache fallback)
+ *   - CSS / images     → STALE-WHILE-REVALIDATE (fast load, bg update)
+ *   - Firebase SDK CDN → STALE-WHILE-REVALIDATE
+ *   - Navigation/HTML  → NETWORK-FIRST (always fresh HTML)
+ *   - Firebase API     → pass-through (never cache)
+ *
+ * Additionally: on activate, ALL caches are deleted (not just old-named
+ * ones) to guarantee no stale files survive a deployment.
+ * ------------------------------------------------------------------
  */
 
-const VERSION    = "ndog-v2.0.0";
-const SHELL_CACHE = `${VERSION}-shell`;
-const RUNTIME_CACHE = `${VERSION}-runtime`;
-const CDN_CACHE    = `${VERSION}-cdn`;
+const VERSION     = "ndog-v2.0.1";
+const CACHE_ASSET = `${VERSION}-asset`;
+const CACHE_CDN   = `${VERSION}-cdn`;
 
-const APP_SHELL = [
-  "./",
+// ───────────────────────────────────────────────────────────────────
+// INSTALL — precache critical assets
+// ───────────────────────────────────────────────────────────────────
+const PRECACHE_ASSETS = [
   "./index.html",
-  "./admin.html",
-  "./whitepaper-en.html",
-  "./whitepaper-ar.html",
   "./manifest.json",
   "./css/styles.css",
-  "./js/i18n.js",
-  "./js/share-utils.js",
-  "./js/firebase-config.js",
-  "./js/app.js",
-  "./js/auth.js",
-  "./js/dashboard.js",
-  "./js/claim.js",
-  "./js/referral.js",
-  "./js/missions.js",
-  "./js/leaderboard.js",
-  "./js/admin.js",
-  "./js/notifications.js",
   "./assets/icons/icon.svg",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/favicon.png",
   "./assets/icons/apple-touch-icon.png",
   "./offline.html",
-  "./sitemap.xml",
-  "./robots.txt",
 ];
 
-// ───────────────────────────────────────────────────────────────────
-// INSTALL — precache the app shell
-// ───────────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE)
-      .then((cache) => cache.addAll(APP_SHELL).catch((e) => console.warn('[SW] Precache partial fail:', e)))
+    caches.open(CACHE_ASSET)
+      .then(cache => cache.addAll(PRECACHE_ASSETS))
+      .catch(e => console.warn("[SW] Precache partial fail:", e))
       .then(() => self.skipWaiting())
   );
 });
 
 // ───────────────────────────────────────────────────────────────────
-// ACTIVATE — clean up old caches + take control immediately
+// ACTIVATE — DELETE ALL caches + take control
 // ───────────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
-  const valid = [SHELL_CACHE, RUNTIME_CACHE, CDN_CACHE];
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => !valid.includes(k)).map(k => caches.delete(k))
-      ))
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
       .then(() => self.clients.claim())
       .then(() => self.clients.matchAll({ type: "window" }))
       .then(clients => clients.forEach(c =>
-        c.postMessage({ type: "SW_ACTIVATED", version: VERSION })
+        c.postMessage({ type: "SW_UPDATED", version: VERSION })
       ))
   );
 });
 
 // ───────────────────────────────────────────────────────────────────
-// FETCH — routing strategy
+// HELPERS
+// ───────────────────────────────────────────────────────────────────
+function isJS(url) {
+  return url.pathname.endsWith(".js") || url.pathname.endsWith(".mjs");
+}
+function isCSS(url) {
+  return url.pathname.endsWith(".css");
+}
+function isImage(url) {
+  return /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i.test(url.pathname);
+}
+
+async function networkFirst(req, cacheName, cacheResp = true) {
+  const cache = await caches.open(cacheName);
+  try {
+    const res = await fetch(req);
+    if (cacheResp && res.ok) {
+      cache.put(req, res.clone());
+    }
+    return res;
+  } catch (_) {
+    const cached = await cache.match(req);
+    if (cached) return cached;
+    return new Response("Offline", { status: 503, statusText: "Offline" });
+  }
+}
+
+async function staleWhileRevalidate(req, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(req);
+  const network = fetch(req).then(res => {
+    if (res.ok) cache.put(req, res.clone());
+    return res;
+  }).catch(() => cached);
+  return cached || network;
+}
+
+// ───────────────────────────────────────────────────────────────────
+// FETCH — routing
 // ───────────────────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Only handle GET requests for http/https (skip chrome-extension, moz-extension, etc.)
+  // Only GET http/https
   if (req.method !== "GET") return;
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
-  // Firebase API calls → always network, never cache
+  // Firebase Realtime DB / API → never cache, always network
   if (url.hostname.includes("firebaseio.com") ||
       url.hostname.includes("firebasedatabase.app") ||
       url.hostname.includes("googleapis.com")) {
@@ -93,53 +119,40 @@ self.addEventListener("fetch", (event) => {
 
   // Firebase SDK CDN → stale-while-revalidate
   if (url.hostname === "www.gstatic.com") {
-    event.respondWith(staleWhileRevalidate(req, CDN_CACHE));
+    event.respondWith(staleWhileRevalidate(req, CACHE_CDN));
     return;
   }
 
-  // For same-origin static assets, strip ?v= cache-buster so the cache
-  // lookup matches across requests with different version tags.
-  let cacheKey = req;
-  if (url.origin === self.location.origin && url.search.includes("v=")) {
-    try { cacheKey = new Request(url.pathname, req); } catch (_) { cacheKey = req; }
-  }
-
-  // Navigation requests → network-first, fallback to cached index, then offline
+  // Navigation requests → network-first, fallback to cached index
   if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req)
-        .then(res => {
-          const copy = res.clone();
-          caches.open(RUNTIME_CACHE).then(c => c.put(req, copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => caches.match(req)
-          .then(r => r || caches.match("./index.html"))
-          .then(r => r || caches.match("./offline.html"))
-        )
-    );
+    event.respondWith(networkFirst(req, CACHE_ASSET));
     return;
   }
 
-  // Static assets → cache-first (using stripped cache key)
-  event.respondWith(
-    caches.match(cacheKey).then(cached => cached || fetch(req).then(res => {
-      const copy = res.clone();
-      caches.open(RUNTIME_CACHE).then(c => c.put(cacheKey, copy)).catch(() => {});
-      return res;
-    }).catch(() => cached))
-  );
-});
+  // Same-origin JS files → NETWORK-FIRST
+  // This is the critical fix: JS modules MUST come from the network
+  // to avoid serving stale cached versions that may have different
+  // exports, breaking the entire module graph.
+  if (url.origin === self.location.origin && isJS(url)) {
+    event.respondWith(networkFirst(req, CACHE_ASSET));
+    return;
+  }
 
-async function staleWhileRevalidate(req, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(req);
-  const network = fetch(req).then(res => {
-    cache.put(req, res.clone());
-    return res;
-  }).catch(() => cached);
-  return cached || network;
-}
+  // CSS files → stale-while-revalidate (fast load, update in background)
+  if (url.origin === self.location.origin && isCSS(url)) {
+    event.respondWith(staleWhileRevalidate(req, CACHE_ASSET));
+    return;
+  }
+
+  // Images / icons → cache-first with revalidation
+  if (url.origin === self.location.origin && isImage(url)) {
+    event.respondWith(staleWhileRevalidate(req, CACHE_ASSET));
+    return;
+  }
+
+  // Everything else → network-first with cache fallback
+  event.respondWith(networkFirst(req, CACHE_ASSET));
+});
 
 // ───────────────────────────────────────────────────────────────────
 // PUSH NOTIFICATIONS
@@ -172,7 +185,7 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 // ───────────────────────────────────────────────────────────────────
-// MESSAGE — allow page to trigger skipWaiting
+// MESSAGE
 // ───────────────────────────────────────────────────────────────────
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();

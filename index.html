@@ -584,32 +584,62 @@
   <!-- ────────────────────────────── SCRIPTS ────────────────────────────── -->
   <script>
     // Inline safety net — runs IMMEDIATELY before ES modules load.
-    // If app.js fails to load (e.g., opened via file://), this still hides
-    // the preloader after a timeout and ensures only the dashboard view is visible.
+    // If app.js fails to load (e.g., opened via file://, or stale SW
+    // serving old cached modules), this hides the preloader and shows
+    // a "reload to update" prompt so the user can clear the stale cache.
     (function() {
-      var FAILSAFE_MS = 4000;
-      setTimeout(function() {
+      var FAILSAFE_MS = 8000;
+      var _done = false;
+      function showReloadButton() {
+        if (_done) return;
+        _done = true;
         var preloader = document.getElementById('preloader');
         if (preloader && !preloader.classList.contains('done')) {
           console.warn('[NDOG] Failsafe: forcing preloader hide');
           preloader.classList.add('done');
           setTimeout(function() { preloader.remove(); }, 600);
         }
-        // Ensure only one view is active
-        var views = document.querySelectorAll('.view');
-        if (views.length && !document.querySelector('.view--active')) {
-          views[0].classList.add('view--active');
-        }
-        // If app shell still hidden and login still hidden, show login
         var shell = document.getElementById('appShell');
         var login = document.getElementById('loginScreen');
         if (shell && shell.classList.contains('hidden') &&
             login && login.classList.contains('hidden')) {
           login.classList.remove('hidden');
         }
-      }, FAILSAFE_MS);
+        // If app shell is still hidden, modules failed to load.
+        // Show a prominent reload button to clear stale cache.
+        if (shell && shell.classList.contains('hidden')) {
+          var msg = document.createElement('div');
+          msg.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+            'background:linear-gradient(135deg,#ffd700,#ffaa00);color:#0a1f44;' +
+            'padding:14px 28px;border-radius:14px;font-size:15px;font-weight:700;' +
+            'z-index:999999;cursor:pointer;box-shadow:0 6px 30px rgba(255,215,0,0.4);' +
+            'font-family:system-ui,sans-serif;text-align:center;max-width:90vw;';
+          msg.textContent = '\u26A1 \u062A\u062D\u062F\u064A\u062B \u0645\u062A\u0627\u062D \u2014 \u0627\u0636\u063A\u0637 \u0644\u0644\u062A\u062D\u062F\u064A\u062B / Update available';
+          msg.addEventListener('click', function() {
+            msg.textContent = '\u23F3 \u062C\u0627\u0631\u064A \u0627\u0644\u062A\u062D\u062F\u064A\u062B...';
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+              });
+            }
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+            }
+            setTimeout(function() { location.reload(); }, 500);
+          });
+          document.body.appendChild(msg);
+        }
+      }
+      setTimeout(showReloadButton, FAILSAFE_MS);
+      // Also listen for unhandled module errors to trigger earlier
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.indexOf('does not provide an export') !== -1) {
+          console.error('[NDOG] Module export error detected — stale cache likely');
+          setTimeout(showReloadButton, 1000);
+        }
+      });
     })();
   </script>
-  <script type="module" src="./js/app.js?v=2.0.0"></script>
+  <script type="module" src="./js/app.js?v=2.0.1"></script>
 </body>
 </html>

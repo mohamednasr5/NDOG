@@ -62,6 +62,8 @@ function renderDashboard(user) {
   setText("dashName", user.name || "User");
   setText("dashJoined", t("dash.memberSince", { date: formatDate(user.createdAt) }));
   setText("dashCountry", user.country || t("lb.globalLabel"));
+  setText("dashRankName", t(computeLevel(user.balance || 0).nameKey || computeLevel(user.balance || 0).name));
+
   setText("dashRefCode", user.referralCode || "NDOG—");
   setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
 
@@ -73,7 +75,6 @@ function renderDashboard(user) {
 
   const level = computeLevel(user.balance || 0);
   const levelName = t(level.nameKey || level.name);
-  setText("dashRankName", levelName);
 
   const rankChip = document.getElementById("dashRankChip");
   if (rankChip) rankChip.textContent = levelName;

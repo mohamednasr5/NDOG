@@ -101,11 +101,12 @@ googleProvider.setCustomParameters({ prompt: "select_account" });
 // was configured — leading to the user appearing logged out on
 // page reload even though they had a valid session.
 // ───────────────────────────────────────────────────────────────────
-export const persistenceReady = setPersistence(auth, browserLocalPersistence)
-  .catch(err => {
+export const persistenceReady = Promise.race([
+  setPersistence(auth, browserLocalPersistence).catch(err => {
     console.warn("[NDOG] Auth persistence failed:", err);
-    // Continue anyway — sessionStorage will be used as fallback
-  });
+  }),
+  new Promise(resolve => setTimeout(resolve, 5000))
+]);
 
 // ───────────────────────────────────────────────────────────────────
 // 4. EXPORT HELPERS

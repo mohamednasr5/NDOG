@@ -18,7 +18,7 @@
  * ------------------------------------------------------------------
  */
 
-const VERSION     = "ndog-v2.0.1";
+const VERSION     = "ndog-v2.0.2";
 const CACHE_ASSET = `${VERSION}-asset`;
 const CACHE_CDN   = `${VERSION}-cdn`;
 
@@ -77,7 +77,14 @@ function isImage(url) {
 async function networkFirst(req, cacheName, cacheResp = true) {
   const cache = await caches.open(cacheName);
   try {
-    const res = await fetch(req);
+    // "reload" forces the browser to bypass its own HTTP cache (disk/memory
+    // cache) and go to the network, not just bypass the SW Cache Storage.
+    // Without this, fetch() can still be satisfied by a stale HTTP-cached
+    // response even though we're in a "network-first" SW strategy — this is
+    // exactly what caused the stale auth.js (getCurrentUser) bug and is also
+    // the cause of the stale i18n.js (onLangChange) bug.
+    const freshReq = new Request(req.url, { cache: "reload" });
+    const res = await fetch(freshReq);
     if (cacheResp && res.ok) {
       cache.put(req, res.clone());
     }

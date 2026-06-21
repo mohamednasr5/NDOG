@@ -24,7 +24,7 @@
     return window.NDOG && window.NDOG.Store ? window.NDOG.Store : null;
   }
   function t(key) {
-    return window.NDOG && window.NDOG.i18n ? window.NDOG.i18n.t(key) : key;
+    return window.NDOG && window.NDOG.UI ? window.NDOG.UI.t(key) : key;
   }
 
   // ── Storage helpers ──

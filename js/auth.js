@@ -1,4 +1,4 @@
-/**
+/** 
  * NileDogs (NDOG) — Authentication Module
  * v2.0.0 COMPLETE MOBILE LOGIN FIX:
  *   • CRITICAL: onAuthStateChanged is now set up FIRST, before getRedirectResult.

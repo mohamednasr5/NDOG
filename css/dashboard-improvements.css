@@ -1,0 +1,352 @@
+/**
+ * NDOG Dashboard Enhancements - CSS Improvements
+ * =====================================================
+ * 
+ * Improvements:
+ * 1. Better card animations & hover effects
+ * 2. Improved level badges styling
+ * 3. Smoother transitions & micro-interactions
+ * 4. Enhanced visual hierarchy
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* DASHBOARD CARDS - Enhanced Styling */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+.stat-card {
+  padding: 18px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.08), rgba(255, 215, 0, 0.05));
+  border: 1px solid var(--glass-bd);
+  backdrop-filter: blur(12px);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  pointer-events: none;
+}
+
+.stat-card:hover {
+  transform: translateY(-6px);
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.12), rgba(255, 215, 0, 0.08));
+  box-shadow: 
+    0 20px 50px rgba(30, 144, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.stat-card__icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  display: inline-block;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.stat-card__value {
+  font-size: 24px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), rgba(255, 215, 0, 0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-variant-numeric: tabular-nums;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-card__value {
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* LEVEL BADGES - Enhanced Design */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+.level-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: var(--r-sm);
+  background: rgba(10, 31, 68, 0.4);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+  opacity: 0.6;
+  transform: scale(0.95);
+  animation: fadeInScale 0.5s ease-out forwards;
+}
+
+.level-badge:nth-child(1) { animation-delay: 0.1s; }
+.level-badge:nth-child(2) { animation-delay: 0.2s; }
+.level-badge:nth-child(3) { animation-delay: 0.3s; }
+.level-badge:nth-child(4) { animation-delay: 0.4s; }
+.level-badge:nth-child(5) { animation-delay: 0.5s; }
+
+.level-badge.unlocked {
+  opacity: 1;
+  transform: scale(1);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(30, 144, 255, 0.1));
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.level-badge.unlocked .lb-icon {
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.lb-icon {
+  font-size: 28px;
+  transition: all 0.3s ease;
+}
+
+.lb-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.level-badge.unlocked .lb-name {
+  color: var(--gold);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* REFERRAL CARD - Enhanced */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+.ref-card {
+  padding: 20px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(30, 144, 255, 0.05));
+  border: 1px solid var(--glass-bd);
+  backdrop-filter: blur(12px);
+  animation: slideInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
+  transition: all 0.3s ease;
+}
+
+.ref-card:hover {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(30, 144, 255, 0.08));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+}
+
+.ref-card__code,
+.ref-card__link {
+  padding: 10px 12px;
+  background: rgba(10, 31, 68, 0.5);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: var(--r-sm);
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--gold);
+  word-break: break-all;
+  transition: all 0.2s ease;
+  user-select: all;
+}
+
+.ref-card__code:hover,
+.ref-card__link:hover {
+  background: rgba(10, 31, 68, 0.7);
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.1);
+}
+
+.ref-card__share button {
+  transition: all 0.2s ease;
+}
+
+.ref-card__share button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* KEYFRAMES - Smooth Animations */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(255, 215, 0, 0.8));
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* LEVEL PROGRESS BAR - Enhanced */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+.level-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.level-progress__bar {
+  flex: 1;
+  height: 12px;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 100px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#levelFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), rgba(255, 215, 0, 0.7));
+  border-radius: 100px;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+#levelFill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* DASHBOARD HERO - Enhanced */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+.dash__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.4);
+  animation: fadeInScale 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
+}
+
+.dash__avatar:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 32px rgba(255, 215, 0, 0.6);
+}
+
+.dash__rank-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(30, 144, 255, 0.1));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--gold);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.15);
+  animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
+  transition: all 0.3s ease;
+}
+
+.dash__rank-chip:hover {
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* EARLY ADOPTER BANNER - Enhanced */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+.ea-banner {
+  animation: slideInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+}
+
+.ea-banner__icon {
+  font-size: 48px;
+  animation: bounce 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* RTL Support - Proper Layout Direction */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+[dir="rtl"] .dash__grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .level-badges {
+  direction: rtl;
+}
+
+[dir="rtl"] .ref-card__share {
+  direction: rtl;
+}
+
+/* Responsive animations on mobile */
+@media (max-width: 768px) {
+  .stat-card {
+    animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  }
+  
+  .level-badge {
+    animation: fadeInScale 0.4s ease-out forwards;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-4px);
+  }
+}

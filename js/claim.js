@@ -5,11 +5,11 @@
 import {
   db, ref, get, update, push, onValue,
   APP_CONFIG, serverTimestamp
-} from "./firebase-config.js";
-import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, toast } from "./utils.js";
-import { computeLevel } from "./dashboard.js";
-import { t, getLang, onLangChange } from "./i18n.js";
+} from "./firebase-config.js?v=2.0.5";
+import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
+import { animateCount, toast } from "./utils.js?v=2.0.5";
+import { computeLevel } from "./dashboard.js?v=2.0.5";
+import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
 
 let claimTimer = null;
 let currentUser = null;

@@ -5,13 +5,12 @@
  * They are re-exported so any other module that imports them from referral.js still works.
  */
 
-import { db, ref, onValue, get, APP_CONFIG } from "./firebase-config.js";
+import { db, ref, get, APP_CONFIG } from "./firebase-config.js";
 import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, toast, openModal } from "./utils.js";
+import { animateCount, openModal } from "./utils.js";
 import { t, getLang, onLangChange } from "./i18n.js";
 import { shareLink, generateQR } from "./share-utils.js";
 
-// Re-export for backward compatibility (in case other modules import from referral.js)
 export { shareLink, generateQR };
 
 let bound = false;
@@ -23,14 +22,19 @@ export function initReferral() {
   let lastUser = null;
 
   onUser((u) => {
-    if (u) { lastUser = u; renderReferral(u); }
+    if (u) {
+      lastUser = u;
+      renderReferral(u);
+    }
   });
 
   document.addEventListener("click", (e) => {
     const shareBtn = e.target.closest("[data-share]");
     if (!shareBtn) return;
+
     const u = getCurrentUser();
     if (!u) return;
+
     const url = `${APP_CONFIG.domain}?ref=${u.referralCode}`;
     shareLink(shareBtn.dataset.share, url);
   });
@@ -38,11 +42,12 @@ export function initReferral() {
   document.getElementById("qrTrigger2")?.addEventListener("click", () => {
     const u = getCurrentUser();
     if (!u) return;
+
     generateQR(`${APP_CONFIG.domain}?ref=${u.referralCode}`);
     openModal("qrModal");
   });
 
-  document.addEventListener("ndog:viewchange", (e) => {
+  document.addEventListener("ndogviewchange", (e) => {
     if (e.detail.view === "referral") {
       const u = getCurrentUser();
       if (u) renderReferral(u);
@@ -57,12 +62,15 @@ export function initReferral() {
 function renderReferral(user) {
   const codeInput = document.getElementById("refCodeInput");
   const linkInput = document.getElementById("refLinkInput");
+
   if (codeInput) codeInput.value = user.referralCode || "";
   if (linkInput) linkInput.value = `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`;
 
   animateCount(document.getElementById("refStatTotal"), user.totalReferrals || 0);
-  animateCount(document.getElementById("refStatEarn"),
-    (user.totalReferrals || 0) * APP_CONFIG.referralReward.l1);
+  animateCount(
+    document.getElementById("refStatEarn"),
+    (user.totalReferrals || 0) * APP_CONFIG.referralReward.l1
+  );
 
   loadReferralTree(user);
 }
@@ -70,6 +78,7 @@ function renderReferral(user) {
 async function loadReferralTree(user) {
   const list = document.getElementById("refTreeList");
   if (!list) return;
+
   list.innerHTML = `<div class="empty">${t("ref.loading")}</div>`;
 
   const snap = await get(ref(db, "referrals"));
@@ -80,7 +89,7 @@ async function loadReferralTree(user) {
   }
 
   const rows = [];
-  snap.forEach(child => {
+  snap.forEach((child) => {
     const r = child.val();
     if (r.referrer === user.uid) rows.push(r);
   });
@@ -91,31 +100,57 @@ async function loadReferralTree(user) {
     return;
   }
 
-  const recent = rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 50);
+  const recent = rows
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    .slice(0, 50);
+
   const usersSnap = await get(ref(db, "users"));
   const usersMap = {};
-  if (usersSnap.exists()) usersSnap.forEach(c => { usersMap[c.key] = c.val(); });
+  if (usersSnap.exists()) {
+    usersSnap.forEach((c) => {
+      usersMap[c.key] = c.val();
+    });
+  }
 
   let active = 0;
   const claimsSnap = await get(ref(db, "claims"));
   const claimers = new Set();
-  if (claimsSnap.exists()) claimsSnap.forEach(c => claimers.add(c.val().userId));
 
-  list.innerHTML = recent.map(r => {
-    const u = usersMap[r.referredUser] || {};
-    if (claimers.has(r.referredUser)) active++;
-    const tier = `L${r.level || 1}`;
-    return `
-      <div class="ref-row">
-        <img class="ref-row__avatar" src="${u.photoURL || defaultAvatar(u.name)}" alt="" onerror="this.src='${defaultAvatar()}'"/>
-        <div class="ref-row__meta">
-          <div class="ref-row__name">${escapeHtml(u.name || t("ref.anonymous"))}</div>
-          <div class="ref-row__sub">${t("ref.joined", { date: formatDate(r.createdAt), country: u.country || t("lb.globalLabel") })}</div>
+  if (claimsSnap.exists()) {
+    claimsSnap.forEach((c) => {
+      const val = c.val();
+      if (val?.userId) claimers.add(val.userId);
+    });
+  }
+
+  list.innerHTML = recent
+    .map((r) => {
+      const u = usersMap[r.referredUser] || {};
+      if (claimers.has(r.referredUser)) active++;
+
+      const tier = `L${r.level || 1}`;
+      const reward = APP_CONFIG.referralReward[`l${r.level || 1}`] || 0;
+
+      return `
+        <div class="ref-row">
+          <img
+            class="ref-row-avatar"
+            src="${u.photoURL || defaultAvatar(u.name)}"
+            alt="${escapeHtml(u.name || t("ref.anonymous"))}"
+            onerror="this.src='${defaultAvatar(u.name)}'"
+          />
+          <div class="ref-row-meta">
+            <div class="ref-row-name">${escapeHtml(u.name || t("ref.anonymous"))}</div>
+            <div class="ref-row-sub">${t("ref.joined", {
+              date: formatDate(r.createdAt),
+              country: u.country || t("lb.globalLabel")
+            })}</div>
+          </div>
+          <span class="ref-row-tier">${tier} · +${reward}</span>
         </div>
-        <span class="ref-row__tier">${tier} · +${APP_CONFIG.referralReward[`l${r.level || 1}`] || 0}</span>
-      </div>
-    `;
-  }).join("");
+      `;
+    })
+    .join("");
 
   renderRefStats(rows.length, active);
 }
@@ -123,26 +158,49 @@ async function loadReferralTree(user) {
 function renderRefStats(total, active) {
   animateCount(document.getElementById("refStatTotal"), total);
   animateCount(document.getElementById("refStatActive"), active);
+
   const conv = total ? Math.round((active / total) * 100) : 0;
   const el = document.getElementById("refStatConv");
-  if (el) el.textContent = conv + "%";
+  if (el) el.textContent = `${conv}%`;
 }
 
-function defaultAvatar(name) {
-  const seed = (name || "ndog").slice(0, 1).toUpperCase();
-  return `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="32" fill="#0a1f44"/><text x="50%" y="50%" font-size="28" font-family="Arial" font-weight="bold" fill="#ffd700" text-anchor="middle" dominant-baseline="central">${seed}</text></svg>`
-  )}`;
+function defaultAvatar(name = "N") {
+  const seed = String(name || "N").slice(0, 1).toUpperCase();
+  return `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+      <rect width="64" height="64" rx="32" fill="#0a1f44"/>
+      <text
+        x="50%"
+        y="50%"
+        font-size="28"
+        font-family="Arial"
+        font-weight="bold"
+        fill="#ffd700"
+        text-anchor="middle"
+        dominant-baseline="central"
+      >${seed}</text>
+    </svg>
+  `)}`;
 }
 
 function formatDate(ts) {
-  if (!ts) return "—";
+  if (!ts) return "";
   const locale = getLang() === "ar" ? "ar-EG" : "en-US";
-  return new Date(ts).toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
+  return new Date(ts).toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[c]));
+  return String(s).replace(/[&<>"']/g, (c) => {
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[c];
+  });
 }

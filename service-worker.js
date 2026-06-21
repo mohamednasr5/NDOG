@@ -9,7 +9,7 @@
  *   - Offline fallback page when everything else fails
  */
 
-const VERSION    = "ndog-v1.0.3";
+const VERSION    = "ndog-v2.0.0";
 const SHELL_CACHE = `${VERSION}-shell`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 const CDN_CACHE    = `${VERSION}-cdn`;
@@ -37,7 +37,11 @@ const APP_SHELL = [
   "./assets/icons/icon.svg",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
-  "./offline.html"
+  "./assets/icons/favicon.png",
+  "./assets/icons/apple-touch-icon.png",
+  "./offline.html",
+  "./sitemap.xml",
+  "./robots.txt",
 ];
 
 // ───────────────────────────────────────────────────────────────────
@@ -46,7 +50,7 @@ const APP_SHELL = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(SHELL_CACHE)
-      .then((cache) => cache.addAll(APP_SHELL).catch(() => {}))
+      .then((cache) => cache.addAll(APP_SHELL).catch((e) => console.warn('[SW] Precache partial fail:', e)))
       .then(() => self.skipWaiting())
   );
 });

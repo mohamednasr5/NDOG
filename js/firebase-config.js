@@ -94,10 +94,18 @@ export const db   = getDatabase(app);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
-// Persist sessions locally so users stay logged in after refresh.
-setPersistence(auth, browserLocalPersistence).catch(err =>
-  console.warn("[NDOG] Auth persistence failed:", err)
-);
+// ───────────────────────────────────────────────────────────────────
+// FIX: Export persistence promise so initAuth can await it.
+// Previously, setPersistence was fire-and-forget, causing a race
+// condition where onAuthStateChanged could fire before persistence
+// was configured — leading to the user appearing logged out on
+// page reload even though they had a valid session.
+// ───────────────────────────────────────────────────────────────────
+export const persistenceReady = setPersistence(auth, browserLocalPersistence)
+  .catch(err => {
+    console.warn("[NDOG] Auth persistence failed:", err);
+    // Continue anyway — sessionStorage will be used as fallback
+  });
 
 // ───────────────────────────────────────────────────────────────────
 // 4. EXPORT HELPERS

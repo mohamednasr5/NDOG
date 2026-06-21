@@ -5,7 +5,7 @@
  * exported it — broke the entire app at module load time).
  */
 
-import { APP_CONFIG } from "./firebase-config.js";
+import { APP_CONFIG, persistenceReady } from "./firebase-config.js";
 import { onUser, getCurrentUser, googleLogin, logout, initAuth } from "./auth.js";
 import { bindDashboard } from "./dashboard.js";
 import { initClaim } from "./claim.js";
@@ -219,6 +219,16 @@ function bindNavigation() {
     if (labelSpan) labelSpan.textContent = t("login.connecting");
     try {
       await googleLogin();
+      // FIX: Re-enable button after 5s as safety net if auth state
+      // is delayed (e.g. slow network). The onUser callback normally
+      // hides the login screen, but if it's delayed the user should
+      // be able to retry.
+      setTimeout(() => {
+        if (btn.disabled) {
+          btn.disabled = false;
+          if (labelSpan) labelSpan.textContent = t("login.googleBtn");
+        }
+      }, 5000);
     } catch (err) {
       const isInfo = err.code === "auth/standalone-escape";
       toast(err.message || t("login.connectFailed"), isInfo ? "info" : "err", isInfo ? 6000 : 3200);
@@ -296,7 +306,7 @@ function registerSW() {
   // stale-cache debugging headaches).
   if (location.protocol !== "https:" && location.hostname !== "localhost") return;
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=1.1.0")
+    navigator.serviceWorker.register("./service-worker.js?v=2.0.0")
       .then(reg => {
         console.log("[NDOG] SW registered:", reg.scope);
         let refreshing = false;
@@ -358,7 +368,7 @@ document.addEventListener("ndog:authError", (e) => {
 // ───────────────────────────────────────────────────────────────────
 // BOOTSTRAP
 // ───────────────────────────────────────────────────────────────────
-function bootstrap() {
+async function bootstrap() {
   applyTranslations();
   bindNavigation();
   bindLanguageSwitcher();
@@ -402,6 +412,10 @@ function bootstrap() {
     document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
   });
 
+  // FIX: Await persistence before initializing auth to prevent
+  // race condition where onAuthStateChanged fires before
+  // persistence is configured.
+  await persistenceReady;
   initAuth(() => {
     const initialView = new URLSearchParams(location.search).get("view") || "dashboard";
     setTimeout(() => setView(initialView), 100);

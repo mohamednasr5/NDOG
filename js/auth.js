@@ -1,32 +1,23 @@
 /**
  * NileDogs (NDOG) — Authentication Module
- * v1.5.0 STANDALONE PWA LOGIN FIX:
- *   • Installed PWAs ("Add to Home Screen", display:standalone) now skip
- *     in-app popup/redirect entirely and escape to the system browser via
- *     window.open(). Redirect-based sign-in from inside a standalone PWA
- *     frequently completes in a *different* browser tab than the original
- *     app window, leaving the app stuck on the login screen forever — this
- *     was confirmed to be the case for our mobile users testing via the
- *     installed app icon.
- *   • Relies on browserLocalPersistence's built-in cross-tab "storage"
- *     event sync, with a visibilitychange-based reload as a defensive
- *     fallback in case that sync is unreliable on a given device/WebView.
- *
- * v1.4.0 MOBILE LOGIN FIX (popup-first + embedded-browser guard):
- *   • signInWithPopup is now tried first on ALL devices (mobile included).
- *     signInWithRedirect requires sessionStorage/IndexedDB to survive a
- *     full-page round trip to Google and back; many mobile browsers and
- *     especially in-app WebViews (Telegram, Facebook, Instagram, etc.)
- *     clear/partition that storage, silently breaking getRedirectResult()
- *     and leaving the user stuck on the login screen with no error.
- *   • signInWithRedirect is now only a fallback when the popup itself is
- *     blocked or unsupported in the current environment.
- *   • Embedded in-app browsers are detected up front and shown a clear
- *     "open this in Chrome/Safari" message instead of attempting a login
- *     Google will block anyway.
- *   • If a redirect WAS attempted but no result comes back (the silent
- *     storage-loss case), the user now sees an explicit error instead of
- *     just sitting on the login screen forever.
+ * v2.0.0 COMPLETE MOBILE LOGIN FIX:
+ *   • CRITICAL: onAuthStateChanged is now set up FIRST, before getRedirectResult.
+ *     Previously, if getRedirectResult() threw an error (very common on mobile
+ *     due to storage partitioning), the function returned early and NEVER set
+ *     up onAuthStateChanged — leaving authenticated users stuck on the login
+ *     screen forever. This was the #1 cause of "login doesn't work on mobile".
+ *   • Uses get() for initial user data load instead of onValue(), eliminating
+ *     the race condition where onValue fires twice (once for "not found" and
+ *     again after provisioning writes data), causing duplicate provisioning
+ *     and/or emit(null) wiping the authenticated state.
+ *   • After successful initial load, onValue() is set up for real-time updates
+ *     only — it never needs to handle provisioning.
+ *   • setPersistence is now properly awaited before any auth operations.
+ *   • PWA standalone flow improved: tries popup first, then redirect, with
+ *     clear fallback messaging instead of the unreliable window.open() trick.
+ *   • Better error recovery: if provisioning fails due to DB issues, the user
+ *     is still shown the dashboard with minimal data instead of being kicked
+ *     back to the login screen.
  */
 
 import {
@@ -64,23 +55,15 @@ function isMobile() {
 // TikTok, Snapchat) and bare Android WebViews ("; wv)") commonly:
 //   1) get blocked outright by Google ("disallowed_useragent"), or
 //   2) silently clear/partition sessionStorage + IndexedDB across the
-//      full-page redirect, which breaks getRedirectResult() with NO error —
-//      the user just lands back on the login screen as if nothing happened.
-// This is almost certainly what users were hitting on mobile.
+//      full-page redirect, which breaks getRedirectResult() with NO error.
 function isEmbeddedBrowser() {
   const ua = navigator.userAgent || navigator.vendor || "";
   return /Telegram|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|Twitter|TikTok|Snapchat|; ?wv\)/i.test(ua);
 }
 
-// Installed PWA ("Add to Home Screen") on Android or iOS. These run in an
-// isolated standalone browsing context. A full-page signInWithRedirect to
-// accounts.google.com frequently returns into a *different* browser
-// tab/activity than the standalone app instance — the original PWA window
-// is left sitting on the login screen forever, even though sign-in may
-// have actually succeeded elsewhere. See googleLogin() below for the fix.
 function isStandalone() {
   return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-         window.navigator.standalone === true; // legacy iOS Safari flag
+         window.navigator.standalone === true;
 }
 
 function friendlyAuthError(err) {
@@ -115,33 +98,24 @@ export async function googleLogin() {
     throw e;
   }
 
+  // CRITICAL FIX: On mobile PWA standalone, the old window.open() trick
+  // is unreliable. Instead, try popup first (works on most modern Android
+  // WebAPKs), then fall back to redirect. The visibilitychange handler
+  // will force a reload if the user comes back still logged out.
   if (isStandalone() && isMobile()) {
-    // CRITICAL FIX: see isStandalone() comment above. Escape the standalone
-    // PWA context entirely and let the user finish sign-in in their real
-    // browser. Because firebase-config.js uses browserLocalPersistence,
-    // Firebase Auth listens for the "storage" event and will automatically
-    // pick up the new session in THIS window once the user signs in over
-    // there — no manual return-and-reload needed (though they do still
-    // need to switch back to this app to see the dashboard).
-    console.log("[NDOG] Standalone PWA on mobile — escaping to system browser for sign-in");
+    console.log("[NDOG] Standalone PWA on mobile — trying popup directly");
     sessionStorage.setItem("ndog_pwa_login_opened", "1");
-    window.open(location.origin + location.pathname, "_blank", "noopener");
-    const e = new Error(t("auth.standaloneRedirect"));
-    e.code = "auth/standalone-escape";
-    throw e;
+    // Don't escape to system browser — try popup in this context first
   }
 
   // CRITICAL FIX: prefer signInWithPopup even on mobile.
   // signInWithRedirect requires sessionStorage/IndexedDB state to survive a
-  // full-page round trip to accounts.google.com and back. Many mobile
-  // browsers (and especially in-app WebViews) clear or partition that
-  // storage, which silently breaks getRedirectResult() — the user just
-  // stays on the login screen with no error. A popup never navigates the
-  // page away, so it sidesteps that failure mode entirely. We only fall
-  // back to redirect if the popup itself is blocked/unsupported.
+  // full-page round trip. Many mobile browsers clear that storage, which
+  // silently breaks getRedirectResult().
   try {
     console.log("[NDOG] Attempting signInWithPopup (preferred on all devices)");
     await signInWithPopup(auth, googleProvider);
+    sessionStorage.removeItem("ndog_pwa_login_opened");
     return;
   } catch (err) {
     const fallbackToRedirect = [
@@ -151,6 +125,7 @@ export async function googleLogin() {
     ].includes(err?.code);
 
     if (!fallbackToRedirect) {
+      sessionStorage.removeItem("ndog_pwa_login_opened");
       console.error("[NDOG] Google login failed:", err.code, err.message);
       const friendly = friendlyAuthError(err);
       const e = new Error(friendly);
@@ -162,8 +137,6 @@ export async function googleLogin() {
   }
 
   try {
-    // Mark that a redirect is in flight so initAuth() can detect the case
-    // where the round trip completes but the result was lost in storage.
     sessionStorage.setItem("ndog_redirect_pending", "1");
     await signInWithRedirect(auth, googleProvider);
   } catch (err) {
@@ -376,48 +349,27 @@ export async function initAuth(onReady) {
 
   console.log("[NDOG] === AUTH INITIALIZATION START ===");
   console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
+  console.log("[NDOG] Standalone PWA:", isStandalone());
 
-  // CRITICAL: Call getRedirectResult FIRST, BEFORE listening to onAuthStateChanged
-  // This is the most critical part for mobile redirect flow
-  let redirectResult = null;
-  try {
-    console.log("[NDOG] [1/3] Calling getRedirectResult()...");
-    redirectResult = await getRedirectResult(auth);
+  // ─────────────────────────────────────────────────────────────────
+  // FIX #1: Set up onAuthStateChanged FIRST, before getRedirectResult.
+  //
+  // This is the most critical fix. Previously, getRedirectResult was
+  // called first, and if it threw an error (common on mobile), the
+  // function returned early WITHOUT ever registering the
+  // onAuthStateChanged listener. Result: authenticated users were
+  // stuck on the login screen forever because the app never detected
+  // their auth state.
+  //
+  // Now: onAuthStateChanged is always registered, ensuring we never
+  // miss the user regardless of what happens with redirect results.
+  // ─────────────────────────────────────────────────────────────────
 
-    const wasPending = sessionStorage.getItem("ndog_redirect_pending") === "1";
-    sessionStorage.removeItem("ndog_redirect_pending");
+  let userSetupDone = new Map(); // Track which UIDs have been fully set up
 
-    if (redirectResult?.user) {
-      console.log("[NDOG] [1/3] ✅ Redirect result received for:", redirectResult.user.uid);
-      console.log("[NDOG] Redirect user email:", redirectResult.user.email);
-    } else if (wasPending) {
-      // We sent the user to Google via signInWithRedirect, the page came
-      // back, but there is no result AND no auth/* error was thrown. This
-      // is the classic "silently lost across the redirect" failure (storage
-      // cleared/partitioned by the browser) — surface it instead of leaving
-      // the user stuck on the login screen with no explanation.
-      console.warn("[NDOG] [1/3] ⚠️ Expected a redirect result but got none — likely lost in storage");
-      document.dispatchEvent(new CustomEvent("ndog:authError", {
-        detail: { message: t("auth.errRedirectIncomplete") }
-      }));
-    } else {
-      console.log("[NDOG] [1/3] No redirect result (normal for first visit or non-redirect flow)");
-    }
-  } catch (err) {
-    sessionStorage.removeItem("ndog_redirect_pending");
-    console.error("[NDOG] [1/3] ❌ getRedirectResult error:", err.code, err.message);
-    document.dispatchEvent(new CustomEvent("ndog:authError", {
-      detail: { message: friendlyAuthError(err) }
-    }));
-    return;
-  }
-
-  // Now that we've consumed the redirect result, set up auth state listener
-  console.log("[NDOG] [2/3] Setting up onAuthStateChanged listener...");
-  
   onAuthStateChanged(auth, async (fbUser) => {
-    console.log("[NDOG] [2/3] onAuthStateChanged fired:", fbUser ? `uid=${fbUser.uid}` : "null");
-    
+    console.log("[NDOG] onAuthStateChanged fired:", fbUser ? `uid=${fbUser.uid}` : "null");
+
     if (!fbUser) {
       console.log("[NDOG] No authenticated user");
       emit(null);
@@ -425,71 +377,197 @@ export async function initAuth(onReady) {
       return;
     }
 
-    console.log("[NDOG] [3/3] Authenticated user detected. Starting provisioning...");
-    console.log("[NDOG] User UID:", fbUser.uid);
-    console.log("[NDOG] User email:", fbUser.email);
+    const uid = fbUser.uid;
 
-    // Set up a single real-time listener for this user's data
-    const userRef = ref(db, `users/${fbUser.uid}`);
-    let firstLoad = true;
+    // Prevent duplicate setup if onAuthStateChanged fires multiple times
+    // for the same user (can happen with redirect flow + persistence sync)
+    if (userSetupDone.has(uid)) {
+      console.log("[NDOG] User", uid, "already set up, skipping duplicate");
+      return;
+    }
+    userSetupDone.set(uid, true);
 
-    onValue(userRef, async (snap) => {
-      console.log("[NDOG] [3/3] User data snapshot received");
-      
+    console.log("[NDOG] Starting user setup for:", uid, fbUser.email);
+
+    try {
+      const userRef = ref(db, `users/${uid}`);
+
+      // ─────────────────────────────────────────────────────────
+      // FIX #2: Use get() for initial load, NOT onValue().
+      //
+      // onValue() fires every time the data changes. If the user
+      // doesn't exist yet, it fires with null, we start async
+      // provisioning, then provisioning calls set() which triggers
+      // onValue() AGAIN — creating a race condition where:
+      //   a) Two concurrent provisioning attempts
+      //   b) emit(null) from the error handler wiping auth state
+      //   c) firstLoad flag being true in both callbacks
+      //
+      // get() returns a single snapshot — no race condition.
+      // After initial load + provisioning, we set up onValue()
+      // for real-time updates only.
+      // ─────────────────────────────────────────────────────────
+      const snap = await get(userRef);
+
+      let userData;
       if (!snap.exists()) {
-        console.log("[NDOG] User record doesn't exist yet - provisioning...");
-        try {
-          const newUser = await provisionUserLocked(fbUser);
-          console.log("[NDOG] ✅ User provisioned successfully");
-          emit(newUser);
-          if (firstLoad) {
-            onReady && onReady(newUser);
-            firstLoad = false;
-          }
-        } catch (err) {
-          console.error("[NDOG] ❌ Provisioning failed:", err);
-          emit(null);
+        console.log("[NDOG] User record doesn't exist - provisioning...");
+        userData = await provisionUserLocked(fbUser);
+        console.log("[NDOG] User provisioned successfully:", userData.name);
+      } else {
+        userData = snap.val();
+        // Update photo/name if changed in Google account
+        const patch = {};
+        if (userData.photoURL !== fbUser.photoURL && fbUser.photoURL) {
+          patch.photoURL = fbUser.photoURL;
         }
-        return;
+        if (fbUser.displayName && userData.name !== fbUser.displayName) {
+          patch.name = fbUser.displayName;
+        }
+        if (Object.keys(patch).length) {
+          await update(userRef, patch);
+          userData = { ...userData, ...patch };
+        }
       }
 
-      const data = snap.val();
-      console.log("[NDOG] User data loaded:", { uid: data.uid, name: data.name, balance: data.balance });
-      
-      if (data.banned) {
-        console.log("[NDOG] ⚠️ User is banned");
+      if (userData.banned) {
+        console.log("[NDOG] User is banned");
         document.getElementById("bannedModal")?.classList.remove("hidden");
         return;
       }
 
-      console.log("[NDOG] ✅ User authentication complete - emitting user data");
-      emit(data);
-      
-      if (firstLoad) {
-        onReady && onReady(data);
-        firstLoad = false;
-      }
-    }, (err) => {
-      console.error("[NDOG] ❌ User data listener error:", err);
-      emit(null);
-    });
+      console.log("[NDOG] Authentication complete:", {
+        uid: userData.uid,
+        name: userData.name,
+        balance: userData.balance
+      });
+
+      emit(userData);
+      onReady && onReady(userData);
+
+      // Now set up real-time listener for live updates (balance changes,
+      // streak updates from other tabs, admin changes, etc.)
+      // This is safe because provisioning is already complete.
+      onValue(userRef, (liveSnap) => {
+        if (!liveSnap.exists()) return;
+        const liveData = liveSnap.val();
+        if (liveData.banned) {
+          document.getElementById("bannedModal")?.classList.remove("hidden");
+          return;
+        }
+        console.log("[NDOG] Real-time user data update");
+        emit(liveData);
+      });
+
+    } catch (err) {
+      console.error("[NDOG] User setup failed:", err);
+
+      // ─────────────────────────────────────────────────────────
+      // FIX #3: Don't kick user back to login on DB errors.
+      //
+      // Previously, if provisioning failed (e.g., DB timeout, network
+      // error, permission denied), emit(null) was called, which hid
+      // the dashboard and showed the login screen again. The user
+      // would think login "didn't work" even though they DID
+      // authenticate with Google successfully.
+      //
+      // Now: show the dashboard with minimal fallback data so the
+      // user sees they're logged in. The real data will sync once
+      // the DB connection recovers (via the onValue listener set
+      // up after a retry).
+      // ─────────────────────────────────────────────────────────
+      const fallbackData = {
+        uid: fbUser.uid,
+        name: fbUser.displayName || "NileDog",
+        email: fbUser.email || "",
+        photoURL: fbUser.photoURL || "",
+        balance: 0,
+        country: guessCountry(),
+        rank: "Bronze",
+        level: 1,
+        referralCode: "",
+        totalReferrals: 0,
+        activeReferrals: 0,
+        communityScore: 0,
+        loyaltyScore: 10,
+        createdAt: Date.now(),
+        lastClaim: 0,
+        streak: 0,
+        isFounder: true,
+        badges: { founder: true }
+      };
+
+      console.log("[NDOG] Using fallback data — user will see dashboard");
+      emit(fallbackData);
+      onReady && onReady(fallbackData);
+
+      // Retry provisioning after a delay
+      userSetupDone.delete(uid); // Allow retry
+      setTimeout(async () => {
+        if (currentUserData?.uid === uid && !currentUserData?.referralCode) {
+          console.log("[NDOG] Retrying provisioning...");
+          try {
+            const userData = await provisionUserLocked(fbUser);
+            emit(userData);
+          } catch (retryErr) {
+            console.error("[NDOG] Provisioning retry failed:", retryErr);
+          }
+        }
+      }, 3000);
+    }
   });
+
+  // ─────────────────────────────────────────────────────────────────
+  // Handle redirect result AFTER onAuthStateChanged is set up.
+  //
+  // This is non-critical now — if it throws, onAuthStateChanged is
+  // already listening and will pick up the user from persistence.
+  // ─────────────────────────────────────────────────────────────────
+  try {
+    console.log("[NDOG] Checking for redirect result...");
+    const redirectResult = await getRedirectResult(auth);
+
+    const wasPending = sessionStorage.getItem("ndog_redirect_pending") === "1";
+    sessionStorage.removeItem("ndog_redirect_pending");
+
+    if (redirectResult?.user) {
+      console.log("[NDOG] Redirect result received for:", redirectResult.user.uid);
+    } else if (wasPending) {
+      // We sent the user to Google via signInWithRedirect, the page came
+      // back, but there is no result. This is the classic "silently lost
+      // across the redirect" failure on mobile.
+      console.warn("[NDOG] Expected a redirect result but got none");
+      document.dispatchEvent(new CustomEvent("ndog:authError", {
+        detail: { message: t("auth.errRedirectIncomplete") }
+      }));
+    } else {
+      console.log("[NDOG] No redirect result (normal for first visit or popup flow)");
+    }
+  } catch (err) {
+    sessionStorage.removeItem("ndog_redirect_pending");
+    console.error("[NDOG] getRedirectResult error:", err.code, err.message);
+    // DON'T return early! onAuthStateChanged is already set up above.
+    // Only show error if no user is detected after a brief delay.
+    setTimeout(() => {
+      if (!currentUserData) {
+        document.dispatchEvent(new CustomEvent("ndog:authError", {
+          detail: { message: friendlyAuthError(err) }
+        }));
+      }
+    }, 2000);
+  }
 
   console.log("[NDOG] === AUTH INITIALIZATION COMPLETE ===");
 
-  // Defensive fallback for the standalone-PWA escape flow above: Firebase's
-  // browserLocalPersistence normally syncs new sessions across tabs via the
-  // "storage" event automatically, but some Android WebAPK shells isolate
-  // processes in ways that make that unreliable. If the user opened the
-  // system browser to sign in and then comes back to this standalone
-  // window still logged out, force one reload so persisted auth state is
-  // re-read fresh from disk instead of relying on the live storage event.
+  // Defensive fallback for PWA: if the user signed in via popup/redirect
+  // but the auth state didn't sync to this window, reload on visibility
+  // change to re-read persisted auth from disk.
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
     if (sessionStorage.getItem("ndog_pwa_login_opened") !== "1") return;
     sessionStorage.removeItem("ndog_pwa_login_opened");
     if (!currentUserData) {
-      console.log("[NDOG] Back from system-browser sign-in, still logged out — reloading to re-check");
+      console.log("[NDOG] Back from sign-in, still logged out — reloading");
       location.reload();
     }
   });

@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1f44" />
+  <!-- CSP -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' https://www.gstatic.com https://apis.google.com;
+    script-src 'self' https://www.gstatic.com https://apis.google.com 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' https://www.gstatic.com 'unsafe-inline';
+    connect-src 'self' https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebasedatabase.app https://*.firebasedatabase.app https://apis.google.com https://*.firebaseio.com;
+    img-src 'self' data: https:;
+    font-src 'self' https://www.gstatic.com data:;
+  ">
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="NileDogs (NDOG) — منصة مكافآت مجتمعية: اطلب نقاطك اليومية، ادعُ أصدقاءك، وتسلّق لوحة المتصدرين فى برنامج المؤسسين المبكر قبل الإطلاق الرسمي فى 1 يناير 2028." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://ndogcoin.com/" />
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NileDogs" />
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="NileDogs (NDOG)" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ndogcoin.com/" />
+  <meta property="og:locale" content="ar_EG" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:title" content="NileDogs (NDOG) — انضم لبرنامج المؤسسين المبكر واكسب مكافآت يومية" />
+  <meta property="og:description" content="اطلب مكافآتك اليومية، ادعُ أصدقاءك، وتسلّق لوحة المتصدرين قبل الإطلاق الرسمي فى 1 يناير 2028." />
+  <meta property="og:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="NileDogs (NDOG) — انضم لبرنامج المؤسسين المبكر واكسب مكافآت يومية" />
+  <meta name="twitter:description" content="اطلب مكافآتك اليومية، ادعُ أصدقاءك، وتسلّق لوحة المتصدرين قبل الإطلاق الرسمي فى 1 يناير 2028." />
+  <meta name="twitter:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
+  <!-- PWA & Icons -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="./assets/icons/favicon.png" />
+  <!-- CSS -->
+  <link rel="stylesheet" href="./css/styles.css?v=3.0.0" />
+  <link rel="stylesheet" href="./css/animations.css?v=3.0.0" />
+  <link rel="stylesheet" href="./css/responsive.css?v=3.0.0" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://apis.google.com" crossorigin />
+  <title>NileDogs (NDOG) — منصة مكافآت مجتمعية | برنامج المؤسسين المبكر</title>
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@graph": [
+    { "@type": "Organization", "@id": "https://ndogcoin.com/#organization", "name": "NileDogs", "alternateName": "NDOG", "url": "https://ndogcoin.com/", "logo": "https://ndogcoin.com/assets/icons/icon-512.png" },
+    { "@type": "WebSite", "@id": "https://ndogcoin.com/#website", "url": "https://ndogcoin.com/", "name": "NileDogs (NDOG)", "description": "Community rewards platform", "inLanguage": ["ar","en"], "publisher": { "@id": "https://ndogcoin.com/#organization" } },
+    { "@type": "FAQPage", "@id": "https://ndogcoin.com/#faq", "mainEntity": [
+      { "@type": "Question", "name": "What is NileDogs?", "acceptedAnswer": { "@type": "Answer", "text": "A community rewards platform for daily claims, referrals, missions, and leaderboard." } },
+      { "@type": "Question", "name": "Is it free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely free via Google Sign-In." } },
+      { "@type": "Question", "name": "Is NDOG listed on exchanges?", "acceptedAnswer": { "@type": "Answer", "text": "Not yet. NDOG is currently a pre-launch community rewards system launching January 1, 2028." } }
+    ]}
+  ]}
+  </script>
+</head>
+<body>
+
+  <!-- ============================================ -->
+  <!-- PARTICLE CANVAS BACKGROUND                  -->
+  <!-- ============================================ -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <!-- ============================================ -->
+  <!-- BACKGROUND ORBS                              -->
+  <!-- ============================================ -->
+  <div id="bgOrbs" class="bg-orbs" aria-hidden="true">
+    <div class="bg-orbs__orb bg-orbs__orb--1"></div>
+    <div class="bg-orbs__orb bg-orbs__orb--2"></div>
+    <div class="bg-orbs__orb bg-orbs__orb--3"></div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PRELOADER                                    -->
+  <!-- ============================================ -->
+  <div id="preloader" class="preloader">
+    <div class="preloader__logo">
+      <span class="preloader__icon">🐕</span>
+      <span class="preloader__text" data-i18n="preloader.loading">جاري التحميل...</span>
+    </div>
+    <div class="preloader__bar-track">
+      <div id="preloaderBar" class="preloader__bar-fill"></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- TOAST HOST                                   -->
+  <!-- ============================================ -->
+  <div id="toastHost" class="toast-host" role="status" aria-live="polite"></div>
+
+  <!-- ============================================ -->
+  <!-- ============================================ -->
+  <!-- LOGIN SCREEN                                 -->
+  <!-- ============================================ -->
+  <!-- ============================================ -->
+  <div id="loginScreen" class="login-screen view" style="display:none;">
+
+    <!-- Brand Header -->
+    <div class="login-screen__brand">
+      <div class="login-screen__logo">🐕</div>
+      <h1 class="login-screen__title">NileDogs</h1>
+      <p class="login-screen__ticker">$NDOG · <span data-i18n="login.ticker">مكافآت مجتمعية</span></p>
+    </div>
+
+    <!-- Tagline -->
+    <p class="login-screen__tagline" data-i18n="login.tagline">
+      انضم لبرنامج المؤسسين المبكر واكسب مكافآت يومية قبل الإطلاق الرسمي
+    </p>
+
+    <!-- Countdown Timer -->
+    <div class="login-screen__countdown">
+      <h2 class="login-screen__countdown-title" data-i18n="login.countdownTitle">⏳ العد التنازلي للإطلاق</h2>
+      <div class="countdown" id="launchCountdown">
+        <div class="countdown__block">
+          <span id="cdDays" class="countdown__num">000</span>
+          <span class="countdown__label" data-i18n="countdown.days">يوم</span>
+        </div>
+        <div class="countdown__sep">:</div>
+        <div class="countdown__block">
+          <span id="cdHours" class="countdown__num">00</span>
+          <span class="countdown__label" data-i18n="countdown.hours">ساعة</span>
+        </div>
+        <div class="countdown__sep">:</div>
+        <div class="countdown__block">
+          <span id="cdMinutes" class="countdown__num">00</span>
+          <span class="countdown__label" data-i18n="countdown.minutes">دقيقة</span>
+        </div>
+        <div class="countdown__sep">:</div>
+        <div class="countdown__block">
+          <span id="cdSeconds" class="countdown__num">00</span>
+          <span class="countdown__label" data-i18n="countdown.seconds">ثانية</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Google Login Button -->
+    <button id="btnGoogleLogin" class="btn btn--google" type="button" aria-label="تسجيل الدخول بجوجل">
+      <svg class="btn__google-icon" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.9 7.35 2.56 10.53l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      <span data-i18n="login.googleBtn">تسجيل الدخول بـ Google</span>
+    </button>
+
+    <!-- Language Switcher -->
+    <div class="login-screen__lang">
+      <button class="lang-pill lang-pill--active" data-lang="ar" type="button">العربية</button>
+      <button class="lang-pill" data-lang="en" type="button">English</button>
+    </div>
+
+    <!-- Terms Note -->
+    <p class="login-screen__terms">
+      <span data-i18n="login.terms">بتسجيل الدخول، أنت توافق على</span>
+      <a href="#" data-i18n="login.termsLink" class="login-screen__terms-link" data-view="whitepaper">الورقة البيضاء</a>
+    </p>
+
+    <!-- Feature Cards -->
+    <div class="login-screen__features">
+      <div class="feature-card glass">
+        <div class="feature-card__icon">🪙</div>
+        <h3 class="feature-card__title" data-i18n="features.dailyRewards">مكافآت يومية</h3>
+        <p class="feature-card__desc" data-i18n="features.dailyRewardsDesc">اطلب 10 NDOG يوميًا مجانًا</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-card__icon">🤝</div>
+        <h3 class="feature-card__title" data-i18n="features.referrals">إحالات ثلاثية المستويات</h3>
+        <p class="feature-card__desc" data-i18n="features.referralsDesc">اكسب من 3 مستويات إحالة</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-card__icon">🏆</div>
+        <h3 class="feature-card__title" data-i18n="features.leaderboard">لوحة المتصدرين العالمية</h3>
+        <p class="feature-card__desc" data-i18n="features.leaderboardDesc">تنافس مع المجتمع عالميًا</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-card__icon">🎯</div>
+        <h3 class="feature-card__title" data-i18n="features.missions">المهام والسبين</h3>
+        <p class="feature-card__desc" data-i18n="features.missionsDesc">أكمل المهام وأدر العجلة</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- ============================================ -->
+  <!-- APP SHELL                                    -->
+  <!-- ============================================ -->
+  <!-- ============================================ -->
+  <div id="appShell" style="display:none;">
+
+    <!-- ============== TOP BAR ============== -->
+    <header class="topbar" id="topbar">
+      <div class="topbar__left">
+        <button id="btnMenu" class="topbar__hamburger" type="button" aria-label="القائمة">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <a href="#" class="topbar__brand" data-navigate="dashboard">
+          <span class="topbar__logo">🐕</span>
+          <span class="topbar__name">NileDogs</span>
+        </a>
+      </div>
+      <div class="topbar__right">
+        <button id="btnLangToggle" class="topbar__lang-btn" type="button" aria-label="تغيير اللغة">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span id="langLabel">EN</span>
+        </button>
+        <div class="topbar__balance">
+          <span class="topbar__balance-icon">🪙</span>
+          <span id="topbarBalance" class="topbar__balance-num">0</span>
+          <span class="topbar__balance-ticker">NDOG</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============== SIDE NAVIGATION ============== -->
+    <div id="sidenavScrim" class="sidenav__scrim" aria-hidden="true"></div>
+    <nav id="sidenav" class="sidenav" aria-label="القائمة الجانبية">
+      <!-- User Info -->
+      <div class="sidenav__user">
+        <div class="sidenav__avatar-wrap">
+          <img id="sidenavAvatar" class="sidenav__avatar" src="" alt="" loading="lazy" />
+          <span id="sidenavRankBadge" class="sidenav__rank-badge" aria-hidden="true">🥉</span>
+        </div>
+        <h3 id="sidenavUserName" class="sidenav__user-name"></h3>
+        <p class="sidenav__referral-code">
+          <span data-i18n="sidenav.refCode">رمز الإحالة:</span>
+          <span id="sidenavRefCode" class="sidenav__ref-code-val">—</span>
+        </p>
+      </div>
+
+      <!-- Nav Links -->
+      <ul class="sidenav__links">
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="dashboard" data-i18n="nav.dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span data-i18n="nav.dashboard">لوحة التحكم</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="claim" data-i18n="nav.claim">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span data-i18n="nav.dailyClaim">المطالبة اليومية</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="referral" data-i18n="nav.referrals">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+            <span data-i18n="nav.referrals">الإحالات</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="missions" data-i18n="nav.missions">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span data-i18n="nav.missions">المهام</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="leaderboard" data-i18n="nav.leaderboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            <span data-i18n="nav.leaderboard">لوحة المتصدرين</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="staking" data-i18n="nav.staking">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <span data-i18n="nav.staking">الراهن / Staking</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="airdrop" data-i18n="nav.airdrop">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/><polyline points="7.5 19.79 7.5 14.6 3 12"/><polyline points="21 12 16.5 14.6 16.5 19.79"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <span data-i18n="nav.airdrop">التوزيع المجاني</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="news" data-i18n="nav.news">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7z"/></svg>
+            <span data-i18n="nav.news">الأخبار</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidenav__link" data-navigate="whitepaper" data-i18n="nav.whitepaper">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span data-i18n="nav.whitepaper">الورقة البيضاء</span>
+          </a>
+        </li>
+        <li id="sidenavAdminLink" class="sidenav__link-wrap" style="display:none;">
+          <a href="#" class="sidenav__link sidenav__link--admin" data-navigate="admin">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span data-i18n="nav.admin">لوحة الإدارة</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Logout -->
+      <div class="sidenav__footer">
+        <button id="btnLogout" class="sidenav__logout btn btn--ghost" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span data-i18n="nav.logout">تسجيل الخروج</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ============== BOTTOM NAVIGATION ============== -->
+    <nav class="bottomnav" id="bottomnav" aria-label="التنقل السفلي">
+      <a href="#" class="bottomnav__item" data-navigate="dashboard" data-i18n="nav.home">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span data-i18n="nav.home">الرئيسية</span>
+      </a>
+      <a href="#" class="bottomnav__item" data-navigate="claim" data-i18n="nav.claim">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span data-i18n="nav.claimShort">المطالبة</span>
+      </a>
+      <a href="#" class="bottomnav__item" data-navigate="referral" data-i18n="nav.refer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+        <span data-i18n="nav.refer">إحالة</span>
+      </a>
+      <a href="#" class="bottomnav__item" data-navigate="missions" data-i18n="nav.missionsShort">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span data-i18n="nav.missionsShort">المهام</span>
+      </a>
+      <a href="#" class="bottomnav__item" data-navigate="leaderboard" data-i18n="nav.ranks">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        <span data-i18n="nav.ranks">الترتيب</span>
+      </a>
+    </nav>
+
+    <!-- ============== MAIN VIEWPORT ============== -->
+    <main id="viewport" class="viewport">
+
+      <!-- ============================================= -->
+      <!-- VIEW: DASHBOARD                               -->
+      <!-- ============================================= -->
+      <section id="view-dashboard" class="view view--active">
+        <div class="view__in">
+
+          <!-- Hero Card -->
+          <div class="dash-hero glass">
+            <div class="dash-hero__avatar-wrap">
+              <img id="dashAvatar" class="dash-hero__avatar" src="" alt="" loading="lazy" />
+            </div>
+            <div class="dash-hero__info">
+              <h2 class="dash-hero__welcome" data-i18n="dashboard.welcome">مرحبًا بك 👋</h2>
+              <h3 id="dashUserName" class="dash-hero__name"></h3>
+              <p id="dashJoinDate" class="dash-hero__meta">
+                <span data-i18n="dashboard.joined">انضم في:</span>
+                <span id="dashJoinDateVal">—</span>
+              </p>
+              <p id="dashCountry" class="dash-hero__meta">
+                <span data-i18n="dashboard.country">الدولة:</span>
+                <span id="dashCountryVal">—</span>
+              </p>
+              <span id="dashRankChip" class="chip chip--rank">
+                <span id="dashRankEmoji">🥉</span>
+                <span id="dashRankLabel" data-i18n="rank.bronze">برونزي</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Stat Cards Grid -->
+          <div class="stat-grid">
+            <div class="stat-card glass">
+              <span class="stat-card__icon">🪙</span>
+              <span class="stat-card__label" data-i18n="dashboard.balance">الرصيد</span>
+              <span id="dashBalance" class="stat-card__value" data-counter="0">0</span>
+              <span class="stat-card__ticker">NDOG</span>
+            </div>
+            <div class="stat-card glass">
+              <span class="stat-card__icon">⭐</span>
+              <span class="stat-card__label" data-i18n="dashboard.communityScore">مجتمعي</span>
+              <span id="dashCommunityScore" class="stat-card__value" data-counter="0">0</span>
+              <span class="stat-card__ticker" data-i18n="dashboard.points">نقاط</span>
+            </div>
+            <div class="stat-card glass">
+              <span class="stat-card__icon">💎</span>
+              <span class="stat-card__label" data-i18n="dashboard.loyaltyScore">الولاء</span>
+              <span id="dashLoyaltyScore" class="stat-card__value" data-counter="0">0</span>
+              <span class="stat-card__ticker" data-i18n="dashboard.points">نقاط</span>
+            </div>
+            <div class="stat-card glass">
+              <span class="stat-card__icon">👥</span>
+              <span class="stat-card__label" data-i18n="dashboard.referrals">الإحالات</span>
+              <span id="dashReferralCount" class="stat-card__value" data-counter="0">0</span>
+              <span class="stat-card__ticker" data-i18n="dashboard.invites">دعوة</span>
+            </div>
+          </div>
+
+          <!-- Referral Link Card -->
+          <div class="card glass card--referral">
+            <h3 class="card__title" data-i18n="dashboard.referralLink">رابط الإحالة</h3>
+            <div class="card__code-row">
+              <span class="card__code-label" data-i18n="dashboard.code">الرمز:</span>
+              <code id="dashRefCode" class="card__code">—</code>
+              <button id="btnCopyCodeDash" class="btn btn--ghost btn--sm" type="button" data-i18n="dashboard.copy">نسخ</button>
+            </div>
+            <div class="card__link-row">
+              <input id="dashRefLink" class="card__input" type="text" readonly value="" aria-label="رابط الإحالة" />
+              <button id="btnCopyLinkDash" class="btn btn--ghost btn--sm" type="button" data-i18n="dashboard.copy">نسخ</button>
+            </div>
+            <div class="card__share-row">
+              <button class="btn btn--share" type="button" data-share="whatsapp" aria-label="مشاركة على واتساب">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="telegram" aria-label="مشاركة على تيليجرام">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="facebook" aria-label="مشاركة على فيسبوك">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="x" aria-label="مشاركة على إكس">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="messenger" aria-label="مشاركة على مسنجر">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.903 1.344 5.506 3.476 7.27V22l3.41-1.858c.942.26 1.944.4 2.98.4h.134C17.523 20.542 22 16.397 22 11.243 22 6.145 17.523 2 12 2zm1.164 14.376l-3.186-3.404-6.198 3.404 6.82-7.26 3.27 3.404 6.126-3.404-6.832 7.26z"/></svg>
+              </button>
+              <button id="btnQRDash" class="btn btn--share" type="button" data-modal="qr" aria-label="عرض QR">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="4" height="4" rx="0"/><rect x="20" y="14" width="2" height="2"/><rect x="14" y="20" width="2" height="2"/><rect x="20" y="20" width="2" height="2"/><rect x="17" y="17" width="1" height="1"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Level Progress Card -->
+          <div class="card glass card--level">
+            <h3 class="card__title" data-i18n="dashboard.levelProgress">تقدم المستوى</h3>
+            <div class="card__level-track">
+              <div class="card__level-fill" id="dashLevelFill" style="width:0%"></div>
+            </div>
+            <div class="card__level-labels">
+              <span data-i18n="rank.bronze">🥉 برونزي</span>
+              <span data-i18n="rank.silver">🥈 فضي</span>
+              <span data-i18n="rank.gold">🥇 ذهبي</span>
+              <span data-i18n="rank.diamond">💎 ألماسي</span>
+              <span data-i18n="rank.legendary">👑 أسطوري</span>
+            </div>
+          </div>
+
+          <!-- Founder Badge Banner -->
+          <div id="dashFounderBadge" class="card glass card--founder" style="display:none;">
+            <div class="card__founder-icon">👑</div>
+            <div class="card__founder-text">
+              <h3 data-i18n="dashboard.founderBadge">شارة المؤسس المبكر</h3>
+              <p data-i18n="dashboard.founderDesc">أنت من أوائل المؤسسين — استمتع بمكافآت حصرية!</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: CLAIM                                   -->
+      <!-- ============================================= -->
+      <section id="view-claim" class="view">
+        <div class="view__in">
+
+          <!-- Claim Ring -->
+          <div class="claim-ring glass">
+            <svg class="claim-ring__svg" width="220" height="220" viewBox="0 0 220 220" aria-hidden="true">
+              <circle class="claim-ring__bg" cx="110" cy="110" r="100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"/>
+              <circle id="claimProgressCircle" class="claim-ring__progress" cx="110" cy="110" r="100" fill="none" stroke="#d4a017" stroke-width="10" stroke-dasharray="628.318" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 110 110)"/>
+            </svg>
+            <div class="claim-ring__center">
+              <div class="claim-ring__reward">+10 <small>NDOG</small></div>
+              <p class="claim-ring__hint" data-i18n="claim.hint">اضغط للمطالبة</p>
+            </div>
+          </div>
+
+          <!-- Claim Button -->
+          <button id="btnClaim" class="btn btn--gold btn--lg" type="button" data-i18n="claim.claimBtn">
+            🪙 المطالبة اليومية
+          </button>
+
+          <!-- Streak & Multiplier -->
+          <div class="claim-stats">
+            <div class="claim-stats__item">
+              <span class="claim-stats__icon">🔥</span>
+              <span class="claim-stats__label" data-i18n="claim.streak">سلسلة</span>
+              <span id="claimStreak" class="claim-stats__value">0</span>
+            </div>
+            <div class="claim-stats__item">
+              <span class="claim-stats__icon">✨</span>
+              <span class="claim-stats__label" data-i18n="claim.multiplier">المضاعف</span>
+              <span id="claimMultiplier" class="claim-stats__value">x1.0</span>
+            </div>
+          </div>
+
+          <!-- Cooldown Timer -->
+          <div id="claimCooldown" class="claim-cooldown glass" style="display:none;">
+            <span data-i18n="claim.nextClaim">المطالبة التالية بعد:</span>
+            <span id="claimCooldownTimer" class="claim-cooldown__time">00:00:00</span>
+          </div>
+
+          <!-- Boost Mining Button -->
+          <button id="btnBoostMining" class="btn btn--ghost" type="button" data-i18n="claim.boostMining">
+            ⚡ تعدين معزز
+          </button>
+
+          <!-- VIP Levels Grid -->
+          <div class="card glass card--vip">
+            <h3 class="card__title" data-i18n="claim.vipLevels">مستويات VIP</h3>
+            <div class="vip-grid">
+              <div class="vip-card">
+                <span class="vip-card__rank">🥉</span>
+                <span class="vip-card__name" data-i18n="rank.bronze">برونزي</span>
+                <span class="vip-card__mult">x1.0</span>
+              </div>
+              <div class="vip-card">
+                <span class="vip-card__rank">🥈</span>
+                <span class="vip-card__name" data-i18n="rank.silver">فضي</span>
+                <span class="vip-card__mult">x1.2</span>
+              </div>
+              <div class="vip-card">
+                <span class="vip-card__rank">🥇</span>
+                <span class="vip-card__name" data-i18n="rank.gold">ذهبي</span>
+                <span class="vip-card__mult">x1.5</span>
+              </div>
+              <div class="vip-card">
+                <span class="vip-card__rank">💎</span>
+                <span class="vip-card__name" data-i18n="rank.diamond">ألماسي</span>
+                <span class="vip-card__mult">x2.0</span>
+              </div>
+              <div class="vip-card">
+                <span class="vip-card__rank">👑</span>
+                <span class="vip-card__name" data-i18n="rank.legendary">أسطوري</span>
+                <span class="vip-card__mult">x3.0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Claim History -->
+          <div class="card glass card--history">
+            <h3 class="card__title" data-i18n="claim.history">سجل المطالبات</h3>
+            <ul id="claimHistoryList" class="claim-history">
+              <!-- Dynamic items -->
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: REFERRAL                                -->
+      <!-- ============================================= -->
+      <section id="view-referral" class="view">
+        <div class="view__in">
+
+          <!-- Hero: 3-Tier Info -->
+          <div class="card glass card--referral-hero">
+            <h2 class="card__title card__title--lg" data-i18n="referral.title">نظام الإحالات ثلاثي المستويات</h2>
+            <div class="referral-tiers">
+              <div class="referral-tier">
+                <span class="referral-tier__level">L1</span>
+                <span class="referral-tier__reward">+50</span>
+                <span class="referral-tier__unit">NDOG</span>
+                <span class="referral-tier__desc" data-i18n="referral.direct">مباشر</span>
+              </div>
+              <div class="referral-tier">
+                <span class="referral-tier__level">L2</span>
+                <span class="referral-tier__reward">+20</span>
+                <span class="referral-tier__unit">NDOG</span>
+                <span class="referral-tier__desc" data-i18n="referral.indirect">غير مباشر</span>
+              </div>
+              <div class="referral-tier">
+                <span class="referral-tier__level">L3</span>
+                <span class="referral-tier__reward">+10</span>
+                <span class="referral-tier__unit">NDOG</span>
+                <span class="referral-tier__desc" data-i18n="referral.indirect2">غير مباشر 2</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Referral Stats -->
+          <div class="stat-grid stat-grid--4">
+            <div class="stat-card glass">
+              <span class="stat-card__icon">👥</span>
+              <span class="stat-card__label" data-i18n="referral.total">الإجمالي</span>
+              <span id="refTotal" class="stat-card__value" data-counter="0">0</span>
+            </div>
+            <div class="stat-card glass">
+              <span class="stat-card__icon">✅</span>
+              <span class="stat-card__label" data-i18n="referral.active">نشط</span>
+              <span id="refActive" class="stat-card__value" data-counter="0">0</span>
+            </div>
+            <div class="stat-card glass">
+              <span class="stat-card__icon">💰</span>
+              <span class="stat-card__label" data-i18n="referral.earnings">الأرباح</span>
+              <span id="refEarnings" class="stat-card__value" data-counter="0">0</span>
+              <span class="stat-card__ticker">NDOG</span>
+            </div>
+            <div class="stat-card glass">
+              <span class="stat-card__icon">📊</span>
+              <span class="stat-card__label" data-i18n="referral.conversion">التحويل</span>
+              <span id="refConversion" class="stat-card__value" data-counter="0">0%</span>
+            </div>
+          </div>
+
+          <!-- Code & Link -->
+          <div class="card glass card--reflink">
+            <h3 class="card__title" data-i18n="referral.shareLink">شارك رابطك</h3>
+            <div class="card__code-row">
+              <span class="card__code-label" data-i18n="dashboard.code">الرمز:</span>
+              <code id="refCode" class="card__code">—</code>
+              <button id="btnCopyRefCode" class="btn btn--ghost btn--sm" type="button" data-i18n="dashboard.copy">نسخ</button>
+            </div>
+            <div class="card__link-row">
+              <input id="refLink" class="card__input" type="text" readonly value="" aria-label="رابط الإحالة" />
+              <button id="btnCopyRefLink" class="btn btn--ghost btn--sm" type="button" data-i18n="dashboard.copy">نسخ</button>
+            </div>
+            <div class="card__share-row">
+              <button class="btn btn--share" type="button" data-share="whatsapp" aria-label="مشاركة على واتساب">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="telegram" aria-label="مشاركة على تيليجرام">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="facebook" aria-label="مشاركة على فيسبوك">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="x" aria-label="مشاركة على إكس">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </button>
+              <button class="btn btn--share" type="button" data-share="messenger" aria-label="مشاركة على مسنجر">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.903 1.344 5.506 3.476 7.27V22l3.41-1.858c.942.26 1.944.4 2.98.4h.134C17.523 20.542 22 16.397 22 11.243 22 6.145 17.523 2 12 2zm1.164 14.376l-3.186-3.404-6.198 3.404 6.82-7.26 3.27 3.404 6.126-3.404-6.832 7.26z"/></svg>
+              </button>
+              <button id="btnQRRef" class="btn btn--share" type="button" data-modal="qr" aria-label="عرض QR">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="4" height="4" rx="0"/><rect x="20" y="14" width="2" height="2"/><rect x="14" y="20" width="2" height="2"/><rect x="20" y="20" width="2" height="2"/><rect x="17" y="17" width="1" height="1"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Referral Network Tree -->
+          <div class="card glass card--network">
+            <h3 class="card__title" data-i18n="referral.network">شبكة الإحالات</h3>
+            <ul id="referralNetworkList" class="referral-network">
+              <!-- Dynamic items -->
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: MISSIONS                                -->
+      <!-- ============================================= -->
+      <section id="view-missions" class="view">
+        <div class="view__in">
+
+          <!-- Mission Tabs -->
+          <div class="tabs" role="tablist">
+            <button class="tabs__tab tabs__tab--active" role="tab" data-mission-tab="daily" data-i18n="missions.daily">يومية</button>
+            <button class="tabs__tab" role="tab" data-mission-tab="weekly" data-i18n="missions.weekly">أسبوعية</button>
+            <button class="tabs__tab" role="tab" data-mission-tab="monthly" data-i18n="missions.monthly">شهرية</button>
+            <button class="tabs__tab" role="tab" data-mission-tab="badges" data-i18n="missions.badges">الشارات</button>
+            <button class="tabs__tab" role="tab" data-mission-tab="events" data-i18n="missions.events">الفعاليات</button>
+          </div>
+
+          <!-- Missions List -->
+          <ul id="missionsList" class="missions-list">
+            <!-- Dynamic mission items -->
+          </ul>
+
+          <!-- Mini Games Section -->
+          <div class="card glass card--games">
+            <h3 class="card__title" data-i18n="missions.miniGames">ألعاب مصغرة</h3>
+            <div class="games-grid">
+              <button id="btnSpinWheel" class="game-btn glass" type="button" data-modal="spin" data-i18n="missions.spinWheel">
+                <span class="game-btn__icon">🎡</span>
+                <span class="game-btn__label" data-i18n="missions.spinWheel">عجلة الحظ</span>
+              </button>
+              <button id="btnLuckyBox" class="game-btn glass" type="button" data-modal="luckybox" data-i18n="missions.luckyBox">
+                <span class="game-btn__icon">🎁</span>
+                <span class="game-btn__label" data-i18n="missions.luckyBox">الصندوق المحظوظ</span>
+              </button>
+              <button id="btnScratchCard" class="game-btn glass" type="button" data-modal="scratch" data-i18n="missions.scratchCard">
+                <span class="game-btn__icon">🃏</span>
+                <span class="game-btn__label" data-i18n="missions.scratchCard">بطاقة الخدش</span>
+              </button>
+              <button id="btnTreasureHunt" class="game-btn glass" type="button" data-modal="treasure" data-i18n="missions.treasureHunt">
+                <span class="game-btn__icon">🗺️</span>
+                <span class="game-btn__label" data-i18n="missions.treasureHunt">البحث عن الكنز</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: LEADERBOARD                             -->
+      <!-- ============================================= -->
+      <section id="view-leaderboard" class="view">
+        <div class="view__in">
+
+          <!-- Leaderboard Tabs -->
+          <div class="tabs" role="tablist">
+            <button class="tabs__tab tabs__tab--active" role="tab" data-lb-tab="global" data-i18n="leaderboard.global">عالمي</button>
+            <button class="tabs__tab" role="tab" data-lb-tab="country" data-i18n="leaderboard.country">حسب الدولة</button>
+            <button class="tabs__tab" role="tab" data-lb-tab="referral" data-i18n="leaderboard.referral">الإحالات</button>
+          </div>
+
+          <!-- Podium (Top 3) -->
+          <div class="podium" id="lbPodium">
+            <div class="podium__item podium__item--2">
+              <div class="podium__avatar-wrap">
+                <img class="podium__avatar" src="" alt="" loading="lazy" />
+                <span class="podium__medal">🥈</span>
+              </div>
+              <span class="podium__name">—</span>
+              <span class="podium__score">—</span>
+            </div>
+            <div class="podium__item podium__item--1">
+              <div class="podium__avatar-wrap">
+                <img class="podium__avatar" src="" alt="" loading="lazy" />
+                <span class="podium__medal">🥇</span>
+              </div>
+              <span class="podium__name">—</span>
+              <span class="podium__score">—</span>
+            </div>
+            <div class="podium__item podium__item--3">
+              <div class="podium__avatar-wrap">
+                <img class="podium__avatar" src="" alt="" loading="lazy" />
+                <span class="podium__medal">🥉</span>
+              </div>
+              <span class="podium__name">—</span>
+              <span class="podium__score">—</span>
+            </div>
+          </div>
+
+          <!-- Ranked List (4-50) -->
+          <ul id="lbList" class="lb-list">
+            <!-- Dynamic ranked items -->
+          </ul>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: STAKING                                 -->
+      <!-- ============================================= -->
+      <section id="view-staking" class="view">
+        <div class="view__in">
+
+          <!-- Balance Display -->
+          <div class="card glass card--stake-balance">
+            <h3 class="card__title" data-i18n="staking.availableBalance">الرصيد المتاح للراهن</h3>
+            <div class="card__balance-display">
+              <span class="card__balance-icon">🪙</span>
+              <span id="stakingBalance" class="card__balance-value">0</span>
+              <span class="card__balance-ticker">NDOG</span>
+            </div>
+          </div>
+
+          <!-- Staking Plans -->
+          <div class="staking-plans">
+            <div class="stake-plan glass" data-plan="30">
+              <span class="stake-plan__duration" data-i18n="staking.30days">30 يومًا</span>
+              <span class="stake-plan__apy">5%</span>
+              <span class="stake-plan__label">APY</span>
+            </div>
+            <div class="stake-plan glass" data-plan="90">
+              <span class="stake-plan__duration" data-i18n="staking.90days">90 يومًا</span>
+              <span class="stake-plan__apy">10%</span>
+              <span class="stake-plan__label">APY</span>
+            </div>
+            <div class="stake-plan glass" data-plan="180">
+              <span class="stake-plan__duration" data-i18n="staking.180days">180 يومًا</span>
+              <span class="stake-plan__apy">15%</span>
+              <span class="stake-plan__label">APY</span>
+            </div>
+            <div class="stake-plan glass stake-plan--best" data-plan="365">
+              <span class="stake-plan__badge" data-i18n="staking.best">الأفضل</span>
+              <span class="stake-plan__duration" data-i18n="staking.365days">365 يومًا</span>
+              <span class="stake-plan__apy">25%</span>
+              <span class="stake-plan__label">APY</span>
+            </div>
+          </div>
+
+          <!-- Amount Input & Stake Button -->
+          <div class="card glass card--stake-form">
+            <label class="card__label" for="stakingAmount" data-i18n="staking.amount">المبلغ للراهن</label>
+            <div class="card__input-row">
+              <input id="stakingAmount" class="card__input" type="number" min="1" placeholder="0" aria-label="المبلغ" />
+              <button id="btnStakeMax" class="btn btn--ghost btn--sm" type="button" data-i18n="staking.max">الحد الأقصى</button>
+            </div>
+            <div class="card__plan-selector" id="stakingPlanSelector">
+              <label class="card__label" data-i18n="staking.selectPlan">اختر خطة:</label>
+              <select id="stakingPlanSelect" class="card__select" aria-label="اختر خطة الرهن">
+                <option value="30" data-i18n="staking.30days">30 يومًا — 5% APY</option>
+                <option value="90" data-i18n="staking.90days">90 يومًا — 10% APY</option>
+                <option value="180" data-i18n="staking.180days">180 يومًا — 15% APY</option>
+                <option value="365" data-i18n="staking.365days">365 يومًا — 25% APY</option>
+              </select>
+            </div>
+            <button id="btnStake" class="btn btn--gold" type="button" data-i18n="staking.stakeBtn">🔒 راهن الآن</button>
+          </div>
+
+          <!-- Active Stakes -->
+          <div class="card glass card--active-stakes">
+            <h3 class="card__title" data-i18n="staking.activeStakes">الرهانات النشطة</h3>
+            <ul id="activeStakesList" class="stakes-list">
+              <!-- Dynamic stake items -->
+            </ul>
+          </div>
+
+          <!-- Pending Rewards -->
+          <div class="card glass card--pending-rewards">
+            <h3 class="card__title" data-i18n="staking.pendingRewards">المكافآت المعلقة</h3>
+            <div class="card__reward-display">
+              <span id="pendingRewardsValue" class="card__reward-value">0</span>
+              <span class="card__reward-ticker">NDOG</span>
+            </div>
+            <button id="btnCompound" class="btn btn--ghost" type="button" data-i18n="staking.compound">🔄 تركيب الفائدة</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: AIRDROP                                 -->
+      <!-- ============================================= -->
+      <section id="view-airdrop" class="view">
+        <div class="view__in">
+
+          <!-- Progress -->
+          <div class="card glass card--airdrop-progress">
+            <h3 class="card__title" data-i18n="airdrop.progress">تقدم التوزيع المجاني</h3>
+            <div class="card__progress-row">
+              <span id="airdropProgress" class="card__progress-text">0/0</span>
+              <span data-i18n="airdrop.completed">مكتمل</span>
+            </div>
+            <div class="card__progress-track">
+              <div id="airdropProgressFill" class="card__progress-fill" style="width:0%"></div>
+            </div>
+          </div>
+
+          <!-- Airdrop Task Cards -->
+          <div class="airdrop-tasks" id="airdropTasks">
+            <div class="card glass card--task" data-task="telegram">
+              <div class="card__task-icon">💬</div>
+              <div class="card__task-info">
+                <h4 class="card__task-name" data-i18n="airdrop.telegram">انضم لقناة تيليجرام</h4>
+                <span class="card__task-reward">+25 NDOG</span>
+              </div>
+              <button class="btn btn--gold btn--sm btn--task" type="button" data-i18n="airdrop.verify">تحقق</button>
+            </div>
+            <div class="card glass card--task" data-task="twitter">
+              <div class="card__task-icon">🐦</div>
+              <div class="card__task-info">
+                <h4 class="card__task-name" data-i18n="airdrop.twitter">تابعنا على تويتر / X</h4>
+                <span class="card__task-reward">+25 NDOG</span>
+              </div>
+              <button class="btn btn--gold btn--sm btn--task" type="button" data-i18n="airdrop.verify">تحقق</button>
+            </div>
+            <div class="card glass card--task" data-task="youtube">
+              <div class="card__task-icon">▶️</div>
+              <div class="card__task-info">
+                <h4 class="card__task-name" data-i18n="airdrop.youtube">اشترك في قناة اليوتيوب</h4>
+                <span class="card__task-reward">+25 NDOG</span>
+              </div>
+              <button class="btn btn--gold btn--sm btn--task" type="button" data-i18n="airdrop.verify">تحقق</button>
+            </div>
+            <div class="card glass card--task" data-task="website">
+              <div class="card__task-icon">🌐</div>
+              <div class="card__task-info">
+                <h4 class="card__task-name" data-i18n="airdrop.website">زيارة الموقع الرسمي</h4>
+                <span class="card__task-reward">+10 NDOG</span>
+              </div>
+              <button class="btn btn--gold btn--sm btn--task" type="button" data-i18n="airdrop.complete">مكتمل</button>
+            </div>
+            <div class="card glass card--task" data-task="partner">
+              <div class="card__task-icon">🤝</div>
+              <div class="card__task-info">
+                <h4 class="card__task-name" data-i18n="airdrop.partner">زيارة موقع الشريك</h4>
+                <span class="card__task-reward">+10 NDOG</span>
+              </div>
+              <button class="btn btn--gold btn--sm btn--task" type="button" data-i18n="airdrop.complete">مكتمل</button>
+            </div>
+            <div class="card glass card--task" data-task="social-share">
+              <div class="card__task-icon">📢</div>
+              <div class="card__task-info">
+                <h4 class="card__task-name" data-i18n="airdrop.socialShare">شارك على منصات التواصل</h4>
+                <span class="card__task-reward">+15 NDOG</span>
+              </div>
+              <button class="btn btn--gold btn--sm btn--task" type="button" data-i18n="airdrop.verify">تحقق</button>
+            </div>
+            <div class="card glass card--task" data-task="referral-bonus">
+              <div class="card__task-icon">👥</div>
+              <div class="card__task-info">
+                <h4 class="card__task-name" data-i18n="airdrop.referralBonus">مكافأة إحالة — ادعُ 5 أصدقاء</h4>
+                <span class="card__task-reward">+50 NDOG</span>
+              </div>
+              <button class="btn btn--gold btn--sm btn--task" type="button" data-i18n="airdrop.verify">تحقق</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: NEWS                                    -->
+      <!-- ============================================= -->
+      <section id="view-news" class="view">
+        <div class="view__in">
+
+          <!-- News Tabs -->
+          <div class="tabs" role="tablist">
+            <button class="tabs__tab tabs__tab--active" role="tab" data-news-tab="announcements" data-i18n="news.announcements">إعلانات</button>
+            <button class="tabs__tab" role="tab" data-news-tab="updates" data-i18n="news.updates">تحديثات</button>
+            <button class="tabs__tab" role="tab" data-news-tab="events" data-i18n="news.events">فعاليات</button>
+            <button class="tabs__tab" role="tab" data-news-tab="partnerships" data-i18n="news.partnerships">شراكات</button>
+          </div>
+
+          <!-- News List -->
+          <div id="newsList" class="news-list">
+            <!-- Dynamic news items -->
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: WHITEPAPER                              -->
+      <!-- ============================================= -->
+      <section id="view-whitepaper" class="view">
+        <div class="view__in">
+
+          <!-- Hero -->
+          <div class="card glass card--wp-hero">
+            <h2 class="card__title card__title--lg" data-i18n="whitepaper.title">الورقة البيضاء — NileDogs</h2>
+            <p class="card__desc" data-i18n="whitepaper.desc">تعرف على رؤيتنا وتقنيتنا وخارطة الطريق الخاصة بمنصة NileDogs.</p>
+            <div class="card__wp-links">
+              <a href="./whitepaper-ar.html" class="btn btn--gold" target="_blank" rel="noopener noreferrer" data-i18n="whitepaper.readAr">📖 اقرأ بالعربية</a>
+              <a href="./whitepaper-en.html" class="btn btn--ghost" target="_blank" rel="noopener noreferrer" data-i18n="whitepaper.readEn">📖 Read in English</a>
+            </div>
+          </div>
+
+          <!-- Quick Highlights -->
+          <div class="card glass card--wp-highlights">
+            <h3 class="card__title" data-i18n="whitepaper.highlights">أبرز النقاط</h3>
+            <ul class="highlights-list">
+              <li class="highlights-list__item">
+                <span class="highlights-list__icon">🪙</span>
+                <span data-i18n="whitepaper.hl1">إجمالي المعروض: 10 مليار NDOG</span>
+              </li>
+              <li class="highlights-list__item">
+                <span class="highlights-list__icon">🔄</span>
+                <span data-i18n="whitepaper.hl2">آلية حرق: احتراق تلقائي من المعاملات</span>
+              </li>
+              <li class="highlights-list__item">
+                <span class="highlights-list__icon">🏗️</span>
+                <span data-i18n="whitepaper.hl3">بناء على Binance Smart Chain (BSC)</span>
+              </li>
+              <li class="highlights-list__item">
+                <span class="highlights-list__icon">🚀</span>
+                <span data-i18n="whitepaper.hl4">تاريخ الإطلاق: 1 يناير 2028</span>
+              </li>
+              <li class="highlights-list__item">
+                <span class="highlights-list__icon">👥</span>
+                <span data-i18n="whitepaper.hl5">برنامج مؤسسين مبكرين بمكافآت حصرية</span>
+              </li>
+              <li class="highlights-list__item">
+                <span class="highlights-list__icon">🤝</span>
+                <span data-i18n="whitepaper.hl6">نظام إحالات ثلاثي المستويات</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================= -->
+      <!-- VIEW: ADMIN (role-restricted)                 -->
+      <!-- ============================================= -->
+      <section id="view-admin" class="view">
+        <div class="view__in">
+
+          <!-- Admin Tabs -->
+          <div class="tabs tabs--scroll" role="tablist">
+            <button class="tabs__tab tabs__tab--active" role="tab" data-admin-tab="users" data-i18n="admin.users">المستخدمون</button>
+            <button class="tabs__tab" role="tab" data-admin-tab="news" data-i18n="admin.news">الأخبار</button>
+            <button class="tabs__tab" role="tab" data-admin-tab="airdrop" data-i18n="admin.airdrop">التوزيع</button>
+            <button class="tabs__tab" role="tab" data-admin-tab="analytics" data-i18n="admin.analytics">التحليلات</button>
+            <button class="tabs__tab" role="tab" data-admin-tab="fraud" data-i18n="admin.fraudLogs">سجل الاحتيال</button>
+          </div>
+
+          <!-- Admin: Users Tab -->
+          <div class="admin-panel" id="adminPanel-users">
+            <div class="admin-panel__header">
+              <div class="admin-panel__search">
+                <input id="adminUserSearch" class="card__input" type="search" placeholder="ابحث عن مستخدم..." aria-label="بحث" />
+              </div>
+              <button id="btnAdminExportUsers" class="btn btn--ghost btn--sm" type="button" data-i18n="admin.export">📥 تصدير</button>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table" id="adminUsersTable">
+                <thead>
+                  <tr>
+                    <th data-i18n="admin.colName">الاسم</th>
+                    <th data-i18n="admin.colEmail">البريد</th>
+                    <th data-i18n="admin.colBalance">الرصيد</th>
+                    <th data-i18n="admin.colRank">الرتبة</th>
+                    <th data-i18n="admin.colStatus">الحالة</th>
+                    <th data-i18n="admin.colActions">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersBody">
+                  <!-- Dynamic user rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Admin: News Tab -->
+          <div class="admin-panel" id="adminPanel-news" style="display:none;">
+            <div class="admin-panel__form">
+              <h3 class="card__title" data-i18n="admin.createNews">إنشاء خبر</h3>
+              <input id="adminNewsTitle" class="card__input" type="text" placeholder="عنوان الخبر" aria-label="عنوان الخبر" />
+              <textarea id="adminNewsContent" class="card__textarea" placeholder="محتوى الخبر" aria-label="محتوى الخبر"></textarea>
+              <select id="adminNewsCategory" class="card__select" aria-label="التصنيف">
+                <option value="announcements" data-i18n="news.announcements">إعلانات</option>
+                <option value="updates" data-i18n="news.updates">تحديثات</option>
+                <option value="events" data-i18n="news.events">فعاليات</option>
+                <option value="partnerships" data-i18n="news.partnerships">شراكات</option>
+              </select>
+              <button id="btnAdminCreateNews" class="btn btn--gold" type="button" data-i18n="admin.publish">📢 نشر</button>
+            </div>
+            <div class="admin-panel__list" id="adminNewsList">
+              <!-- Dynamic news items -->
+            </div>
+          </div>
+
+          <!-- Admin: Airdrop Tab -->
+          <div class="admin-panel" id="adminPanel-airdrop" style="display:none;">
+            <h3 class="card__title" data-i18n="admin.airdropTasks">إدارة مهام التوزيع المجاني</h3>
+            <div id="adminAirdropTasks" class="admin-panel__tasks">
+              <!-- Dynamic task items -->
+            </div>
+          </div>
+
+          <!-- Admin: Analytics Tab -->
+          <div class="admin-panel" id="adminPanel-analytics" style="display:none;">
+            <div class="stat-grid stat-grid--3">
+              <div class="stat-card glass">
+                <span class="stat-card__icon">👥</span>
+                <span class="stat-card__label" data-i18n="admin.totalUsers">إجمالي المستخدمين</span>
+                <span id="adminTotalUsers" class="stat-card__value" data-counter="0">0</span>
+              </div>
+              <div class="stat-card glass">
+                <span class="stat-card__icon">🪙</span>
+                <span class="stat-card__label" data-i18n="admin.totalClaims">إجمالي المطالبات</span>
+                <span id="adminTotalClaims" class="stat-card__value" data-counter="0">0</span>
+              </div>
+              <div class="stat-card glass">
+                <span class="stat-card__icon">🔗</span>
+                <span class="stat-card__label" data-i18n="admin.totalReferrals">إجمالي الإحالات</span>
+                <span id="adminTotalReferrals" class="stat-card__value" data-counter="0">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin: Fraud Logs Tab -->
+          <div class="admin-panel" id="adminPanel-fraud" style="display:none;">
+            <h3 class="card__title" data-i18n="admin.flaggedAccounts">حسابات مشبوهة</h3>
+            <ul id="adminFraudList" class="admin-fraud-list">
+              <!-- Dynamic fraud items -->
+            </ul>
+          </div>
+
+          <!-- Export Data Button -->
+          <div class="admin-panel__footer">
+            <button id="btnAdminExportAll" class="btn btn--ghost" type="button" data-i18n="admin.exportAll">📥 تصدير جميع البيانات</button>
+          </div>
+
+        </div>
+      </section>
+
+    </main><!-- end viewport -->
+  </div><!-- end appShell -->
+
+  <!-- ============================================ -->
+  <!-- ============================================ -->
+  <!-- MODALS                                       -->
+  <!-- ============================================ -->
+  <!-- ============================================ -->
+
+  <!-- QR Code Modal -->
+  <div id="modalQR" class="modal" role="dialog" aria-modal="true" aria-label="QR Code">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content glass">
+      <button class="modal__close" type="button" aria-label="إغلاق">&times;</button>
+      <h3 class="modal__title" data-i18n="modal.qrTitle">رمز QR للإحالة</h3>
+      <div class="modal__body">
+        <div class="qr-container">
+          <canvas id="qrCanvas" width="256" height="256" aria-label="QR Code"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spin Wheel Modal -->
+  <div id="modalSpin" class="modal" role="dialog" aria-modal="true" aria-label="عجلة الحظ">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content glass modal__content--sm">
+      <button class="modal__close" type="button" aria-label="إغلاق">&times;</button>
+      <h3 class="modal__title" data-i18n="modal.spinTitle">🎡 عجلة الحظ</h3>
+      <div class="modal__body">
+        <div class="spin-container">
+          <canvas id="spinCanvas" width="320" height="320" aria-label="Spin Wheel"></canvas>
+        </div>
+        <button id="btnSpin" class="btn btn--gold btn--lg" type="button" data-i18n="modal.spinBtn">🔄 ادور العجلة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lucky Box Modal -->
+  <div id="modalLuckyBox" class="modal" role="dialog" aria-modal="true" aria-label="الصندوق المحظوظ">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content glass modal__content--sm">
+      <button class="modal__close" type="button" aria-label="إغلاق">&times;</button>
+      <h3 class="modal__title" data-i18n="modal.luckyBoxTitle">🎁 الصندوق المحظوظ</h3>
+      <div class="modal__body">
+        <div id="luckyBox" class="lucky-box">
+          <div class="lucky-box__lid"></div>
+          <div class="lucky-box__body">
+            <span class="lucky-box__icon">🎁</span>
+            <p class="lucky-box__question" data-i18n="modal.luckyBoxQuestion">هل أنت محظوظ اليوم؟</p>
+          </div>
+        </div>
+        <button id="btnOpenBox" class="btn btn--gold btn--lg" type="button" data-i18n="modal.openBox">🎁 افتح الصندوق</button>
+        <div id="luckyBoxReward" class="lucky-box__reward" style="display:none;">
+          <span class="lucky-box__reward-icon">🎉</span>
+          <span id="luckyBoxRewardText" class="lucky-box__reward-text">+0 NDOG</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scratch Card Modal -->
+  <div id="modalScratch" class="modal" role="dialog" aria-modal="true" aria-label="بطاقة الخدش">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content glass modal__content--sm">
+      <button class="modal__close" type="button" aria-label="إغلاق">&times;</button>
+      <h3 class="modal__title" data-i18n="modal.scratchTitle">🃏 بطاقة الخدش</h3>
+      <div class="modal__body">
+        <div class="scratch-container">
+          <canvas id="scratchCanvas" width="280" height="180" aria-label="Scratch Card"></canvas>
+        </div>
+        <div id="scratchReward" class="scratch-reward" style="display:none;">
+          <span id="scratchRewardText" class="scratch-reward__text">+0 NDOG</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasure Hunt Modal -->
+  <div id="modalTreasure" class="modal" role="dialog" aria-modal="true" aria-label="البحث عن الكنز">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content glass modal__content--sm">
+      <button class="modal__close" type="button" aria-label="إغلاق">&times;</button>
+      <h3 class="modal__title" data-i18n="modal.treasureTitle">🗺️ البحث عن الكنز</h3>
+      <div class="modal__body">
+        <p class="treasure-hint" data-i18n="modal.treasureHint">اختر 3 مواقع للبحث عن الكنز!</p>
+        <div class="treasure-grid" id="treasureGrid">
+          <button class="treasure-spot" type="button" data-spot="0" aria-label="موقع 1">🏝️</button>
+          <button class="treasure-spot" type="button" data-spot="1" aria-label="موقع 2">🏖️</button>
+          <button class="treasure-spot" type="button" data-spot="2" aria-label="موقع 3">🌋</button>
+          <button class="treasure-spot" type="button" data-spot="3" aria-label="موقع 4">🏝️</button>
+          <button class="treasure-spot" type="button" data-spot="4" aria-label="موقع 5">🏖️</button>
+          <button class="treasure-spot" type="button" data-spot="5" aria-label="موقع 6">🌋</button>
+          <button class="treasure-spot" type="button" data-spot="6" aria-label="موقع 7">🏝️</button>
+          <button class="treasure-spot" type="button" data-spot="7" aria-label="موقع 8">🏖️</button>
+          <button class="treasure-spot" type="button" data-spot="8" aria-label="موقع 9">🌋</button>
+        </div>
+        <div id="treasureReward" class="treasure-reward" style="display:none;">
+          <span class="treasure-reward__icon">💎</span>
+          <span id="treasureRewardText" class="treasure-reward__text">+0 NDOG</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banned Modal -->
+  <div id="modalBanned" class="modal" role="dialog" aria-modal="true" aria-label="محظور">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content glass modal__content--sm">
+      <div class="modal__body modal__body--center">
+        <div class="banned-icon">🚫</div>
+        <h3 class="modal__title" data-i18n="modal.bannedTitle">تم حظر حسابك</h3>
+        <p class="modal__desc" data-i18n="modal.bannedMsg">تم تعليق حسابك بسبب مخالفة شروط الاستخدام. إذا كنت تعتقد أن هذا خطأ، تواصل مع الدعم.</p>
+        <button id="btnBannedLogout" class="btn btn--ghost" type="button" data-i18n="modal.bannedLogout">تسجيل الخروج</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SCRIPTS                                      -->
+  <!-- ============================================ -->
+
+  <!-- Failsafe — shows reload button after 8s if app doesn't load -->
+  <script>
+  (function(){
+    var t = setTimeout(function(){
+      var p = document.getElementById('preloader');
+      if(p && p.style.display !== 'none' && p.offsetParent !== null){
+        p.innerHTML = '<div style="text-align:center;padding:24px;"><p style="color:#fff;margin-bottom:16px;" data-i18n="failsafe.msg">حدث خطأ في التحميل</p><button onclick="location.reload()" style="padding:12px 32px;border:none;border-radius:12px;background:#d4a017;color:#0a1f44;font-weight:700;cursor:pointer;font-size:16px;">🔄 إعادة التحميل</button></div>';
+      }
+    }, 8000);
+    window.addEventListener('appReady', function(){ clearTimeout(t); });
+  })();
+  </script>
+
+  <script src="./js/firebase.js?v=3.0.0"></script>
+  <script src="./js/database.js?v=3.0.0"></script>
+  <script src="./js/security.js?v=3.0.0"></script>
+  <script src="./js/notifications.js?v=3.0.0"></script>
+  <script src="./js/particles.js?v=3.0.0"></script>
+  <script src="./js/auth.js?v=3.0.0"></script>
+  <script src="./js/referrals.js?v=3.0.0"></script>
+  <script src="./js/claim.js?v=3.0.0"></script>
+  <script src="./js/missions.js?v=3.0.0"></script>
+  <script src="./js/leaderboard.js?v=3.0.0"></script>
+  <script src="./js/staking.js?v=3.0.0"></script>
+  <script src="./js/airdrop.js?v=3.0.0"></script>
+  <script src="./js/admin.js?v=3.0.0"></script>
+  <script src="./js/analytics.js?v=3.0.0"></script>
+  <script src="./js/ui.js?v=3.0.0"></script>
+  <script src="./js/app.js?v=3.0.0"></script>
+
+</body>
+</html>

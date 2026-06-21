@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>الأسئلة الشائعة — NileDogs (NDOG)</title>
+  <meta name="description" content="الأسئلة الشائعة حول NileDogs (NDOG) والإجابات." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://ndogcoin.com/faq.html" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #050b1a;
+      --bg-main: #0a1f44;
+      --glass-bg: rgba(10, 31, 68, 0.45);
+      --glass-bd: rgba(255, 215, 0, 0.08);
+      --gold: #ffd700;
+      --gold-2: #ffaa00;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-mute: #64748b;
+      --r-lg: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-main) 50%, var(--bg-deep) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(5, 11, 26, 0.85);
+      border-bottom: 1px solid var(--glass-bd);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .logo-icon { font-size: 1.75rem; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--glass-bd);
+      transition: all 0.3s;
+    }
+
+    .back-link:hover {
+      color: var(--gold);
+      border-color: rgba(255,215,0,0.3);
+      background: rgba(255,215,0,0.05);
+    }
+
+    .main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 3rem;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-bd);
+      border-radius: var(--r-lg);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.3s;
+    }
+
+    .glass-card:hover { border-color: rgba(255,215,0,0.2); }
+
+    .glass-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Accordion ─────────────────────────────────── */
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .accordion-item {
+      border: 1px solid var(--glass-bd);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .accordion-item:hover {
+      border-color: rgba(255,215,0,0.15);
+    }
+
+    .accordion-item.active {
+      border-color: rgba(255,215,0,0.25);
+    }
+
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 1rem 1.25rem;
+      background: rgba(255,255,255,0.03);
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      text-align: right;
+      transition: background 0.3s;
+    }
+
+    .accordion-header:hover {
+      background: rgba(255,215,0,0.05);
+    }
+
+    .accordion-icon {
+      font-size: 1.25rem;
+      transition: transform 0.3s;
+      flex-shrink: 0;
+      color: var(--gold);
+    }
+
+    .accordion-item.active .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s;
+    }
+
+    .accordion-item.active .accordion-body {
+      max-height: 500px;
+    }
+
+    .accordion-content {
+      padding: 0 1.25rem 1.25rem;
+      color: var(--text-dim);
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    .accordion-content strong {
+      color: var(--text);
+    }
+
+    .accordion-content .highlight {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .accordion-content ul {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0;
+    }
+
+    .accordion-content ul li {
+      position: relative;
+      padding-right: 1.25rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .accordion-content ul li::before {
+      content: '•';
+      position: absolute;
+      right: 0;
+      color: var(--gold);
+    }
+
+    /* ── Category Label ────────────────────────────── */
+    .category-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .cat-general { background: rgba(30,144,255,0.15); color: #1e90ff; }
+    .cat-rewards { background: rgba(16,185,129,0.15); color: #10b981; }
+    .cat-security { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .cat-technical { background: rgba(168,85,247,0.15); color: #a855f7; }
+
+    /* ── CTA ───────────────────────────────────────── */
+    .cta {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: var(--bg-deep);
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255,215,0,0.3);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-mute);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--glass-bd);
+    }
+
+    .footer a { color: var(--gold); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .header { padding: 0.75rem 1rem; }
+      .page-title { font-size: 1.8rem; }
+      .main { padding: 2rem 1rem 3rem; }
+      .glass-card { padding: 1.5rem; }
+      .accordion-header { padding: 0.875rem 1rem; font-size: 0.95rem; }
+      .accordion-content { padding: 0 1rem 1rem; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="./index.html" class="logo">
+      <span class="logo-icon">🐕</span>
+      <span>NileDogs</span>
+    </a>
+    <a href="./index.html" class="back-link">
+      ← الرئيسية
+    </a>
+  </header>
+
+  <main class="main">
+    <h1 class="page-title">الأسئلة الشائعة</h1>
+    <p class="page-subtitle">إجابات لأهم الأسئلة حول NileDogs</p>
+
+    <div class="glass-card">
+      <h2>❓ الأسئلة الشائعة</h2>
+      <div class="accordion">
+
+        <!-- Q1 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🐕 ما هي NileDogs (NDOG)؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-general">عام</span>
+              <p>
+                <strong>NileDogs (NDOG)</strong> هي منصة مكافآت مجتمعية تعتمد على مفهوم "اكسب أثناء اللعب". يمكنك:
+              </p>
+              <ul>
+                <li>مطالبة <span class="highlight">مكافآت يومية</span> من NDOG</li>
+                <li>دعوة الأصدقاء واكسب عبر <span class="highlight">3 مستويات من الإحالة</span></li>
+                <li>إكمال مهام وألعاب مصغرة</li>
+                <li>التنافس في لوحة المتصدرين العالمية</li>
+                <li>تحويط NDOG وتراكم المكافآت</li>
+              </ul>
+              <p>المنصة مجانية تماماً ولا تحتاج لاستثمار مالي.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>💰 هل المنصة مجانية؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-general">عام</span>
+              <p>
+                <strong>نعم، 100% مجانية!</strong> كل ما تحتاجه هو حساب Google. لا توجد رسوم اشتراك أو استثمار مطلوب.
+              </p>
+              <p>تكتسب NDOG من خلال:</p>
+              <ul>
+                <li>المطالبة اليومية</li>
+                <li>دعوة الأصدقاء</li>
+                <li>إكمال المهام</li>
+                <li>الألعاب المصغرة (عجلة الحظ، الصندوق المحظوظ)</li>
+                <li>الأيردروب</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>📊 هل NDOG مدرجة في البورصات؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-technical">تقني</span>
+              <p>
+                حالياً، NDOG هي <span class="highlight">نقاط مكافآت داخل المنصة</span> وغير مدرجة على أي بورصة.
+              </p>
+              <p>
+                وفق خارطة الطريق، نستهدف <span class="highlight">إدراج NDOG على البورصات (DEX و CEX) في 1 يناير 2028</span>
+                كجزء من الإطلاق الرسمي.
+              </p>
+              <p>رصيدك الحالي من NDOG سيُحفظ ويُعتد به عند الإطلاق الرسمي.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>👥 كيف يعمل نظام الإحالات؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-rewards">المكافآت</span>
+              <p>نظام الإحالات يتكون من <span class="highlight">3 مستويات</span>:</p>
+              <ul>
+                <li><strong>المستوى 1:</strong> تكسب <span class="highlight">15%</span> من مكافآت كل شخص تدعوه مباشرة</li>
+                <li><strong>المستوى 2:</strong> تكسب <span class="highlight">7%</span> من مكافآت الأشخاص الذين دعوهم ضيوفك</li>
+                <li><strong>المستوى 3:</strong> تكسب <span class="highlight">3%</span> من الضيوف على مستوى ثلاثة</li>
+              </ul>
+              <p>الإحالات تدوم <strong>للأبد</strong> — طالما أن الأشخاص نشطون، تستمر في الكسب.</p>
+              <p>شارك رابطك أو رمز الإحالة لتبدأ. لا يوجد حد لعدد الإحالات.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🏆 ما هي مستويات المكافآت؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-rewards">المكافآت</span>
+              <p>مضاعف المكافأة يعتمد على مجموع رصيدك:</p>
+              <ul>
+                <li><strong>🥉 برونزي:</strong> 1.0× (0 — 999 NDOG)</li>
+                <li><strong>🥈 فضي:</strong> 1.2× (1K — 9,999 NDOG)</li>
+                <li><strong>🥇 ذهبي:</strong> 1.5× (10K — 99,999 NDOG)</li>
+                <li><strong>💎 ماسي:</strong> 2.0× (100K — 999,999 NDOG)</li>
+                <li><strong>🌟 أسطوري:</strong> 3.0× (1M+ NDOG)</li>
+              </ul>
+              <p>بالإضافة لذلك، <span class="highlight">سلسلة المطالبات اليومية</span> تزيد المضاعف تدريجياً حتى 3.0× بعد 365 يوم متتالي.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🔒 هل بياناتي آمنة؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-security">الأمان</span>
+              <p>نعم، نأخذ أمان بياناتك على محمل الجد:</p>
+              <ul>
+                <li>الاتصالات مشفرة عبر <span class="highlight">HTTPS</span></li>
+                <li>نستخدم <span class="highlight">Google Firebase</span> مع قواعد أمان صارمة</li>
+                <li>كل مستخدم يصل لبياناته فقط</li>
+                <li>نظام كشف احتيال متقدم (بصمة الجهاز)</li>
+                <li><span class="highlight">لا نبيع بياناتك</span> لأطراف ثالثة</li>
+              </ul>
+              <p>للمزيد من التفاصيل، راجع <a href="./privacy.html" style="color: var(--gold);">سياسة الخصوصية</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🚫 تم حظر حسابي — ماذا أفعل؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-security">الأمان</span>
+              <p>إذا تم حظر حسابك،可能是以下原因:</p>
+              <ul>
+                <li>إنشاء حسابات متعددة</li>
+                <li>استخدام بوتات أو سكربتات</li>
+                <li>محاولة الاحتيال</li>
+                <li>إساءة السلوك</li>
+              </ul>
+              <p>للاستئناف، تواصل مع <span class="highlight">@NileDogsSupport</span> على تلجرام أو عبر <a href="./contact.html" style="color: var(--gold);">صفحة التواصل</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>📅 متى الإطلاق الرسمي؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-technical">تقني</span>
+              <p>
+                الإطلاق الرسمي لـ NDOG كتوكن على البلوكتشين مخطط له في
+                <span class="highlight">1 يناير 2028</span>.
+              </p>
+              <p>حتى ذلك الوقت، المنصة في مرحلة برنامج المؤسسين المبكرين. الأنشطة الحالية:</p>
+              <ul>
+                <li>كسب NDOG يومياً</li>
+                <li>بناء المجتمع</li>
+                <li>بناء السجل (للمستقبل)</li>
+                <li>إكمال المهام والألعاب</li>
+              </ul>
+              <p>كل ما تكسبه الآن سيكون له قيمة عند الإطلاق الرسمي.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q9 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🎰 ما هي الألعاب المصغرة؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-rewards">المكافآت</span>
+              <p>المنصة توفر ألعاب مصغرة ممتعة لكسب NDOG إضافي:</p>
+              <ul>
+                <li><strong>🎡 عجلة الحظ:</strong> دورة مجانية كل 24 ساعة — جوائز عشوائية</li>
+                <li><strong>🎁 الصندوق المحظوظ:</strong> افتحه كل 6 ساعات — مكافأة غامضة</li>
+                <li><strong>🎴 بطاقة الخدش:</strong> اخدش البطاقة لتكشف الجائزة</li>
+                <li><strong>🗺️ البحث عن الكنز:</strong> اختر مكاناً للبحث عن الكنز</li>
+                <li><strong>⛏️ تعدين إضافي:</strong> 3 مرات يومياً — مكافأة عشوائية</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q10 -->
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <span>📲 هل هناك تطبيق هاتف؟</span>
+            <span class="accordion-icon">▼</span>
+          </button>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              <span class="category-label cat-technical">تقني</span>
+              <p>
+                حالياً المنصة تعمل كـ <span class="highlight">PWA (تطبيق ويب تقدمي)</span> يمكنك تثبيتها على هاتفك:
+              </p>
+              <ul>
+                <li><strong>Android:</strong> افتح الموقع في Chrome → اضغط "إضافة إلى الشاشة الرئيسية"</li>
+                <li><strong>iOS:</strong> افتح الموقع في Safari → اضغط أيقونة المشاركة → "إضافة إلى الشاشة الرئيسية"</li>
+              </ul>
+              <p>تطبيق أصلي (iOS/Android) مخطط له في <span class="highlight">Q4 2026</span>.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <p style="color: var(--text-dim); margin-bottom: 1rem;">لم تجد إجابة لسؤالك؟</p>
+      <a href="./contact.html" class="cta-btn">
+        تواصل معنا ←
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025-2026 <a href="https://ndogcoin.com">NileDogs (NDOG)</a> — جميع الحقوق محفوظة</p>
+    <p style="margin-top: 0.5rem;">
+      <a href="./contact.html">تواصل معنا</a> ·
+      <a href="./privacy.html">سياسة الخصوصية</a> ·
+      <a href="./index.html">الرئيسية</a>
+    </p>
+  </footer>
+
+  <script>
+    function toggleAccordion(btn) {
+      const item = btn.parentElement;
+      const isActive = item.classList.contains('active');
+
+      // Close all
+      document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
+
+      // Toggle current
+      if (!isActive) {
+        item.classList.add('active');
+      }
+    }
+
+    // Open first item by default
+    document.querySelector('.accordion-item').classList.add('active');
+  </script>
+</body>
+</html>

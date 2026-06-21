@@ -1,0 +1,479 @@
+/* ============================================================
+   NileDogs (NDOG) — Dark Mode Enforcement
+   Since the app is always dark, this ensures:
+   - Force dark background on html/body
+   - Ensure all text is light-colored
+   - Override any system light mode preferences
+   ============================================================ */
+
+/* ── Force Dark Background ───────────────────────────────── */
+html {
+  background-color: #050b1a !important;
+  color-scheme: dark;
+}
+
+body {
+  background-color: #050b1a !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── Override System Light Mode ───────────────────────────── */
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: #050b1a !important;
+    color: #e2e8f0 !important;
+  }
+
+  /* Ensure all inputs remain dark */
+  input,
+  textarea,
+  select {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    color: #e2e8f0 !important;
+    border-color: rgba(255, 215, 0, 0.08) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #64748b !important;
+    opacity: 1 !important;
+  }
+
+  /* Ensure links remain visible */
+  a {
+    color: #e2e8f0 !important;
+  }
+
+  a:hover {
+    color: #ffd700 !important;
+  }
+
+  /* Buttons */
+  button {
+    color: #e2e8f0 !important;
+  }
+
+  /* Table headers and cells */
+  th,
+  td {
+    color: #94a3b8 !important;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    color: #e2e8f0 !important;
+  }
+
+  /* Paragraphs and spans */
+  p,
+  span,
+  label,
+  small,
+  strong,
+  em {
+    color: inherit !important;
+  }
+
+  /* List items */
+  li {
+    color: #94a3b8 !important;
+  }
+
+  /* Blockquotes */
+  blockquote {
+    color: #94a3b8 !important;
+    border-color: rgba(255, 215, 0, 0.08) !important;
+  }
+
+  /* Code */
+  code,
+  pre {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #e2e8f0 !important;
+  }
+
+  /* Horizontal rules */
+  hr {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+  }
+}
+
+/* ── Meta Theme Color ────────────────────────────────────── */
+/* This is handled in HTML, but we enforce dark mode for all
+   theme-color meta tags via CSS custom properties */
+
+/* ── Ensure Light Text on All Elements ────────────────────── */
+
+/* Base text */
+h1, h2, h3, h4, h5, h6,
+p, span, div, section, article, aside,
+header, footer, nav, main,
+label, figcaption, caption,
+dt, dd, li, th, td {
+  color: #e2e8f0;
+}
+
+/* Muted text */
+small, .text-dim, .text-mute,
+time, address, cite {
+  color: #94a3b8;
+}
+
+/* Very muted text */
+abbr, mark {
+  color: #64748b;
+}
+
+/* Ensure headings are bright */
+h1, h2, h3, h4, h5, h6 {
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: initial;
+}
+
+/* ── Override Default Form Styles ─────────────────────────── */
+input,
+textarea,
+select,
+optgroup {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: #e2e8f0;
+  border-color: rgba(255, 215, 0, 0.08);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  outline: none;
+}
+
+select option {
+  background-color: #0a1f44;
+  color: #e2e8f0;
+}
+
+select optgroup {
+  background-color: #0a1f44;
+  color: #94a3b8;
+}
+
+/* ── Override Checkbox & Radio ────────────────────────────── */
+input[type="checkbox"],
+input[type="radio"] {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  accent-color: #ffd700;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background-color: #ffd700;
+  border-color: #ffd700;
+}
+
+/* ── Range Input ──────────────────────────────────────────── */
+input[type="range"] {
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="range"]::-webkit-slider-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  height: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  background: #ffd700;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+input[type="range"]::-moz-range-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  height: 4px;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background: #ffd700;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+/* ── Progress Element ────────────────────────────────────── */
+progress {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--r-full);
+  overflow: hidden;
+  height: 8px;
+}
+
+progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--r-full);
+}
+
+progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #ffd700, #10b981);
+  border-radius: var(--r-full);
+}
+
+progress::-moz-progress-bar {
+  background: linear-gradient(90deg, #ffd700, #10b981);
+  border-radius: var(--r-full);
+}
+
+/* ── File Input ──────────────────────────────────────────── */
+input[type="file"] {
+  color: #94a3b8;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 215, 0, 0.08);
+  border-radius: var(--r-sm);
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+  border-color: rgba(255, 215, 0, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Scrollbar in Dark Mode ──────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.5);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+* {
+  scrollbar-color: rgba(255, 215, 0, 0.3) rgba(255, 255, 255, 0.02);
+}
+
+/* ── Selection Override ──────────────────────────────────── */
+::selection {
+  background-color: #ffd700;
+  color: #0a1f44;
+}
+
+::-moz-selection {
+  background-color: #ffd700;
+  color: #0a1f44;
+}
+
+/* ── Focus Visible ───────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(255, 215, 0, 0.5);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(255, 215, 0, 0.5);
+  outline-offset: 2px;
+}
+
+/* ── Image Contrast ──────────────────────────────────────── */
+img {
+  opacity: 0.95;
+}
+
+img:hover {
+  opacity: 1;
+}
+
+/* ── SVG Fill Override ───────────────────────────────────── */
+svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* ── Auto-fill Background Override ───────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgba(10, 31, 68, 1) inset !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: #e2e8f0;
+}
+
+/* ── Ensure Dark Links ───────────────────────────────────── */
+a {
+  color: #e2e8f0;
+}
+
+a:visited {
+  color: #94a3b8;
+}
+
+a:hover {
+  color: #ffd700;
+}
+
+a:active {
+  color: #ffaa00;
+}
+
+/* ── Blockquote Override ─────────────────────────────────── */
+blockquote {
+  border-left: 3px solid rgba(255, 215, 0, 0.2);
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px 16px;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+
+blockquote cite {
+  color: #64748b;
+}
+
+/* ── Code Override ───────────────────────────────────────── */
+code {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffd700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+}
+
+pre {
+  background: rgba(255, 255, 255, 0.03);
+  color: #e2e8f0;
+  padding: 16px;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* ── Table Override ──────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  color: #e2e8f0;
+}
+
+th {
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Horizontal Rule ─────────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 16px 0;
+}
+
+/* ── Mark / Highlight Override ───────────────────────────── */
+mark {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* ── Details / Summary Override ──────────────────────────── */
+details {
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+}
+
+summary {
+  color: #e2e8f0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+summary:hover {
+  color: #ffd700;
+}
+
+/* ── Dialog Override ─────────────────────────────────────── */
+dialog {
+  background: rgba(10, 31, 68, 0.95);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 215, 0, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}

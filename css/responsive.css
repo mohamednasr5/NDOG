@@ -1,0 +1,1043 @@
+/* ============================================================
+   NileDogs (NDOG) — Responsive Styles
+   Media queries for all breakpoints
+   ============================================================ */
+
+/* ── Mobile: max-width 640px ─────────────────────────────── */
+@media (max-width: 640px) {
+  /* Viewport */
+  .viewport {
+    padding: 0 12px;
+  }
+
+  /* Stat Cards */
+  .stat-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .stat-card__icon {
+    font-size: 28px;
+  }
+
+  .stat-card__value {
+    font-size: 20px;
+  }
+
+  .stat-card__label {
+    font-size: 11px;
+  }
+
+  /* Dashboard Hero */
+  .dash__hero {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .dash__avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dash__name {
+    font-size: 18px;
+  }
+
+  .dash__hero-r {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Dashboard Grid */
+  .dash__grid {
+    gap: 8px;
+  }
+
+  /* Claim View */
+  .claim__hero {
+    padding: 24px 16px;
+  }
+
+  .claim__ring {
+    width: 180px;
+    height: 180px;
+  }
+
+  .claim__reward {
+    font-size: 20px;
+  }
+
+  .claim__levels-grid {
+    gap: 6px;
+  }
+
+  .claim__level-card {
+    padding: 10px 8px;
+    min-width: 52px;
+  }
+
+  .claim__level-card .icon {
+    font-size: 20px;
+  }
+
+  .claim__level-card .name {
+    font-size: 10px;
+  }
+
+  /* Bottom Nav */
+  .bottomnav {
+    padding: 4px 0;
+    padding-bottom: env(safe-area-inset-bottom, 4px);
+  }
+
+  .bn-link {
+    padding: 4px 8px;
+    min-width: 48px;
+  }
+
+  .bn-link span {
+    font-size: 20px;
+  }
+
+  .bn-link small {
+    font-size: 9px;
+  }
+
+  /* Login */
+  .login__title {
+    font-size: 28px;
+  }
+
+  .login__logo {
+    font-size: 56px;
+  }
+
+  .login__tagline {
+    font-size: 14px;
+  }
+
+  .login__countdown {
+    gap: 8px;
+  }
+
+  .lc__unit {
+    padding: 10px 12px;
+    min-width: 56px;
+  }
+
+  .lc__unit span {
+    font-size: 22px;
+  }
+
+  .login__features {
+    gap: 8px;
+  }
+
+  .lf {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .lf span {
+    font-size: 20px;
+  }
+
+  .lf p {
+    font-size: 12px;
+  }
+
+  /* Topbar */
+  .topbar {
+    padding: 0 12px;
+    height: 52px;
+  }
+
+  .topbar__balance {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .topbar__lang {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .app-shell {
+    padding-top: 56px;
+  }
+
+  /* Staking */
+  .staking__balance-value {
+    font-size: 26px;
+  }
+
+  .staking__plan-apr {
+    font-size: 18px;
+  }
+
+  .staking__plan-period {
+    font-size: 16px;
+  }
+
+  /* Spin Wheel */
+  .spin__wrap {
+    width: 260px;
+    height: 260px;
+  }
+
+  /* Leaderboard */
+  .lb__podium-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .lb__podium-item:first-child .lb__podium-avatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .lb__podium-rank {
+    font-size: 22px;
+  }
+
+  /* Modals */
+  .modal__panel {
+    max-width: 340px;
+    padding: 20px;
+  }
+
+  /* Referral */
+  .ref__tiers {
+    gap: 8px;
+  }
+
+  .ref__tier {
+    padding: 8px 12px;
+    min-width: 60px;
+  }
+
+  .ref__tier-r strong {
+    font-size: 14px;
+  }
+
+  /* Admin */
+  .admin__stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .admin__table th,
+  .admin__table td {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  /* News */
+  .news__card-title {
+    font-size: 14px;
+  }
+
+  .news__card-excerpt {
+    font-size: 12px;
+  }
+
+  /* Scratch Card */
+  .scratch-canvas {
+    width: 240px;
+    height: 150px;
+  }
+
+  /* Treasure */
+  .treasure-grid {
+    gap: 8px;
+    max-width: 240px;
+  }
+
+  .treasure-spot {
+    font-size: 22px;
+  }
+
+  /* Toast */
+  .toast-host {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+  }
+
+  .toast {
+    max-width: 100%;
+    font-size: 12px;
+    padding: 10px 14px;
+  }
+
+  /* Side Navigation */
+  .sidenav {
+    width: 260px;
+  }
+
+  /* Airdrop */
+  .airdrop__task-icon {
+    font-size: 20px;
+  }
+
+  .airdrop__task-title {
+    font-size: 13px;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .btn--sm {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .btn--lg {
+    padding: 14px 28px;
+    font-size: 15px;
+  }
+}
+
+/* ── Small Mobile: max-width 380px ───────────────────────── */
+@media (max-width: 380px) {
+  /* Further reduce padding and sizes */
+  .viewport {
+    padding: 0 8px;
+  }
+
+  /* Grid to 1 column */
+  .dash__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ref__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .staking__plans {
+    grid-template-columns: 1fr;
+  }
+
+  .admin__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .login__features {
+    grid-template-columns: 1fr;
+  }
+
+  .missions__fun-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Smaller fonts */
+  .login__title {
+    font-size: 24px;
+  }
+
+  .login__logo {
+    font-size: 48px;
+  }
+
+  .login__ticker {
+    font-size: 12px;
+    letter-spacing: 3px;
+  }
+
+  .login__tagline {
+    font-size: 13px;
+  }
+
+  .dash__name {
+    font-size: 16px;
+  }
+
+  .stat-card__value {
+    font-size: 18px;
+  }
+
+  .claim__reward {
+    font-size: 18px;
+  }
+
+  .claim__ring {
+    width: 160px;
+    height: 160px;
+  }
+
+  /* Smaller padding */
+  .view {
+    padding: 12px 0;
+  }
+
+  .dash__hero {
+    padding: 12px;
+  }
+
+  .ref-card {
+    padding: 14px;
+  }
+
+  .level-card {
+    padding: 14px;
+  }
+
+  .staking__balance {
+    padding: 14px;
+  }
+
+  .staking__form {
+    padding: 14px;
+  }
+
+  .staking__stakes {
+    padding: 14px;
+  }
+
+  .staking__pending {
+    padding: 14px;
+  }
+
+  .airdrop__progress {
+    padding: 12px;
+  }
+
+  .claim__history {
+    padding: 14px;
+  }
+
+  .ref__link-card {
+    padding: 14px;
+  }
+
+  .ref__tree {
+    padding: 14px;
+  }
+
+  .missions__fun {
+    padding: 14px;
+  }
+
+  .wp__hero {
+    padding: 16px;
+  }
+
+  .wp__quick {
+    padding: 14px;
+  }
+
+  /* Countdown units */
+  .lc__unit {
+    padding: 8px 10px;
+    min-width: 48px;
+  }
+
+  .lc__unit span {
+    font-size: 20px;
+  }
+
+  .lc__unit small {
+    font-size: 10px;
+  }
+
+  /* Staking */
+  .staking__balance-value {
+    font-size: 22px;
+  }
+
+  /* Modals */
+  .modal {
+    padding: 12px;
+  }
+
+  .modal__panel {
+    padding: 16px;
+    width: 95%;
+    border-radius: 16px;
+  }
+
+  /* Spin Wheel */
+  .spin__wrap {
+    width: 220px;
+    height: 220px;
+  }
+
+  /* Scratch Card */
+  .scratch-canvas {
+    width: 200px;
+    height: 130px;
+  }
+
+  /* Treasure */
+  .treasure-grid {
+    gap: 6px;
+    max-width: 200px;
+  }
+
+  .treasure-spot {
+    font-size: 20px;
+  }
+
+  /* Claim level cards */
+  .claim__level-card {
+    padding: 8px 6px;
+    min-width: 46px;
+  }
+
+  .claim__level-card .icon {
+    font-size: 18px;
+  }
+
+  .claim__level-card .name {
+    font-size: 9px;
+  }
+
+  .claim__level-card .mult {
+    font-size: 9px;
+  }
+
+  /* Leaderboard */
+  .lb__podium-item {
+    gap: 6px;
+  }
+
+  .lb__podium-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .lb__podium-item:first-child .lb__podium-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .lb__podium-name {
+    font-size: 11px;
+    max-width: 70px;
+  }
+
+  .lb__podium-score {
+    font-size: 10px;
+  }
+
+  .lb__podium-rank {
+    font-size: 18px;
+  }
+
+  .lb__item {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .lb__avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .lb__name {
+    font-size: 12px;
+  }
+
+  .lb__score {
+    font-size: 12px;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 16px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .btn--lg {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  /* Side Navigation */
+  .sidenav {
+    width: 240px;
+  }
+
+  .nav-link {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .nav-link__icon {
+    font-size: 18px;
+  }
+
+  .nav-link__label {
+    font-size: 13px;
+  }
+
+  /* Whitepaper */
+  .wp__hero h2 {
+    font-size: 18px;
+  }
+
+  .wp__links {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* ── Tablet+: min-width 641px ────────────────────────────── */
+@media (min-width: 641px) {
+  /* Center the viewport with max-width */
+  .viewport {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Wider side navigation */
+  .sidenav {
+    width: 300px;
+  }
+
+  /* More spacing in views */
+  .view {
+    padding: 20px 0;
+  }
+
+  /* Stat cards slightly larger */
+  .stat-card__value {
+    font-size: 26px;
+  }
+
+  /* Claim ring larger */
+  .claim__ring {
+    width: 240px;
+    height: 240px;
+  }
+
+  .claim__reward {
+    font-size: 28px;
+  }
+
+  /* Admin table more readable */
+  .admin__table th,
+  .admin__table td {
+    padding: 12px 14px;
+  }
+
+  /* Spin wheel bigger */
+  .spin__wrap {
+    width: 340px;
+    height: 340px;
+  }
+
+  /* Topbar more spacious */
+  .topbar {
+    padding: 0 24px;
+  }
+
+  /* Bottom nav with more room */
+  .bottomnav {
+    padding: 8px 0;
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
+
+  .bn-link {
+    padding: 8px 16px;
+    min-width: 64px;
+  }
+
+  .bn-link span {
+    font-size: 24px;
+  }
+
+  .bn-link small {
+    font-size: 11px;
+  }
+
+  /* Login centered with more space */
+  .login__wrap {
+    max-width: 440px;
+  }
+
+  /* Leaderboard podium more spacious */
+  .lb__podium {
+    gap: 16px;
+    padding: 28px 0;
+  }
+
+  /* Toast positioned properly */
+  .toast-host {
+    right: 24px;
+    max-width: 380px;
+  }
+
+  .toast {
+    max-width: 380px;
+  }
+}
+
+/* ── Desktop: min-width 1024px ───────────────────────────── */
+@media (min-width: 1024px) {
+  /* Wider viewport */
+  .viewport {
+    max-width: 720px;
+  }
+
+  /* More generous spacing */
+  .view {
+    padding: 24px 0;
+  }
+
+  .view__in {
+    gap: 20px;
+  }
+
+  /* Topbar centered content */
+  .topbar {
+    padding: 0 32px;
+  }
+
+  /* Dashboard hero more spacious */
+  .dash__hero {
+    padding: 24px;
+  }
+
+  .dash__name {
+    font-size: 24px;
+  }
+
+  /* Stat cards */
+  .stat-card {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .stat-card__value {
+    font-size: 28px;
+  }
+
+  /* Claim ring even larger */
+  .claim__ring {
+    width: 260px;
+    height: 260px;
+  }
+
+  .claim__reward {
+    font-size: 32px;
+  }
+
+  /* Referral card */
+  .ref-card {
+    padding: 24px;
+  }
+
+  .ref-card__code {
+    font-size: 20px;
+  }
+
+  /* Level card */
+  .level-card {
+    padding: 24px;
+  }
+
+  /* Staking */
+  .staking__balance-value {
+    font-size: 36px;
+  }
+
+  .staking__plan {
+    padding: 20px;
+  }
+
+  .staking__plan-apr {
+    font-size: 26px;
+  }
+
+  .staking__form {
+    padding: 24px;
+  }
+
+  /* Spin wheel */
+  .spin__wrap {
+    width: 360px;
+    height: 360px;
+  }
+
+  /* Scratch card */
+  .scratch-canvas {
+    width: 320px;
+    height: 200px;
+  }
+
+  /* Treasure grid */
+  .treasure-grid {
+    max-width: 320px;
+    gap: 12px;
+  }
+
+  .treasure-spot {
+    font-size: 32px;
+  }
+
+  /* Modals */
+  .modal__panel {
+    max-width: 440px;
+    padding: 28px;
+  }
+
+  /* Admin */
+  .admin__stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  /* Whitepaper */
+  .wp__hero {
+    padding: 32px;
+  }
+
+  .wp__hero h2 {
+    font-size: 26px;
+  }
+
+  .wp__quick {
+    padding: 24px;
+  }
+
+  /* Toast host positioned further right */
+  .toast-host {
+    right: 32px;
+  }
+
+  /* Login */
+  .login__wrap {
+    max-width: 460px;
+  }
+
+  .login__title {
+    font-size: 40px;
+  }
+
+  .login__logo {
+    font-size: 80px;
+  }
+
+  /* Bottom nav slightly larger */
+  .bottomnav {
+    padding: 10px 0;
+    padding-bottom: env(safe-area-inset-bottom, 10px);
+  }
+
+  .bn-link {
+    padding: 10px 20px;
+    min-width: 72px;
+  }
+
+  /* News cards */
+  .news__card {
+    padding: 20px;
+  }
+
+  .news__card-title {
+    font-size: 18px;
+  }
+
+  .news__card-excerpt {
+    font-size: 14px;
+  }
+
+  /* Missions */
+  .mission-card {
+    padding: 18px;
+  }
+
+  .mission-card__title {
+    font-size: 15px;
+  }
+}
+
+/* ── Print Styles ────────────────────────────────────────── */
+@media print {
+  /* Hide decorative and interactive elements */
+  #particles,
+  .bg-orbs,
+  .bottomnav,
+  .sidenav,
+  .sidenav__scrim,
+  .topbar,
+  .toast-host,
+  .preloader,
+  .btn,
+  .share-btn,
+  .spin__pointer,
+  .scratch-canvas,
+  .treasure-spot {
+    display: none !important;
+  }
+
+  /* Reset background for printing */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Remove glass effects */
+  .glass,
+  .glass-sm,
+  .glass-strong {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove padding from shell */
+  .app-shell {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Ensure views are visible */
+  .view {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  /* Print-friendly text colors */
+  .stat-card__value,
+  .dash__name,
+  .claim__reward,
+  .lb__score,
+  .staking__balance-value,
+  .staking__plan-apr,
+  .ref-card__code,
+  .ref-card__head h3,
+  .claim__history-amount,
+  .mission-card__reward,
+  .airdrop__task-reward {
+    color: #b8860b !important;
+    -webkit-text-fill-color: #b8860b !important;
+  }
+
+  /* Remove links styling for print */
+  .nav-link,
+  .bn-link {
+    color: #333333 !important;
+  }
+
+  /* Remove hover effects */
+  * {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Reset viewport */
+  .viewport {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Tables */
+  .admin__table {
+    border: 1px solid #dee2e6;
+  }
+
+  .admin__table th,
+  .admin__table td {
+    border: 1px solid #dee2e6;
+    color: #333333 !important;
+  }
+}
+
+/* ── Short Viewport Height ───────────────────────────────── */
+@media (max-height: 600px) {
+  .login__logo {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+
+  .login__title {
+    font-size: 24px;
+  }
+
+  .login__tagline {
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .login__countdown {
+    margin-bottom: 20px;
+  }
+
+  .lc__unit {
+    padding: 8px 12px;
+    min-width: 52px;
+  }
+
+  .lc__unit span {
+    font-size: 22px;
+  }
+
+  .login__brand {
+    margin-bottom: 20px;
+  }
+
+  .login__features {
+    margin-top: 16px;
+  }
+}
+
+/* ── Landscape Mobile ────────────────────────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .app-shell {
+    padding-top: 48px;
+    padding-bottom: 60px;
+  }
+
+  .topbar {
+    height: 48px;
+  }
+
+  .bottomnav {
+    padding: 2px 0;
+    padding-bottom: env(safe-area-inset-bottom, 2px);
+  }
+
+  .bn-link {
+    padding: 2px 8px;
+    min-width: 44px;
+  }
+
+  .bn-link span {
+    font-size: 18px;
+  }
+
+  .bn-link small {
+    font-size: 8px;
+  }
+
+  .claim__ring {
+    width: 150px;
+    height: 150px;
+  }
+
+  .claim__hero {
+    padding: 16px;
+  }
+
+  .view {
+    padding: 8px 0;
+  }
+
+  .view__in {
+    gap: 10px;
+  }
+}

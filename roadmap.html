@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>خارطة الطريق — NileDogs (NDOG)</title>
+  <meta name="description" content="خارطة طريق تطوير NileDogs من 2026 إلى 2028." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://ndogcoin.com/roadmap.html" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #050b1a;
+      --bg-main: #0a1f44;
+      --glass-bg: rgba(10, 31, 68, 0.45);
+      --glass-bd: rgba(255, 215, 0, 0.08);
+      --gold: #ffd700;
+      --gold-2: #ffaa00;
+      --gold-dark: #b8860b;
+      --nile: #0d47a1;
+      --nile-soft: #1e90ff;
+      --emerald: #10b981;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-mute: #64748b;
+      --r-lg: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-main) 50%, var(--bg-deep) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(5, 11, 26, 0.85);
+      border-bottom: 1px solid var(--glass-bd);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .logo-icon { font-size: 1.75rem; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--glass-bd);
+      transition: all 0.3s;
+    }
+
+    .back-link:hover {
+      color: var(--gold);
+      border-color: rgba(255,215,0,0.3);
+      background: rgba(255,215,0,0.05);
+    }
+
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 3rem;
+    }
+
+    /* ── Timeline ─────────────────────────────────── */
+    .timeline {
+      position: relative;
+      padding-right: 3rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      right: 1rem;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--gold), var(--gold-2), var(--nile-soft));
+      border-radius: 2px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2.5rem;
+      padding-right: 2.5rem;
+      opacity: 0;
+      transform: translateX(20px);
+      animation: slideIn 0.6s ease forwards;
+    }
+
+    .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+    .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+    .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+    .timeline-item:nth-child(4) { animation-delay: 0.4s; }
+    .timeline-item:nth-child(5) { animation-delay: 0.5s; }
+    .timeline-item:nth-child(6) { animation-delay: 0.6s; }
+    .timeline-item:nth-child(7) { animation-delay: 0.7s; }
+
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Timeline dot */
+    .timeline-dot {
+      position: absolute;
+      right: -2.55rem;
+      top: 1.75rem;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--bg-deep);
+      border: 3px solid var(--gold);
+      z-index: 1;
+    }
+
+    .timeline-item.completed .timeline-dot {
+      background: var(--emerald);
+      border-color: var(--emerald);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .timeline-item.active .timeline-dot {
+      background: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+      50% { box-shadow: 0 0 24px rgba(255,215,0,0.6); }
+    }
+
+    /* Timeline card */
+    .timeline-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-bd);
+      border-radius: var(--r-lg);
+      padding: 1.75rem;
+      transition: all 0.3s;
+    }
+
+    .timeline-card:hover {
+      border-color: rgba(255,215,0,0.2);
+      transform: translateY(-2px);
+    }
+
+    .timeline-phase {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.75rem;
+    }
+
+    .phase-2026-q1 { background: rgba(16,185,129,0.15); color: var(--emerald); }
+    .phase-2026-q2 { background: rgba(30,144,255,0.15); color: var(--nile-soft); }
+    .phase-2026-q3 { background: rgba(168,85,247,0.15); color: #a855f7; }
+    .phase-2026-q4 { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .phase-2027 { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .phase-2028 { background: rgba(255,215,0,0.2); color: var(--gold); }
+
+    .timeline-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-desc {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+    }
+
+    .timeline-items {
+      list-style: none;
+      padding: 0;
+    }
+
+    .timeline-items li {
+      position: relative;
+      padding-right: 1.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .timeline-items li::before {
+      content: '✓';
+      position: absolute;
+      right: 0;
+      color: var(--emerald);
+      font-weight: bold;
+    }
+
+    .timeline-item:not(.completed) .timeline-items li::before {
+      content: '○';
+      color: var(--gold);
+    }
+
+    .timeline-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+    }
+
+    .status-completed { background: rgba(16,185,129,0.15); color: var(--emerald); }
+    .status-active { background: rgba(255,215,0,0.15); color: var(--gold); }
+    .status-upcoming { background: rgba(100,116,139,0.15); color: var(--text-mute); }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-mute);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--glass-bd);
+    }
+
+    .footer a { color: var(--gold); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .header { padding: 0.75rem 1rem; }
+      .page-title { font-size: 1.8rem; }
+      .main { padding: 2rem 1rem 3rem; }
+      .timeline { padding-right: 2rem; }
+      .timeline-item { padding-right: 1.5rem; }
+      .timeline-dot { right: -2.1rem; width: 18px; height: 18px; }
+      .timeline::before { right: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="./index.html" class="logo">
+      <span class="logo-icon">🐕</span>
+      <span>NileDogs</span>
+    </a>
+    <a href="./index.html" class="back-link">
+      ← الرئيسية
+    </a>
+  </header>
+
+  <main class="main">
+    <h1 class="page-title">خارطة الطريق</h1>
+    <p class="page-subtitle">رحلة تطوير NileDogs من التأسيس إلى الإطلاق الرسمي</p>
+
+    <div class="timeline">
+      <!-- Q1 2026 -->
+      <div class="timeline-item completed">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <span class="timeline-phase phase-2026-q1">🟢 Q1 2026 — التأسيس</span>
+          <h3 class="timeline-title">بناء الأساس</h3>
+          <p class="timeline-desc">إطلاق النسخة التجريبية وبناء المجتمع الأولي</p>
+          <ul class="timeline-items">
+            <li>إطلاق الموقع والتطبيق</li>
+            <li>نظام تسجيل الدخول بـ Google</li>
+            <li>المطالبة اليومية والمكافآت</li>
+            <li>نظام الإحالة 3 مستويات</li>
+            <li>لوحة المتصدرين العالمية</li>
+            <li>بدء حملة المؤسسين المبكرين</li>
+          </ul>
+          <span class="timeline-status status-completed">✅ مكتمل</span>
+        </div>
+      </div>
+
+      <!-- Q2 2026 -->
+      <div class="timeline-item completed">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <span class="timeline-phase phase-2026-q2">🔵 Q2 2026 — التوسع</span>
+          <h3 class="timeline-title">نمو المنصة</h3>
+          <p class="timeline-desc">إضافة الميزات المتقدمة وتوسيع المجتمع</p>
+          <ul class="timeline-items">
+            <li>نظام المهمات (يومي، أسبوعي، شهري)</li>
+            <li>الألعاب المصغرة (عجلة الحظ، الصندوق المحظوظ، بطاقة الخدش)</li>
+            <li>نظام التحويط وتراكم المكافآت</li>
+            <li>مركز الأيردروب</li>
+            <li>دعم اللغات (عربي/إنجليزي)</li>
+            <li>تطبيق PWA</li>
+          </ul>
+          <span class="timeline-status status-completed">✅ مكتمل</span>
+        </div>
+      </div>
+
+      <!-- Q3 2026 -->
+      <div class="timeline-item active">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <span class="timeline-phase phase-2026-q3">🟣 Q3 2026 — الشراكات</span>
+          <h3 class="timeline-title">توسيع الشبكة</h3>
+          <p class="timeline-desc">بناء شراكات استراتيجية وإطلاق برامج أوسع</p>
+          <ul class="timeline-items">
+            <li>شراكات مع مشاريع العملات المشفرة</li>
+            <li>برنامج السفراء (Ambassador Program)</li>
+            <li>نظام الشارات والإنجازات</li>
+            <li>فعاليات مجتمعية أسبوعية</li>
+            <li>تحسينات الأمان ومكافحة الاحتيال</li>
+            <li>تطوير الـ SDK للشراكات</li>
+          </ul>
+          <span class="timeline-status status-active">🔄 قيد التنفيذ</span>
+        </div>
+      </div>
+
+      <!-- Q4 2026 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <span class="timeline-phase phase-2026-q4">🟡 Q4 2026 — التسويق</span>
+          <h3 class="timeline-title">الحملة العالمية</h3>
+          <p class="timeline-desc">إطلاق حملة تسويقية واسعة النطاق</p>
+          <ul class="timeline-items">
+            <li>حملة إعلانية عالمية</li>
+            <li>تطبيق الهاتف الأصلي (iOS/Android)</li>
+            <li>لوحة المتصدرين حسب الدولة</li>
+            <li>مسابقات كبيرة مع جوائز ضخمة</li>
+            <li>بدء محادثات التقييم</li>
+            <li>إعداد البنية التحتية للإطلاق</li>
+          </ul>
+          <span class="timeline-status status-upcoming">⏳ قادم</span>
+        </div>
+      </div>
+
+      <!-- 2027 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <span class="timeline-phase phase-2027">🔴 2027 — الإعداد</span>
+          <h3 class="timeline-title">الاستعداد للإطلاق</h3>
+          <p class="timeline-desc">الإعداد النهائي لعملة NDOG كتوكن رسمي</p>
+          <ul class="timeline-items">
+            <li>تدقيق الأمن من شركات خارجية</li>
+            <li>إعداد العقود الذكية</li>
+            <li>تسجيل NDOG على منصات التقييم</li>
+            <li>مرحلة ما قبل الإطلاق (Pre-launch)</li>
+            <li>إعداد بروتوكولات السيولة</li>
+            <li>التسويق النهائي قبل الإطلاق</li>
+          </ul>
+          <span class="timeline-status status-upcoming">⏳ قادم</span>
+        </div>
+      </div>
+
+      <!-- Q1 2028 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <span class="timeline-phase phase-2028">🌟 Q1 2028 — الإطلاق</span>
+          <h3 class="timeline-title">الإطلاق الرسمي 🚀</h3>
+          <p class="timeline-desc">إطلاق NDOG على المنصات المركزية واللامركزية</p>
+          <ul class="timeline-items">
+            <li>إطلاق التوكن على البلوكتشين</li>
+            <li>إدراج NDOG على DEX</li>
+            <li>إدراج NDOG على CEX</li>
+            <li>تفعيل التداول الرسمي</li>
+            <li>تحويل نقاط المؤسسين المبكرين</li>
+            <li>بدء المرحلة الثانية من الرؤية</li>
+          </ul>
+          <span class="timeline-status status-upcoming">🎯 1 يناير 2028</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025-2026 <a href="https://ndogcoin.com">NileDogs (NDOG)</a> — جميع الحقوق محفوظة</p>
+    <p style="margin-top: 0.5rem;">
+      <a href="./tokenomics.html">Tokenomics</a> ·
+      <a href="./whitepaper-en.html">الورقة البيضاء</a> ·
+      <a href="./index.html">الرئيسية</a>
+    </p>
+  </footer>
+</body>
+</html>

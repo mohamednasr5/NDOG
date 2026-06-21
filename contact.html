@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تواصل معنا — NileDogs (NDOG)</title>
+  <meta name="description" content="تواصل مع فريق NileDogs عبر قنوات التواصل المختلفة." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://ndogcoin.com/contact.html" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #050b1a;
+      --bg-main: #0a1f44;
+      --glass-bg: rgba(10, 31, 68, 0.45);
+      --glass-bd: rgba(255, 215, 0, 0.08);
+      --gold: #ffd700;
+      --gold-2: #ffaa00;
+      --nile-soft: #1e90ff;
+      --emerald: #10b981;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-mute: #64748b;
+      --r-lg: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-main) 50%, var(--bg-deep) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(5, 11, 26, 0.85);
+      border-bottom: 1px solid var(--glass-bd);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .logo-icon { font-size: 1.75rem; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--glass-bd);
+      transition: all 0.3s;
+    }
+
+    .back-link:hover {
+      color: var(--gold);
+      border-color: rgba(255,215,0,0.3);
+      background: rgba(255,215,0,0.05);
+    }
+
+    .main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 3rem;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-bd);
+      border-radius: var(--r-lg);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.3s;
+    }
+
+    .glass-card:hover { border-color: rgba(255,215,0,0.2); }
+
+    .glass-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .glass-card p {
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Social Links ─────────────────────────────── */
+    .social-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .social-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid var(--glass-bd);
+      background: rgba(255,255,255,0.03);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.3s;
+    }
+
+    .social-card:hover {
+      border-color: rgba(255,215,0,0.25);
+      background: rgba(255,215,0,0.05);
+      transform: translateY(-2px);
+    }
+
+    .social-icon {
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+
+    .social-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .social-handle {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Contact Form ──────────────────────────────── */
+    .contact-form {
+      margin-top: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-bd);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.3s;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: rgba(255,215,0,0.4);
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: var(--text-mute);
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-group select option {
+      background: var(--bg-main);
+      color: var(--text);
+    }
+
+    .submit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: var(--bg-deep);
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255,215,0,0.3);
+    }
+
+    .form-note {
+      font-size: 0.8rem;
+      color: var(--text-mute);
+      margin-top: 0.75rem;
+    }
+
+    /* ── FAQ Quick ─────────────────────────────────── */
+    .quick-faq {
+      margin-top: 1rem;
+    }
+
+    .quick-faq dt {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+      padding-right: 1rem;
+      position: relative;
+    }
+
+    .quick-faq dt::before {
+      content: 'Q:';
+      position: absolute;
+      right: 0;
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    .quick-faq dd {
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+      padding-right: 1rem;
+    }
+
+    .highlight { color: var(--gold); font-weight: 600; }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-mute);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--glass-bd);
+    }
+
+    .footer a { color: var(--gold); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .header { padding: 0.75rem 1rem; }
+      .page-title { font-size: 1.8rem; }
+      .main { padding: 2rem 1rem 3rem; }
+      .glass-card { padding: 1.5rem; }
+      .social-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="./index.html" class="logo">
+      <span class="logo-icon">🐕</span>
+      <span>NileDogs</span>
+    </a>
+    <a href="./index.html" class="back-link">
+      ← الرئيسية
+    </a>
+  </header>
+
+  <main class="main">
+    <h1 class="page-title">تواصل معنا</h1>
+    <p class="page-subtitle">نحن هنا لمساعدتك — اختر القناة المناسبة</p>
+
+    <!-- Social Links -->
+    <div class="glass-card">
+      <h2>📱 قنوات التواصل</h2>
+      <div class="social-grid">
+        <a href="https://t.me/NileDogs" target="_blank" rel="noopener noreferrer" class="social-card">
+          <div class="social-icon">✈️</div>
+          <div>
+            <div class="social-name">تلجرام</div>
+            <div class="social-handle">@NileDogs</div>
+          </div>
+        </a>
+        <a href="https://twitter.com/NileDogsNDOG" target="_blank" rel="noopener noreferrer" class="social-card">
+          <div class="social-icon">🐦</div>
+          <div>
+            <div class="social-name">X (تويتر)</div>
+            <div class="social-handle">@NileDogsNDOG</div>
+          </div>
+        </a>
+        <a href="https://youtube.com/@NileDogs" target="_blank" rel="noopener noreferrer" class="social-card">
+          <div class="social-icon">📺</div>
+          <div>
+            <div class="social-name">يوتيوب</div>
+            <div class="social-handle">@NileDogs</div>
+          </div>
+        </a>
+        <a href="mailto:support@ndogcoin.com" class="social-card">
+          <div class="social-icon">📧</div>
+          <div>
+            <div class="social-name">البريد الإلكتروني</div>
+            <div class="social-handle">support@ndogcoin.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Community Channels -->
+    <div class="glass-card">
+      <h2>💬 قنوات المجتمع</h2>
+      <div class="social-grid">
+        <a href="https://t.me/NileDogsChat" target="_blank" rel="noopener noreferrer" class="social-card">
+          <div class="social-icon">💬</div>
+          <div>
+            <div class="social-name">مجتمع تلجرام</div>
+            <div class="social-handle">دردشة مجتمعية عامة</div>
+          </div>
+        </a>
+        <a href="https://t.me/NileDogsAnnouncements" target="_blank" rel="noopener noreferrer" class="social-card">
+          <div class="social-icon">📢</div>
+          <div>
+            <div class="social-name">إعلانات تلجرام</div>
+            <div class="social-handle">تحديثات رسمية</div>
+          </div>
+        </a>
+        <a href="https://discord.gg/ndog" target="_blank" rel="noopener noreferrer" class="social-card">
+          <div class="social-icon">🎮</div>
+          <div>
+            <div class="social-name">Discord</div>
+            <div class="social-handle">مجتمع Discord</div>
+          </div>
+        </a>
+        <a href="https://t.me/NileDogsSupport" target="_blank" rel="noopener noreferrer" class="social-card">
+          <div class="social-icon">🛟</div>
+          <div>
+            <div class="social-name">الدعم الفني</div>
+            <div class="social-handle">@NileDogsSupport</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="glass-card">
+      <h2>✉️ أرسل رسالة</h2>
+      <p>للاستفسارات العامة أو اقتراحات الشراكات:</p>
+      <form class="contact-form" onsubmit="event.preventDefault(); alert('شكراً لتواصلك! سنرد في أقرب وقت ممكن.')">
+        <div class="form-group">
+          <label>الاسم</label>
+          <input type="text" placeholder="اسمك..." required />
+        </div>
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" placeholder="بريدك الإلكتروني..." required />
+        </div>
+        <div class="form-group">
+          <label>الموضوع</label>
+          <select required>
+            <option value="" disabled selected>اختر الموضوع...</option>
+            <option value="general">استفسار عام</option>
+            <option value="support">دعم فني</option>
+            <option value="partnership">شراكة</option>
+            <option value="bug">بلاغ عن مشكلة</option>
+            <option value="contribute">المساهمة</option>
+            <option value="feedback">ملاحظات</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الرسالة</label>
+          <textarea placeholder="اكتب رسالتك هنا..." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn">
+          إرسال الرسالة ←
+        </button>
+        <p class="form-note">نرد على الرسائل خلال 24-48 ساعة عمل.</p>
+      </form>
+    </div>
+
+    <!-- Quick FAQ -->
+    <div class="glass-card">
+      <h2>❓ أسئلة شائعة سريعة</h2>
+      <dl class="quick-faq">
+        <dt>كم يستغرق الرد على رسالتي؟</dt>
+        <dd>نرد خلال <span class="highlight">24-48 ساعة عمل</span>. قناة الدعم على تلجرام أسرع.</dd>
+
+        <dt>حسابي محظور — ماذا أفعل؟</dt>
+        <dd>تواصل مع <span class="highlight">@NileDogsSupport</span> على تلجرام مع البريد الإلكتروني المرتبط بحسابك.</dd>
+
+        <dt>أريد شراكة — كيف أتواصل؟</dt>
+        <dd>أرسل عبر النموذج أعلاه أو راسلنا مباشرة على <span class="highlight">partnerships@ndogcoin.com</span></dd>
+
+        <dt>كيف أبلغ عن خطأ في المنصة؟</dt>
+        <dd>استخدم النموذج أعلاه واختر "بلاغ عن مشكلة" أو راسلنا على الدعم الفني.</dd>
+      </dl>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025-2026 <a href="https://ndogcoin.com">NileDogs (NDOG)</a> — جميع الحقوق محفوظة</p>
+    <p style="margin-top: 0.5rem;">
+      <a href="./faq.html">الأسئلة الشائعة</a> ·
+      <a href="./team.html">الفريق</a> ·
+      <a href="./index.html">الرئيسية</a>
+    </p>
+  </footer>
+</body>
+</html>

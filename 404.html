@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>404 — NileDogs (NDOG)</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <style>
+    /* ── Reset ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #050b1a;
+      --bg-main: #0a1f44;
+      --gold: #ffd700;
+      --gold-2: #ffaa00;
+      --nile: #0d47a1;
+      --nile-soft: #1e90ff;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+    }
+
+    /* ── Particle Canvas ────────────────────────────── */
+    #particles-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* ── Water Surface ─────────────────────────────── */
+    .water-surface {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(180deg, transparent 0%, rgba(13,71,161,0.3) 30%, rgba(13,71,161,0.6) 100%);
+      z-index: 1;
+    }
+
+    .water-wave {
+      position: absolute;
+      top: -20px;
+      left: -10%;
+      width: 120%;
+      height: 60px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 60'%3E%3Cpath d='M0 30 Q150 10 300 30 Q450 50 600 30 Q750 10 900 30 Q1050 50 1200 30 L1200 60 L0 60 Z' fill='rgba(13,71,161,0.4)'/%3E%3C/svg%3E") repeat-x;
+      animation: wave 4s ease-in-out infinite;
+    }
+
+    .water-wave:nth-child(2) {
+      top: -10px;
+      opacity: 0.5;
+      animation-delay: -2s;
+      animation-duration: 5s;
+    }
+
+    .water-wave:nth-child(3) {
+      top: 0;
+      opacity: 0.3;
+      animation-delay: -1s;
+      animation-duration: 6s;
+    }
+
+    @keyframes wave {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(-5%); }
+    }
+
+    /* ── Main Content ──────────────────────────────── */
+    .container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    /* ── Falling Dog Animation ─────────────────────── */
+    .dog-container {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .dog-falling {
+      font-size: 6rem;
+      animation: dogFall 3s ease-in forwards;
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+    }
+
+    @keyframes dogFall {
+      0% { transform: translateY(-200px) rotate(0deg); opacity: 0; }
+      20% { opacity: 1; }
+      70% { transform: translateY(100px) rotate(15deg); }
+      85% { transform: translateY(80px) rotate(-5deg); }
+      100% { transform: translateY(120px) rotate(10deg); opacity: 0.4; }
+    }
+
+    /* ── Ripple Effect ──────────────────────────────── */
+    .ripple {
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(30, 144, 255, 0.5);
+      animation: ripple 2s ease-out infinite;
+      animation-delay: 1.5s;
+      opacity: 0;
+    }
+
+    .ripple:nth-child(2) { animation-delay: 2s; }
+    .ripple:nth-child(3) { animation-delay: 2.5s; }
+
+    @keyframes ripple {
+      0% { width: 20px; height: 8px; opacity: 0.8; border-color: rgba(30,144,255,0.6); }
+      100% { width: 200px; height: 40px; opacity: 0; border-color: rgba(30,144,255,0); }
+    }
+
+    /* ── Splash drops ───────────────────────────────── */
+    .splash-drops {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .drop {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--nile-soft);
+      opacity: 0;
+      animation: splash 2s ease-out infinite;
+      animation-delay: 1.5s;
+    }
+
+    .drop:nth-child(1) { animation-delay: 1.5s; --x: -40px; --y: -60px; }
+    .drop:nth-child(2) { animation-delay: 1.6s; --x: -20px; --y: -80px; }
+    .drop:nth-child(3) { animation-delay: 1.7s; --x: 10px; --y: -70px; }
+    .drop:nth-child(4) { animation-delay: 1.8s; --x: 30px; --y: -55px; }
+    .drop:nth-child(5) { animation-delay: 1.55s; --x: -50px; --y: -45px; }
+    .drop:nth-child(6) { animation-delay: 1.65s; --x: 45px; --y: -65px; }
+
+    @keyframes splash {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+      60% { transform: translate(var(--x), var(--y)) scale(0.5); opacity: 0.5; }
+      100% { transform: translate(calc(var(--x) * 1.2), calc(var(--y) * 1.5)) scale(0); opacity: 0; }
+    }
+
+    /* ── Text Styling ───────────────────────────────── */
+    .error-code {
+      font-size: 8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      animation: shimmer 3s ease-in-out infinite;
+      background-size: 200% 200%;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease-out 1s forwards;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      max-width: 400px;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease-out 1.3s forwards;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Countdown ──────────────────────────────────── */
+    .countdown {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1rem;
+      color: var(--text-dim);
+      opacity: 0;
+      animation: fadeUp 0.8s ease-out 1.6s forwards;
+    }
+
+    .countdown-number {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--gold);
+      min-width: 2.5rem;
+      text-align: center;
+    }
+
+    /* ── Home Button ───────────────────────────────── */
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      padding: 0.875rem 2rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: var(--bg-deep);
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      opacity: 0;
+      animation: fadeUp 0.8s ease-out 1.9s forwards;
+    }
+
+    .home-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255, 215, 0, 0.3);
+    }
+
+    /* ── Bubbles ────────────────────────────────────── */
+    .bubble {
+      position: fixed;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(30,144,255,0.15), rgba(13,71,161,0.05));
+      border: 1px solid rgba(30,144,255,0.1);
+      z-index: 0;
+      animation: bubbleFloat linear infinite;
+    }
+
+    @keyframes bubbleFloat {
+      0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100px) scale(1); opacity: 0; }
+    }
+
+    /* ── Responsive ─────────────────────────────────── */
+    @media (max-width: 480px) {
+      .error-code { font-size: 5rem; }
+      .title { font-size: 1.5rem; }
+      .subtitle { font-size: 0.95rem; }
+      .dog-falling { font-size: 4rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+
+  <div class="water-surface">
+    <div class="water-wave"></div>
+    <div class="water-wave"></div>
+    <div class="water-wave"></div>
+  </div>
+
+  <div class="container">
+    <div class="dog-container">
+      <div class="dog-falling">🐕</div>
+      <div class="ripple"></div>
+      <div class="ripple"></div>
+      <div class="ripple"></div>
+      <div class="splash-drops">
+        <div class="drop"></div>
+        <div class="drop"></div>
+        <div class="drop"></div>
+        <div class="drop"></div>
+        <div class="drop"></div>
+        <div class="drop"></div>
+      </div>
+    </div>
+
+    <div class="error-code">404</div>
+    <h1 class="title">الصفحة غير موجودة</h1>
+    <p class="subtitle">يبدو أن العملة سقطت في نهر النيل...</p>
+
+    <div class="countdown">
+      <span>إعادة التوجيه للرئيسية خلال</span>
+      <span class="countdown-number" id="countdown">10</span>
+      <span>ثوانٍ</span>
+    </div>
+
+    <a href="https://ndogcoin.com/" class="home-btn">
+      ← العودة للرئيسية
+    </a>
+  </div>
+
+  <script>
+    /* ── Countdown ─────────────────────────────────── */
+    let seconds = 10;
+    const countdownEl = document.getElementById('countdown');
+
+    const interval = setInterval(() => {
+      seconds--;
+      countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        window.location.href = 'https://ndogcoin.com/';
+      }
+    }, 1000);
+
+    /* ── Particle Background ────────────────────────── */
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = [];
+    const PARTICLE_COUNT = 60;
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.4 + 0.1;
+        this.color = Math.random() > 0.7 ? '30, 144, 255' : '255, 215, 0';
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(new Particle());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    /* ── Floating Bubbles ──────────────────────────── */
+    for (let i = 0; i < 8; i++) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const size = Math.random() * 80 + 20;
+      bubble.style.width = size + 'px';
+      bubble.style.height = size + 'px';
+      bubble.style.left = Math.random() * 100 + '%';
+      bubble.style.animationDuration = (Math.random() * 10 + 8) + 's';
+      bubble.style.animationDelay = (Math.random() * 5) + 's';
+      document.body.appendChild(bubble);
+    }
+  </script>
+</body>
+</html>

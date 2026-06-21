@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Block Explorer — NileDogs (NDOG)</title>
+  <meta name="description" content="مستكشف الكتل لـ NileDogs — قريباً." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://ndogcoin.com/explorer.html" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #050b1a;
+      --bg-main: #0a1f44;
+      --glass-bg: rgba(10, 31, 68, 0.45);
+      --glass-bd: rgba(255, 215, 0, 0.08);
+      --gold: #ffd700;
+      --gold-2: #ffaa00;
+      --nile-soft: #1e90ff;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-mute: #64748b;
+      --r-lg: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-main) 50%, var(--bg-deep) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(5, 11, 26, 0.85);
+      border-bottom: 1px solid var(--glass-bd);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .logo-icon { font-size: 1.75rem; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--glass-bd);
+      transition: all 0.3s;
+    }
+
+    .back-link:hover {
+      color: var(--gold);
+      border-color: rgba(255,215,0,0.3);
+      background: rgba(255,215,0,0.05);
+    }
+
+    .main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 3rem;
+    }
+
+    /* ── Coming Soon ──────────────────────────────── */
+    .coming-soon {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-bd);
+      border-radius: var(--r-lg);
+      margin-bottom: 2rem;
+    }
+
+    .coming-soon-icon {
+      font-size: 5rem;
+      margin-bottom: 1.5rem;
+      display: block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .coming-soon h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .coming-soon p {
+      color: var(--text-dim);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .coming-soon-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      background: rgba(255,215,0,0.1);
+      border: 1px solid rgba(255,215,0,0.2);
+      color: var(--gold);
+    }
+
+    /* ── Planned Features ─────────────────────────── */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-bd);
+      border-radius: var(--r-lg);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.3s;
+    }
+
+    .glass-card:hover { border-color: rgba(255,215,0,0.2); }
+
+    .glass-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .glass-card p {
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .feature-card {
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid var(--glass-bd);
+      background: rgba(255,255,255,0.03);
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(255,215,0,0.15);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .feature-name { font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 0.25rem; }
+    .feature-desc { font-size: 0.85rem; color: var(--text-dim); }
+
+    .highlight { color: var(--gold); font-weight: 600; }
+
+    .cta {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: var(--bg-deep);
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255,215,0,0.3);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-mute);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--glass-bd);
+    }
+
+    .footer a { color: var(--gold); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .header { padding: 0.75rem 1rem; }
+      .page-title { font-size: 1.8rem; }
+      .main { padding: 2rem 1rem 3rem; }
+      .glass-card { padding: 1.5rem; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="./index.html" class="logo">
+      <span class="logo-icon">🐕</span>
+      <span>NileDogs</span>
+    </a>
+    <a href="./index.html" class="back-link">
+      ← الرئيسية
+    </a>
+  </header>
+
+  <main class="main">
+    <h1 class="page-title">Block Explorer</h1>
+    <p class="page-subtitle">مستكشف الكتل والمعاملات لـ NDOG</p>
+
+    <!-- Coming Soon -->
+    <div class="coming-soon">
+      <span class="coming-soon-icon">🔍</span>
+      <h2>قريباً!</h2>
+      <p>مستكشف الكتل قيد التطوير وسيكون متاحاً بعد الإطلاق الرسمي لـ NDOG على البلوكتشين.</p>
+      <span class="coming-soon-badge">🚀 مخطط له: Q1 2028</span>
+    </div>
+
+    <!-- Planned Features -->
+    <div class="glass-card">
+      <h2>📋 الميزات المخطط لها</h2>
+      <p>مستكشف كتل NDOG سيوفر:</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">📦</span>
+          <div class="feature-name">استكشاف الكتل</div>
+          <div class="feature-desc">عرض تفاصيل كل كتلة على البلوكتشين</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">💸</span>
+          <div class="feature-name">بحث المعاملات</div>
+          <div class="feature-desc">تتبع أي معاملة NDOG بمعرفها</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">👤</span>
+          <div class="feature-name">معلومات المحافظ</div>
+          <div class="feature-desc">عرض رصيد وسجل أي محفظة</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📊</span>
+          <div class="feature-name">إحصائيات الشبكة</div>
+          <div class="feature-desc">بيانات التداول والنشاط في الوقت الحقيقي</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🏷️</span>
+          <div class="feature-name">عرض التوكن</div>
+          <div class="feature-desc">معلومات NDOG والعرض المتداول</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🔗</span>
+          <div class="feature-name">التحقق من العقود</div>
+          <div class="feature-desc">قراءة العقود الذكية مباشرة</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="glass-card">
+      <h2>ℹ️ معلومات</h2>
+      <p>
+        مستكشف الكتل هو أداة أساسية لأي عملة مشفرة. يتيح للمستخدمين البحث عن المعاملات والكتل
+        والمحافظ على البلوكتشين بشفافية كاملة.
+      </p>
+      <p>
+        حتى الإطلاق الرسمي، يمكنك متابعة بياناتك عبر <span class="highlight">لوحة المعلومات</span>
+        داخل التطبيق الرئيسي.
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <a href="./index.html" class="cta-btn">
+        الذهاب للتطبيق الرئيسي ←
+      </a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025-2026 <a href="https://ndogcoin.com">NileDogs (NDOG)</a> — جميع الحقوق محفوظة</p>
+    <p style="margin-top: 0.5rem;">
+      <a href="./roadmap.html">خارطة الطريق</a> ·
+      <a href="./tokenomics.html">Tokenomics</a> ·
+      <a href="./index.html">الرئيسية</a>
+    </p>
+  </footer>
+</body>
+</html>

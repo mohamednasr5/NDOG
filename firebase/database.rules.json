@@ -1,0 +1,220 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        ".validate": "newData.hasChildren(['createdAt', 'lastClaim', 'balance'])",
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "displayName": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 50"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().contains('@')"
+        },
+        "photoURL": {
+          ".validate": "newData.isString() || newData.isNull()"
+        },
+        "balance": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "communityScore": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "loyaltyScore": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalEarned": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "streak": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "lastClaim": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "referralCode": {
+          ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 16"
+        },
+        "referredBy": {
+          ".validate": "newData.isString() || newData.isNull()"
+        },
+        "country": {
+          ".validate": "newData.isString() || newData.isNull()"
+        },
+        "locale": {
+          ".validate": "newData.isString() && (newData.val() === 'ar' || newData.val() === 'en')"
+        },
+        "rank": {
+          ".validate": "newData.isString() && ['bronze', 'silver', 'gold', 'diamond', 'legend'].indexOf(newData.val()) >= 0"
+        },
+        "banned": {
+          ".validate": "newData.isBoolean()"
+        },
+        "banReason": {
+          ".validate": "newData.isString() || newData.isNull()"
+        },
+        "badges": {
+          ".validate": "newData.isString() || newData.isNull()"
+        },
+        "stakes": {
+          "$stakeId": {
+            ".validate": "newData.hasChildren(['amount', 'plan', 'startTime', 'endTime', 'rewards'])",
+            "amount": { ".validate": "newData.isNumber() && newData.val() > 0" },
+            "plan": { ".validate": "newData.isString()" },
+            "startTime": { ".validate": "newData.isNumber()" },
+            "endTime": { ".validate": "newData.isNumber() && newData.val() > newData.parent().child('startTime').val()" },
+            "rewards": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "active": { ".validate": "newData.isBoolean()" }
+          }
+        },
+        "claimHistory": {
+          "$claimId": {
+            ".validate": "newData.hasChildren(['amount', 'timestamp', 'multiplier'])",
+            "amount": { ".validate": "newData.isNumber() && newData.val() > 0" },
+            "timestamp": { ".validate": "newData.isNumber()" },
+            "multiplier": { ".validate": "newData.isNumber() && newData.val() >= 1" },
+            "type": { ".validate": "newData.isString() || newData.isNull()" }
+          }
+        },
+        "miningBoosts": {
+          "$boostId": {
+            ".validate": "newData.hasChildren(['amount', 'timestamp'])",
+            "amount": { ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 20" },
+            "timestamp": { ".validate": "newData.isNumber()" }
+          }
+        }
+      }
+    },
+    "referrals": {
+      ".read": true,
+      ".write": false,
+      "$code": {
+        ".read": true,
+        ".write": "auth != null && newData.hasChildren(['referrer', 'createdAt'])",
+        "referrer": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "createdAt": { ".validate": "newData.isNumber() && newData.val() > 0" },
+        "uses": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "$inviteeId": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        }
+      }
+    },
+    "leaderboard": {
+      ".read": true,
+      ".write": false,
+      "global": {
+        ".read": true,
+        ".write": false,
+        "$uid": {
+          ".validate": "newData.hasChildren(['displayName', 'balance', 'rank', 'country'])"
+        }
+      },
+      "country": {
+        ".read": true,
+        ".write": false,
+        "$countryCode": {
+          "$uid": {
+            ".validate": "newData.hasChildren(['displayName', 'balance', 'rank'])"
+          }
+        }
+      },
+      "referral": {
+        ".read": true,
+        ".write": false,
+        "$uid": {
+          ".validate": "newData.hasChildren(['displayName', 'referralCount', 'country'])"
+        }
+      }
+    },
+    "airdrop": {
+      ".read": true,
+      ".write": false,
+      "tasks": {
+        ".read": true,
+        ".write": false,
+        "$taskId": {
+          ".validate": "newData.hasChildren(['title', 'type', 'reward', 'active'])",
+          "title": { ".validate": "newData.isString()" },
+          "type": { ".validate": "newData.isString()" },
+          "reward": { ".validate": "newData.isNumber() && newData.val() > 0" },
+          "active": { ".validate": "newData.isBoolean()" },
+          "link": { ".validate": "newData.isString() || newData.isNull()" },
+          "maxCompletions": { ".validate": "newData.isNumber() || newData.isNull()" }
+        }
+      }
+    },
+    "admin": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "news": {
+        "$newsId": {
+          ".validate": "newData.hasChildren(['title', 'content', 'category', 'createdAt'])",
+          "title": { ".validate": "newData.isString() && newData.val().length > 0" },
+          "content": { ".validate": "newData.isString()" },
+          "category": { ".validate": "newData.isString()" },
+          "createdAt": { ".validate": "newData.isNumber()" },
+          "active": { ".validate": "newData.isBoolean()" },
+          "image": { ".validate": "newData.isString() || newData.isNull()" }
+        }
+      },
+      "fraudLogs": {
+        "$logId": {
+          ".validate": "newData.hasChildren(['userId', 'type', 'details', 'timestamp'])",
+          "userId": { ".validate": "newData.isString()" },
+          "type": { ".validate": "newData.isString()" },
+          "details": { ".validate": "newData.isString()" },
+          "timestamp": { ".validate": "newData.isNumber()" }
+        }
+      }
+    },
+    "admins": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth.uid === $uid || root.child('admins').child(auth.uid).val() === true",
+        ".write": false,
+        ".validate": "newData.isBoolean() === true"
+      }
+    },
+    "config": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "baseReward": {
+        ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 100"
+      },
+      "maxDailyClaims": {
+        ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10"
+      },
+      "referralMultipliers": {
+        ".validate": "newData.hasChildren(['level1', 'level2', 'level3'])",
+        "level1": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1" },
+        "level2": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 0.5" },
+        "level3": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 0.25" }
+      },
+      "maintenance": {
+        ".validate": "newData.isBoolean()"
+      },
+      "maintenanceMessage": {
+        ".validate": "newData.isString() || newData.isNull()"
+      },
+      "minVersion": {
+        ".validate": "newData.isString() || newData.isNull()"
+      }
+    },
+    "analytics": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null",
+      "daily": {
+        "$dateKey": {
+          ".validate": "newData.hasChildren(['newUsers', 'totalClaims', 'totalReferrals'])",
+          "newUsers": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "totalClaims": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "totalReferrals": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "activeUsers": { ".validate": "newData.isNumber() && newData.val() >= 0" }
+        }
+      }
+    }
+  }
+}

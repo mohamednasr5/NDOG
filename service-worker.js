@@ -18,7 +18,7 @@
  * ------------------------------------------------------------------
  */
 
-const VERSION     = "ndog-v2.1.0";
+const VERSION     = "ndog-v2.1.1";
 const CACHE_ASSET = `${VERSION}-asset`;
 const CACHE_CDN   = `${VERSION}-cdn`;
 

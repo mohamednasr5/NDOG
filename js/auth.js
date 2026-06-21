@@ -77,64 +77,23 @@ export async function googleLogin() {
     throw e;
   }
 
-  const mobile = isMobile();
-  console.log("[NDOG] Login attempt on:", mobile ? "MOBILE" : "DESKTOP");
+  console.log("[NDOG] Login attempt — using signInWithRedirect (COOP-safe)");
 
-  // ─── MOBILE: use redirect directly ───────────────────────────
-  // Popups are unreliable on mobile browsers, and COOP makes
-  // them completely non-functional. Redirect is the standard
-  // approach for mobile Firebase auth.
-  if (mobile) {
-    console.log("[NDOG] Using signInWithRedirect (mobile strategy)");
-    try {
-      await signInWithRedirect(auth, googleProvider);
-      // If we reach here, the redirect is in progress.
-      // The page will reload — getRedirectResult in initAuth
-      // will pick up the result. Nothing more to do.
-      return;
-    } catch (err) {
-      console.error("[NDOG] Redirect sign-in error:", err.code, err.message);
-      const friendly = friendlyAuthError(err);
-      const e = new Error(friendly);
-      e.code = err.code;
-      e.original = err;
-      throw e;
-    }
-  }
-
-  // ─── DESKTOP: try popup first, fallback to redirect ──────────
-  console.log("[NDOG] Attempting signInWithPopup...");
+  // ─── REDIRECT FOR ALL DEVICES ───────────────────────────────
+  // The site has a Cross-Origin-Opener-Policy header (set by the
+  // hosting CDN) that blocks signInWithPopup on all devices.
+  // signInWithRedirect bypasses this entirely because it navigates
+  // the main window instead of opening a popup.
   try {
-    await signInWithPopup(auth, googleProvider);
-    console.log("[NDOG] Popup sign-in successful.");
+    await signInWithRedirect(auth, googleProvider);
+    // The page will now navigate to Google sign-in.
+    // On return, getRedirectResult (in initAuth) handles the result.
+    return;
   } catch (err) {
-    console.error("[NDOG] Popup sign-in error:", err.code, err.message);
-
-    // If popup was blocked/closed (often caused by COOP header),
-    // fall back to redirect seamlessly.
-    const isCOOPorBlocked =
-      err.code === "auth/popup-closed-by-user" ||
-      err.code === "auth/popup-blocked" ||
-      (err.message && err.message.includes("Cross-Origin-Opener-Policy"));
-
-    if (isCOOPorBlocked) {
-      console.log("[NDOG] Popup blocked/closed (likely COOP), falling back to redirect...");
-      try {
-        await signInWithRedirect(auth, googleProvider);
-        return; // page will reload
-      } catch (redirectErr) {
-        console.error("[NDOG] Redirect fallback also failed:", redirectErr.code);
-        const friendly = friendlyAuthError(redirectErr);
-        const e = new Error(friendly);
-        e.code = redirectErr.code;
-        e.original = redirectErr;
-        throw e;
-      }
-    }
-
-    // Other errors
+    console.error("[NDOG] Redirect sign-in error:", err.code, err.message);
     const friendly = friendlyAuthError(err);
     const e = new Error(friendly);
+    e.code = err.code;
     e.original = err;
     throw e;
   }

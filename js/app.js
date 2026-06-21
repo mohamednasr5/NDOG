@@ -9,17 +9,17 @@
  * =====================================================
  */
 
-import { APP_CONFIG, persistenceReady } from "./firebase-config.js";
-import { onUser, getCurrentUser, googleLogin, logout, initAuth } from "./auth.js";
-import { bindDashboard } from "./dashboard.js";
-import { initClaim } from "./claim.js";
-import { initReferral } from "./referral.js";
-import { initMissions } from "./missions.js";
-import { initLeaderboard } from "./leaderboard.js";
-import { initNotifications } from "./notifications.js";
+import { APP_CONFIG, persistenceReady } from "./firebase-config.js?v=2.0.5";
+import { onUser, getCurrentUser, googleLogin, logout, initAuth } from "./auth.js?v=2.0.5";
+import { bindDashboard } from "./dashboard.js?v=2.0.5";
+import { initClaim } from "./claim.js?v=2.0.5";
+import { initReferral } from "./referral.js?v=2.0.5";
+import { initMissions } from "./missions.js?v=2.0.5";
+import { initLeaderboard } from "./leaderboard.js?v=2.0.5";
+import { initNotifications } from "./notifications.js?v=2.0.5";
 import {
   t, getLang, setLang, toggleLang, applyTranslations, onLangChange, isRTL
-} from "./i18n.js";
+} from "./i18n.js?v=2.0.5";
 
 // ───────────────────────────────────────────────────────────────────
 // TOAST

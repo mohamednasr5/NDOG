@@ -1,8 +1,11 @@
 /**
  * NileDogs (NDOG) — App Shell
- * v1.1.0: Adds bilingual (AR/EN) support with RTL, language switcher,
- * and fixes APP_CONFIG import (was importing from auth.js which never
- * exported it — broke the entire app at module load time).
+ * v2.0.3 - FIXES:
+ *   - منع النقر المتكرر على زر تسجيل الدخول (disabled أثناء المعالجة).
+ *   - تحسين معالجة أخطاء تسجيل الدخول وإظهار رسائل مناسبة.
+ *   - إزالة الاعتماد على sessionStorage غير الضروري.
+ *   - استخدام popup-only مع fallback واضح.
+ *   - إضافة مهلة لإعادة تمكين الزر بعد 5 ثوانٍ كشبكة أمان.
  */
 
 import { APP_CONFIG, persistenceReady } from "./firebase-config.js";
@@ -24,10 +27,7 @@ export function toast(message, type = "info", duration = 3200) {
   const host = document.getElementById("toastHost");
   if (!host) return;
 
-  // De-dupe: if an identical toast (same type + message) is already
-  // visible, just restart its timer instead of stacking a second copy.
-  // This was happening with the redirect-incomplete auth error when a
-  // user retried login while the first toast was still on screen.
+  // منع تكرار نفس الرسالة
   const existing = Array.from(host.children).find(
     el => el.dataset.toastKey === `${type}:${message}`
   );
@@ -212,29 +212,34 @@ function bindNavigation() {
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
   document.getElementById("bannedLogout")?.addEventListener("click", logout);
 
-  document.getElementById("googleLoginBtn")?.addEventListener("click", async () => {
-    const btn = document.getElementById("googleLoginBtn");
+  // ─── زر تسجيل الدخول مع منع النقر المتكرر ────────────────────
+  document.getElementById("googleLoginBtn")?.addEventListener("click", async function handler(e) {
+    const btn = this;
+    if (btn.disabled) return; // منع النقر المتكرر
+
     btn.disabled = true;
     const labelSpan = btn.querySelector("span");
+    const originalText = labelSpan ? labelSpan.textContent : "";
     if (labelSpan) labelSpan.textContent = t("login.connecting");
+
     try {
       await googleLogin();
-      // FIX: Re-enable button after 5s as safety net if auth state
-      // is delayed (e.g. slow network). The onUser callback normally
-      // hides the login screen, but if it's delayed the user should
-      // be able to retry.
-      setTimeout(() => {
-        if (btn.disabled) {
-          btn.disabled = false;
-          if (labelSpan) labelSpan.textContent = t("login.googleBtn");
-        }
-      }, 5000);
+      // في حال نجاح تسجيل الدخول، سيتم إخفاء الشاشة تلقائياً عن طريق onUser
     } catch (err) {
       const isInfo = err.code === "auth/standalone-escape";
       toast(err.message || t("login.connectFailed"), isInfo ? "info" : "err", isInfo ? 6000 : 3200);
+      // إعادة تمكين الزر فقط إذا لم يتم تسجيل الدخول
       btn.disabled = false;
-      if (labelSpan) labelSpan.textContent = t("login.googleBtn");
+      if (labelSpan) labelSpan.textContent = originalText || t("login.googleBtn");
     }
+
+    // شبكة أمان: إعادة تمكين الزر بعد 5 ثوانٍ في حال علق (مثلاً بسبب تأخير)
+    setTimeout(() => {
+      if (btn.disabled) {
+        btn.disabled = false;
+        if (labelSpan) labelSpan.textContent = originalText || t("login.googleBtn");
+      }
+    }, 5000);
   });
 }
 
@@ -302,16 +307,11 @@ document.addEventListener("click", (e) => {
 // ───────────────────────────────────────────────────────────────────
 function registerSW() {
   if (!("serviceWorker" in navigator)) return;
-  // Only register on https or localhost (skip 127.0.0.1 dev to avoid
-  // stale-cache debugging headaches).
   if (location.protocol !== "https:" && location.hostname !== "localhost") return;
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=2.0.1")
+    navigator.serviceWorker.register("./service-worker.js?v=2.0.3")
       .then(reg => {
         console.log("[NDOG] SW registered:", reg.scope);
-
-        // When a new SW is installed and waiting, tell it to skipWaiting
-        // so it activates immediately (no need to close all tabs).
         reg.addEventListener("updatefound", () => {
           const newWorker = reg.installing;
           if (newWorker) {
@@ -324,7 +324,6 @@ function registerSW() {
           }
         });
 
-        // Reload the page when the new SW takes control
         let refreshing = false;
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           if (refreshing) return;
@@ -333,15 +332,12 @@ function registerSW() {
           window.location.reload();
         });
 
-        // Listen for SW_UPDATED message (sent by SW on activate)
-        // This handles the case where SW activates before we register the listener
         navigator.serviceWorker.addEventListener("message", (event) => {
           if (event.data?.type === "SW_UPDATED") {
             console.log("[NDOG] SW update confirmed, version:", event.data.version);
           }
         });
 
-        // Check for SW updates every 5 minutes
         setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000);
       })
       .catch(err => console.warn("[NDOG] SW failed:", err));
@@ -371,14 +367,11 @@ setTimeout(() => {
     if (shell?.classList.contains("hidden") && login?.classList.contains("hidden")) {
       login?.classList.remove("hidden");
     }
-    // If the app shell is still hidden, modules likely failed to load.
-    // Offer a reload to clear stale cache.
     if (shell?.classList.contains("hidden")) {
       const msg = document.createElement("div");
       msg.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#ffd700;color:#0a1f44;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);";
-      msg.textContent = "\u26A1 Update available — tap to reload";
+      msg.textContent = "\u26A1 تحديث متاح — اضغط لإعادة التحميل";
       msg.addEventListener("click", () => {
-        // Clear all caches before reloading to bust stale service worker
         if ("caches" in window) {
           caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
         }
@@ -400,10 +393,14 @@ window.addEventListener("error", (e) => {
 
 window.addEventListener("unhandledrejection", (e) => {
   console.error("[NDOG] Unhandled promise rejection:", e.reason);
+  // إذا كان الخطأ متعلقاً بـ CSP أو تسجيل الدخول، نعرض رسالة للمستخدم
+  if (e.reason?.message?.includes("CSP") || e.reason?.message?.includes("eval")) {
+    toast("⚠️ هناك تعارض في سياسة الأمان (CSP). قد تحتاج إلى تعديل إعدادات الموقع.", "err", 8000);
+  }
 });
 
 document.addEventListener("ndog:authError", (e) => {
-  toast(e.detail?.message || "Authentication error", "err", 5000);
+  toast(e.detail?.message || "خطأ في المصادقة", "err", 5000);
 });
 
 // ───────────────────────────────────────────────────────────────────
@@ -432,7 +429,6 @@ async function bootstrap() {
       login?.classList.remove("hidden");
       shell?.classList.add("hidden");
       hidePreloader();
-      // Hide admin link when logged out
       document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
       return;
     }
@@ -448,14 +444,10 @@ async function bootstrap() {
     document.getElementById("sideName").textContent = user.name || "User";
     document.getElementById("sideCode").textContent = user.referralCode || "NDOG—";
 
-    // Show admin link only for admin users (placeholder - actual check done server-side)
-    // For now we hide it from regular users. Admins need separate page (admin.html)
     document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
   });
 
-  // FIX: Await persistence before initializing auth to prevent
-  // race condition where onAuthStateChanged fires before
-  // persistence is configured.
+  // انتظار تهيئة persistence ثم تهيئة المصادقة
   await persistenceReady;
   initAuth(() => {
     const initialView = new URLSearchParams(location.search).get("view") || "dashboard";
@@ -473,14 +465,5 @@ window.ndogIsRTL = isRTL;
 const refParam = new URLSearchParams(location.search).get("ref");
 if (refParam) sessionStorage.setItem("ndog_ref", refParam);
 
-// Defer bootstrap() to the next tick so that all ES module top-level
-// evaluations complete first. Without this, the circular dependency
-// (app.js ↔ dashboard.js, app.js ↔ claim.js, etc.) causes bootstrap()
-// to run BEFORE the other modules' top-level `let bound = false;`
-// statements have executed — resulting in "Cannot access 'bound' before
-// initialization" TDZ errors when bootstrap() calls bindDashboard() /
-// initClaim() / etc.
-//
-// setTimeout(0) is the simplest way to schedule bootstrap() to run after
-// the current synchronous module-evaluation phase completes.
+// تأجيل bootstrap إلى ما بعد اكتمال تحميل الوحدات
 setTimeout(bootstrap, 0);

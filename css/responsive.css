@@ -1,5 +1,0 @@
-@media (max-width: 768px) {
-  .dash__grid { grid-template-columns: 1fr; }
-  .topbar__name { display: none; }
-  .bottomnav { display: flex; }
-}

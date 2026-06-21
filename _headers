@@ -1,0 +1,28 @@
+/*
+ * Cross-Origin-Opener-Policy: same-origin-allow-popups
+ * --------------------------------------------------------
+ * REQUIRED for Firebase signInWithPopup to work correctly.
+ *
+ * The default "same-origin" policy (set by some hosting providers
+ * like Cloudflare Pages) blocks window.closed checks on popup
+ * windows, causing Firebase to immediately report:
+ *   "auth/popup-closed-by-user"
+ *
+ * Using "same-origin-allow-popups" allows the Firebase authentication
+ * popup to communicate back to the opener window while still
+ * protecting against Spectre-class attacks.
+ */
+
+/*
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cross-Origin-Embedder-Policy: credentialless
+*/
+
+/*.html
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+/*.js
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+/*.css
+  Cross-Origin-Opener-Policy: same-origin-allow-popups

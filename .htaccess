@@ -1,0 +1,15 @@
+# ============================================================
+# COOP Fix for Firebase Popup Authentication
+# ============================================================
+# The "same-origin-allow-popups" value is REQUIRED for
+# Firebase signInWithPopup to function correctly.
+#
+# Without this, the browser reports:
+#   "Cross-Origin-Opener-Policy policy would block the window.closed call"
+# which causes Firebase to throw:
+#   "auth/popup-closed-by-user"
+# ============================================================
+
+<IfModule mod_headers.c>
+  Header set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+</IfModule>

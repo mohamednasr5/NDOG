@@ -12,6 +12,7 @@ import { toast } from "./utils.js?v=2.0.5";
 
 export function initNotifications() {
   // Ask for push permission lazily (after first user gesture)
+  let permissionAsked = false;
   document.addEventListener("click", () => {
     if (permissionAsked) return;
     permissionAsked = true;

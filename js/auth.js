@@ -17,7 +17,8 @@ import {
   ref, get, set, update, push, onValue,
   signInWithPopup, signInWithRedirect, getRedirectResult,
   signOut, onAuthStateChanged,
-  generateReferralCode
+  generateReferralCode,
+  persistenceReady
 } from "./firebase-config.js?v=2.0.5";
 import { t } from "./i18n.js?v=2.0.5";
 
@@ -288,7 +289,14 @@ export async function initAuth(onReady) {
   }
   authInitialized = true;
 
-  console.log("[NDOG] === AUTH INITIALIZATION START (Popup + Redirect) ===");
+  // Wait for persistence to be ready BEFORE any auth operations.
+  // Without this, onAuthStateChanged can fire before persistence is
+  // configured, causing redirect results to be lost.
+  console.log("[NDOG] Waiting for auth persistence...");
+  await persistenceReady;
+  console.log("[NDOG] Auth persistence ready");
+
+  console.log("[NDOG] === AUTH INITIALIZATION START (Redirect-Only) ===");
   console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
 
   // ── CRITICAL: Consume pending redirect result FIRST ────────────

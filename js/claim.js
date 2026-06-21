@@ -11,10 +11,10 @@
 
   // ── Firebase references (initialized in app.js on window.NDOG.firebase) ──
   function getDB() {
-    return window.NDOG && window.NDOG.firebase ? window.NDOG.firebase.db : null;
+        return window.NDOG ? window.NDOG.db : null;
   }
   function getAuth() {
-    return window.NDOG && window.NDOG.firebase ? window.NDOG.firebase.auth : null;
+        return window.NDOG ? window.NDOG.auth : null;
   }
   function getUID() {
     var auth = getAuth();

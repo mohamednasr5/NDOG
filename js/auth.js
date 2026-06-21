@@ -636,7 +636,7 @@
       if (window.NDOG.Referrals) window.NDOG.Referrals.init(profile);
 
       // Any other modules can be initialized here in the future
-      // e.g., window.NDOG.Claim.init(profile);
+      if (window.NDOG.UI) window.NDOG.UI.init(profile);       if (window.NDOG.UI) window.NDOG.UI.updateDashboard(profile);       if (window.NDOG.Claim) window.NDOG.Claim.init(profile);       if (window.NDOG.Missions) window.NDOG.Missions.init(profile);       if (window.NDOG.Leaderboard) window.NDOG.Leaderboard.init(profile);       if (window.NDOG.Staking) window.NDOG.Staking.init(profile);       if (window.NDOG.Airdrop) window.NDOG.Airdrop.init(profile);       // e.g., window.NDOG.Claim.init(profile);
       // e.g., window.NDOG.Missions.init(profile);
       // e.g., window.NDOG.Airdrop.init(profile);
     },

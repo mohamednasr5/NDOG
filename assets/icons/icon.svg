@@ -1,89 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a1f44"/>
-      <stop offset="100%" style="stop-color:#0d47a1"/>
-    </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffd700"/>
-      <stop offset="50%" style="stop-color:#ffaa00"/>
-      <stop offset="100%" style="stop-color:#ffd700"/>
-    </linearGradient>
-    <linearGradient id="nileGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" style="stop-color:#0d47a1"/>
-      <stop offset="100%" style="stop-color:#1e90ff"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.3"/>
-    </filter>
+    <clipPath id="circleClip">
+      <circle cx="256" cy="256" r="256"/>
+    </clipPath>
   </defs>
 
-  <!-- Background circle -->
-  <circle cx="256" cy="256" r="240" fill="url(#bgGrad)" stroke="url(#goldGrad)" stroke-width="4" filter="url(#shadow)"/>
+  <!-- Background -->
+  <g clip-path="url(#circleClip)">
+    <rect width="512" height="512" fill="#F2CF61"/>
+    <!-- soft diagonal shadow on lower-right, mirroring reference -->
+    <path d="M 330 170 L 512 350 L 512 512 L 230 512 Z" fill="#E6C45C"/>
 
-  <!-- Inner ring -->
-  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#goldGrad)" stroke-width="1.5" opacity="0.3"/>
+    <!-- ears (drawn first so head overlaps them) -->
+    <ellipse cx="138" cy="248" rx="50" ry="108" fill="#A67C52" transform="rotate(-12 138 248)"/>
+    <ellipse cx="374" cy="248" rx="50" ry="108" fill="#99724C" transform="rotate(12 374 248)"/>
 
-  <!-- Nile water waves at bottom -->
-  <path d="M80 340 Q120 320 160 340 Q200 360 240 340 Q280 320 320 340 Q360 360 400 340 Q440 320 432 340 L432 420 Q440 400 400 420 Q360 440 320 420 Q280 400 240 420 Q200 440 160 420 Q120 400 80 420 Z" fill="url(#nileGrad)" opacity="0.5"/>
-  <path d="M80 360 Q120 340 160 360 Q200 380 240 360 Q280 340 320 360 Q360 380 400 360 Q440 340 432 360 L432 430 Q440 410 400 430 Q360 450 320 430 Q280 410 240 430 Q200 450 160 430 Q120 410 80 430 Z" fill="url(#nileGrad)" opacity="0.35"/>
+    <!-- head -->
+    <path d="M256,128
+             C198,128 158,168 150,228
+             C144,272 158,312 184,344
+             C202,366 226,378 256,378
+             C286,378 310,366 328,344
+             C354,312 368,272 362,228
+             C354,168 314,128 256,128 Z"
+          fill="#A67C52"/>
 
-  <!-- Dog silhouette -->
-  <g transform="translate(256, 220)" filter="url(#glow)">
-    <!-- Body -->
-    <ellipse cx="0" cy="20" rx="55" ry="40" fill="url(#goldGrad)" opacity="0.95"/>
+    <!-- white blaze stripe -->
+    <path d="M256,132
+             C246,132 238,140 236,156
+             L226,330
+             C224,348 234,362 256,372
+             C278,362 288,348 286,330
+             L276,156
+             C274,140 266,132 256,132 Z"
+          fill="#F5F5F5"/>
 
-    <!-- Head -->
-    <circle cx="-30" cy="-25" r="30" fill="url(#goldGrad)" opacity="0.95"/>
+    <!-- eyes -->
+    <g>
+      <circle cx="210" cy="232" r="17" fill="#F5F5F5"/>
+      <circle cx="210" cy="234" r="9" fill="#242424"/>
+      <circle cx="302" cy="232" r="17" fill="#F5F5F5"/>
+      <circle cx="302" cy="234" r="9" fill="#242424"/>
+    </g>
 
-    <!-- Ears -->
-    <ellipse cx="-55" cy="-48" rx="12" ry="18" fill="#b8860b" transform="rotate(-20 -55 -48)"/>
-    <ellipse cx="-15" cy="-52" rx="10" ry="16" fill="#b8860b" transform="rotate(15 -15 -52)"/>
+    <!-- nose -->
+    <path d="M256,290 L286,312 C286,326 272,336 256,336 C240,336 226,326 226,312 Z" fill="#242424"/>
 
-    <!-- Eyes -->
-    <circle cx="-40" cy="-28" r="5" fill="#050b1a"/>
-    <circle cx="-39" cy="-29" r="2" fill="#ffd700" opacity="0.8"/>
-
-    <circle cx="-22" cy="-28" r="5" fill="#050b1a"/>
-    <circle cx="-21" cy="-29" r="2" fill="#ffd700" opacity="0.8"/>
-
-    <!-- Nose -->
-    <ellipse cx="-48" cy="-18" rx="5" ry="4" fill="#050b1a"/>
-
-    <!-- Mouth -->
-    <path d="M-52 -14 Q-48 -10 -44 -14" stroke="#050b1a" stroke-width="1.5" fill="none"/>
-
-    <!-- Tongue -->
-    <ellipse cx="-50" cy="-10" rx="4" ry="6" fill="#ef4444" opacity="0.8"/>
-
-    <!-- Front legs -->
-    <rect x="-25" y="45" width="14" height="35" rx="7" fill="url(#goldGrad)"/>
-    <rect x="5" y="45" width="14" height="35" rx="7" fill="url(#goldGrad)"/>
-
-    <!-- Paws -->
-    <ellipse cx="-18" cy="82" rx="10" ry="6" fill="#b8860b"/>
-    <ellipse cx="12" cy="82" rx="10" ry="6" fill="#b8860b"/>
-
-    <!-- Tail (wagging) -->
-    <path d="M50 10 Q70 -10 65 -35 Q62 -45 55 -40" stroke="url(#goldGrad)" stroke-width="8" fill="none" stroke-linecap="round"/>
-
-    <!-- Collar -->
-    <path d="M-55 -2 Q-50 5 -35 5 Q-20 5 -15 -2" stroke="#ef4444" stroke-width="4" fill="none"/>
-    <!-- Collar tag -->
-    <circle cx="-35" cy="10" r="6" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-    <text x="-35" y="13" text-anchor="middle" font-size="7" font-weight="bold" fill="#050b1a">$</text>
+    <!-- mouth -->
+    <path d="M232,358 C238,344 250,338 256,338 C262,338 274,344 280,358"
+          fill="none" stroke="#242424" stroke-width="6" stroke-linecap="round"/>
   </g>
-
-  <!-- NDOG text -->
-  <text x="256" y="440" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="900" fill="url(#goldGrad)" filter="url(#glow)" letter-spacing="6">NDOG</text>
-
-  <!-- Subtitle -->
-  <text x="256" y="465" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#94a3b8" letter-spacing="3">NILEDogs</text>
 </svg>

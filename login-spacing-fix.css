@@ -1,0 +1,8 @@
+/* Override login__lang spacing to add more distance from Google button */
+.login__lang {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 24px !important;
+  margin-bottom: 14px;
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Main Page (SPA - all views are on this page) -->
+  <url>
+    <loc>https://ndogcoin.com/</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ndogcoin.com/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://ndogcoin.com/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ndogcoin.com/" />
+    <lastmod>2026-06-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://ndogcoin.com/assets/icons/icon-512.png</image:loc>
+      <image:title>NileDogs (NDOG)</image:title>
+      <image:caption>NileDogs Community Rewards Platform</image:caption>
+    </image:image>
+  </url>
+
+  <!-- English Whitepaper -->
+  <url>
+    <loc>https://ndogcoin.com/whitepaper-en.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ndogcoin.com/whitepaper-en.html" />
+    <lastmod>2026-06-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Arabic Whitepaper -->
+  <url>
+    <loc>https://ndogcoin.com/whitepaper-ar.html</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ndogcoin.com/whitepaper-ar.html" />
+    <lastmod>2026-06-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Offline page (low priority) -->
+  <url>
+    <loc>https://ndogcoin.com/offline.html</loc>
+    <lastmod>2026-06-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.1</priority>
+  </url>
+
+</urlset>

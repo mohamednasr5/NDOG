@@ -2,9 +2,9 @@
   "name": "NileDogs — NDOG",
   "short_name": "NileDogs",
   "description": "NileDogs (NDOG) — community-driven rewards ecosystem. Earn, refer, and climb the leaderboard before the official launch on January 1, 2028.",
-  "id": "/NDOG/",
-  "start_url": "/NDOG/?source=pwa",
-  "scope": "/NDOG/",
+  "id": "/",
+  "start_url": "./?source=pwa",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#050b1a",
@@ -37,21 +37,21 @@
       "name": "Daily Claim",
       "short_name": "Claim",
       "description": "Claim your daily NDOG rewards",
-      "url": "/NDOG/?view=claim",
+      "url": "./?view=claim",
       "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Referrals",
       "short_name": "Refer",
       "description": "Invite friends and earn bonuses",
-      "url": "/NDOG/?view=referral",
+      "url": "./?view=referral",
       "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Leaderboard",
       "short_name": "Ranks",
       "description": "View the global leaderboard",
-      "url": "/NDOG/?view=leaderboard",
+      "url": "./?view=leaderboard",
       "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
     }
   ],

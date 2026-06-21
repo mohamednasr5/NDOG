@@ -1,19 +1,22 @@
-/** 
+/**
  * NileDogs (NDOG) — Authentication Module
- * v2.0.4 - POPUP-ONLY + NO REDIRECT RELOAD
+ * v2.1.0 - POPUP + REDIRECT FALLBACK (SAFE)
  * =====================================================
- * - إزالة signInWithRedirect بالكامل (سبب الحلقة اللانهائية).
- * - الاعتماد فقط على signInWithPopup.
- * - إذا فشلت النافذة المنبثقة، نعرض رسالة للمستخدم ولا نعيد التحميل.
- * - إزالة كل أكواد sessionStorage المؤقتة المتعلقة بالـ redirect.
- * - تم تعطيل بصمة الجهاز نهائياً.
+ * - Desktop: signInWithPopup first, fallback to signInWithRedirect
+ *   if COOP blocks the popup.
+ * - Mobile: signInWithRedirect directly (popups unreliable on mobile).
+ * - getRedirectResult is consumed ONCE on init to avoid loops.
+ * - signInWithRedirect is ONLY triggered by explicit user click.
+ * - No location.reload() anywhere — onAuthStateChanged drives the UI.
+ * - Device fingerprint disabled.
  * =====================================================
  */
 
 import {
   auth, db, googleProvider, APP_CONFIG,
   ref, get, set, update, push, onValue,
-  signInWithPopup, signOut, onAuthStateChanged,
+  signInWithPopup, signInWithRedirect, getRedirectResult,
+  signOut, onAuthStateChanged,
   generateReferralCode
 } from "./firebase-config.js?v=2.0.5";
 import { t } from "./i18n.js?v=2.0.5";
@@ -66,7 +69,7 @@ function friendlyAuthError(err) {
 }
 
 export async function googleLogin() {
-  // منع تسجيل الدخول من المتصفحات المدمجة
+  // Block login from embedded/in-app browsers
   if (isEmbeddedBrowser()) {
     console.warn("[NDOG] Blocked login attempt inside an embedded/in-app browser");
     const e = new Error(t("auth.errEmbeddedBrowser"));
@@ -74,19 +77,62 @@ export async function googleLogin() {
     throw e;
   }
 
+  const mobile = isMobile();
+  console.log("[NDOG] Login attempt on:", mobile ? "MOBILE" : "DESKTOP");
+
+  // ─── MOBILE: use redirect directly ───────────────────────────
+  // Popups are unreliable on mobile browsers, and COOP makes
+  // them completely non-functional. Redirect is the standard
+  // approach for mobile Firebase auth.
+  if (mobile) {
+    console.log("[NDOG] Using signInWithRedirect (mobile strategy)");
+    try {
+      await signInWithRedirect(auth, googleProvider);
+      // If we reach here, the redirect is in progress.
+      // The page will reload — getRedirectResult in initAuth
+      // will pick up the result. Nothing more to do.
+      return;
+    } catch (err) {
+      console.error("[NDOG] Redirect sign-in error:", err.code, err.message);
+      const friendly = friendlyAuthError(err);
+      const e = new Error(friendly);
+      e.code = err.code;
+      e.original = err;
+      throw e;
+    }
+  }
+
+  // ─── DESKTOP: try popup first, fallback to redirect ──────────
   console.log("[NDOG] Attempting signInWithPopup...");
   try {
     await signInWithPopup(auth, googleProvider);
     console.log("[NDOG] Popup sign-in successful.");
   } catch (err) {
     console.error("[NDOG] Popup sign-in error:", err.code, err.message);
-    // إذا تم حظر النافذة المنبثقة، نرمي خطأ واضحاً
-    if (err.code === "auth/popup-blocked") {
-      const e = new Error(t("auth.errPopupBlocked"));
-      e.code = err.code;
-      throw e;
+
+    // If popup was blocked/closed (often caused by COOP header),
+    // fall back to redirect seamlessly.
+    const isCOOPorBlocked =
+      err.code === "auth/popup-closed-by-user" ||
+      err.code === "auth/popup-blocked" ||
+      (err.message && err.message.includes("Cross-Origin-Opener-Policy"));
+
+    if (isCOOPorBlocked) {
+      console.log("[NDOG] Popup blocked/closed (likely COOP), falling back to redirect...");
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return; // page will reload
+      } catch (redirectErr) {
+        console.error("[NDOG] Redirect fallback also failed:", redirectErr.code);
+        const friendly = friendlyAuthError(redirectErr);
+        const e = new Error(friendly);
+        e.code = redirectErr.code;
+        e.original = redirectErr;
+        throw e;
+      }
     }
-    // أخطاء أخرى
+
+    // Other errors
     const friendly = friendlyAuthError(err);
     const e = new Error(friendly);
     e.original = err;
@@ -97,8 +143,6 @@ export async function googleLogin() {
 export async function logout() {
   try {
     await signOut(auth);
-    // لا نعيد التحميل، بل نترك onAuthStateChanged يعيد ضبط الحالة
-    // ونعرض شاشة تسجيل الدخول تلقائياً.
   } catch (err) {
     console.error("[NDOG] Logout failed:", err);
   }
@@ -126,7 +170,6 @@ async function provisionUserImpl(firebaseUser) {
   const userRef = ref(db, `users/${uid}`);
   const snap = await get(userRef);
 
-  // بصمة الجهاز معطلة
   const fingerprint = "disabled_fingerprint";
 
   if (!snap.exists()) {
@@ -278,7 +321,7 @@ function guessCountry() {
   return "Global";
 }
 
-// ─── تهيئة المصادقة ─────────────────────────────────────────────
+// ─── Auth Initialization ─────────────────────────────────────────
 export async function initAuth(onReady) {
   if (authInitialized) {
     console.log("[NDOG] Auth already initialized, skipping");
@@ -286,8 +329,33 @@ export async function initAuth(onReady) {
   }
   authInitialized = true;
 
-  console.log("[NDOG] === AUTH INITIALIZATION START (Popup-Only) ===");
+  console.log("[NDOG] === AUTH INITIALIZATION START (Popup + Redirect) ===");
   console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
+
+  // ── CRITICAL: Consume pending redirect result FIRST ────────────
+  // When signInWithRedirect completes, Firebase stores the credential
+  // in a temporary storage. getRedirectResult() consumes it and
+  // returns the signed-in user. If we don't call this, the result
+  // sits unprocessed and onAuthStateChanged may not fire correctly
+  // on the redirected page load.
+  //
+  // This is called ONCE here and never again, preventing infinite loops.
+  try {
+    console.log("[NDOG] Checking for pending redirect result...");
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      console.log("[NDOG] Redirect result received for:", result.user.uid);
+      // The user is now signed in — onAuthStateChanged below will
+      // fire with this user and handle provisioning/UI.
+    } else {
+      console.log("[NDOG] No pending redirect result");
+    }
+  } catch (err) {
+    // Errors here mean the redirect auth failed (user cancelled,
+    // network error, etc.). Log it but don't crash — onAuthStateChanged
+    // will fire with null and show the login screen.
+    console.error("[NDOG] getRedirectResult error:", err.code, err.message);
+  }
 
   let userSetupDone = new Map();
 
@@ -350,7 +418,7 @@ export async function initAuth(onReady) {
       emit(userData);
       onReady && onReady(userData);
 
-      // مراقبة التحديثات اللحظية
+      // Real-time updates
       onValue(userRef, (liveSnap) => {
         if (!liveSnap.exists()) return;
         const liveData = liveSnap.val();
@@ -365,7 +433,6 @@ export async function initAuth(onReady) {
     } catch (err) {
       console.error("[NDOG] User setup failed:", err);
 
-      // بيانات احتياطية للمستخدم
       const fallbackData = {
         uid: fbUser.uid,
         name: fbUser.displayName || "NileDog",
@@ -391,7 +458,6 @@ export async function initAuth(onReady) {
       emit(fallbackData);
       onReady && onReady(fallbackData);
 
-      // إعادة المحاولة
       userSetupDone.delete(uid);
       setTimeout(async () => {
         if (currentUserData?.uid === uid && !currentUserData?.referralCode) {

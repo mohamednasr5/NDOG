@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": true,
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "claims": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["userId", "date"]
+    },
+    "referrals": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["referrer", "referredUser"]
+    },
+    "notifications": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "admins": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "deviceFingerprints": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}

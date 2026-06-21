@@ -1,11 +1,12 @@
 /**
  * NileDogs (NDOG) — App Shell
- * v2.0.3 - FIXES:
- *   - منع النقر المتكرر على زر تسجيل الدخول (disabled أثناء المعالجة).
- *   - تحسين معالجة أخطاء تسجيل الدخول وإظهار رسائل مناسبة.
- *   - إزالة الاعتماد على sessionStorage غير الضروري.
- *   - استخدام popup-only مع fallback واضح.
- *   - إضافة مهلة لإعادة تمكين الزر بعد 5 ثوانٍ كشبكة أمان.
+ * v2.0.4 - REMOVED ALL location.reload() ON LOGIN FAILURE
+ * =====================================================
+ * - إزالة جميع عمليات location.reload() التي كانت تسبب الحلقة.
+ * - الاعتماد فقط على onAuthStateChanged لتحديث واجهة المستخدم.
+ * - تحسين معالجة أخطاء تسجيل الدخول مع رسائل واضحة.
+ * - إزالة أي كود يعتمد على sessionStorage للـ redirect.
+ * =====================================================
  */
 
 import { APP_CONFIG, persistenceReady } from "./firebase-config.js";
@@ -27,7 +28,6 @@ export function toast(message, type = "info", duration = 3200) {
   const host = document.getElementById("toastHost");
   if (!host) return;
 
-  // منع تكرار نفس الرسالة
   const existing = Array.from(host.children).find(
     el => el.dataset.toastKey === `${type}:${message}`
   );
@@ -212,10 +212,10 @@ function bindNavigation() {
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
   document.getElementById("bannedLogout")?.addEventListener("click", logout);
 
-  // ─── زر تسجيل الدخول مع منع النقر المتكرر ────────────────────
+  // ─── زر تسجيل الدخول ────────────────────────────────────────
   document.getElementById("googleLoginBtn")?.addEventListener("click", async function handler(e) {
     const btn = this;
-    if (btn.disabled) return; // منع النقر المتكرر
+    if (btn.disabled) return;
 
     btn.disabled = true;
     const labelSpan = btn.querySelector("span");
@@ -224,16 +224,15 @@ function bindNavigation() {
 
     try {
       await googleLogin();
-      // في حال نجاح تسجيل الدخول، سيتم إخفاء الشاشة تلقائياً عن طريق onUser
+      // نجاح: سيتم التعامل معه عبر onAuthStateChanged
     } catch (err) {
       const isInfo = err.code === "auth/standalone-escape";
       toast(err.message || t("login.connectFailed"), isInfo ? "info" : "err", isInfo ? 6000 : 3200);
-      // إعادة تمكين الزر فقط إذا لم يتم تسجيل الدخول
       btn.disabled = false;
       if (labelSpan) labelSpan.textContent = originalText || t("login.googleBtn");
     }
 
-    // شبكة أمان: إعادة تمكين الزر بعد 5 ثوانٍ في حال علق (مثلاً بسبب تأخير)
+    // شبكة أمان
     setTimeout(() => {
       if (btn.disabled) {
         btn.disabled = false;
@@ -367,18 +366,6 @@ setTimeout(() => {
     if (shell?.classList.contains("hidden") && login?.classList.contains("hidden")) {
       login?.classList.remove("hidden");
     }
-    if (shell?.classList.contains("hidden")) {
-      const msg = document.createElement("div");
-      msg.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#ffd700;color:#0a1f44;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);";
-      msg.textContent = "\u26A1 تحديث متاح — اضغط لإعادة التحميل";
-      msg.addEventListener("click", () => {
-        if ("caches" in window) {
-          caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
-        }
-        setTimeout(() => location.reload(), 300);
-      });
-      document.body.appendChild(msg);
-    }
   }
 }, 6000);
 
@@ -393,10 +380,6 @@ window.addEventListener("error", (e) => {
 
 window.addEventListener("unhandledrejection", (e) => {
   console.error("[NDOG] Unhandled promise rejection:", e.reason);
-  // إذا كان الخطأ متعلقاً بـ CSP أو تسجيل الدخول، نعرض رسالة للمستخدم
-  if (e.reason?.message?.includes("CSP") || e.reason?.message?.includes("eval")) {
-    toast("⚠️ هناك تعارض في سياسة الأمان (CSP). قد تحتاج إلى تعديل إعدادات الموقع.", "err", 8000);
-  }
 });
 
 document.addEventListener("ndog:authError", (e) => {
@@ -447,7 +430,6 @@ async function bootstrap() {
     document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
   });
 
-  // انتظار تهيئة persistence ثم تهيئة المصادقة
   await persistenceReady;
   initAuth(() => {
     const initialView = new URLSearchParams(location.search).get("view") || "dashboard";
@@ -465,5 +447,4 @@ window.ndogIsRTL = isRTL;
 const refParam = new URLSearchParams(location.search).get("ref");
 if (refParam) sessionStorage.setItem("ndog_ref", refParam);
 
-// تأجيل bootstrap إلى ما بعد اكتمال تحميل الوحدات
 setTimeout(bootstrap, 0);

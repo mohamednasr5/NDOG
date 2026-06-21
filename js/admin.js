@@ -11,8 +11,8 @@ import {
   auth, db, googleProvider, APP_CONFIG,
   ref, get, set, update, push, remove, onValue,
   signInWithPopup, signOut, onAuthStateChanged
-} from "./firebase-config.js";
-import { t, getLang, setLang, applyTranslations, onLangChange } from "./i18n.js";
+} from "./firebase-config.js?v=2.0.5";
+import { t, getLang, setLang, applyTranslations, onLangChange } from "./i18n.js?v=2.0.5";
 
 let currentUser = null;
 let allUsers = [];

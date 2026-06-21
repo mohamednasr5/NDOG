@@ -2,9 +2,9 @@
  * NileDogs (NDOG) — Leaderboard module
  */
 
-import { db, ref, onValue, get, query, orderByChild, limitToLast } from "./firebase-config.js";
-import { onUser, getCurrentUser } from "./auth.js";
-import { t, getLang, onLangChange } from "./i18n.js";
+import { db, ref, onValue, get, query, orderByChild, limitToLast } from "./firebase-config.js?v=2.0.5";
+import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
+import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
 
 let currentTab = "global";
 let currentUser = null;

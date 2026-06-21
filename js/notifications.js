@@ -7,13 +7,12 @@
  *   when new notifications arrive via Realtime DB).
  */
 
-import { db, ref, onValue } from "./firebase-config.js";
-import { toast } from "./app.js";
-
-let permissionAsked = false;
+import { db, ref, onValue } from "./firebase-config.js?v=2.0.5";
+import { toast } from "./utils.js?v=2.0.5";
 
 export function initNotifications() {
   // Ask for push permission lazily (after first user gesture)
+  let permissionAsked = false;
   document.addEventListener("click", () => {
     if (permissionAsked) return;
     permissionAsked = true;

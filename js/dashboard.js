@@ -5,11 +5,11 @@
  * to break the circular dependency: app.js → dashboard.js → referral.js → app.js
  */
 
-import { db, ref, onValue, APP_CONFIG } from "./firebase-config.js";
-import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, openModal } from "./app.js";
-import { shareLink, generateQR } from "./share-utils.js";
-import { t, getLang, onLangChange } from "./i18n.js";
+import { APP_CONFIG } from "./firebase-config.js?v=2.0.5";
+import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
+import { animateCount, openModal } from "./utils.js?v=2.0.5";
+import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
+import { shareLink, generateQR } from "./share-utils.js?v=2.0.5";
 
 let bound = false;
 
@@ -36,7 +36,7 @@ export function bindDashboard() {
     openModal("qrModal");
   });
 
-  document.querySelectorAll("#view-dashboard .ref-card__share [data-share]").forEach(btn => {
+  document.querySelectorAll("#view-dashboard .ref-card__share [data-share]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const u = getCurrentUser();
       if (!u) return;
@@ -47,41 +47,51 @@ export function bindDashboard() {
 
 function renderDashboard(user) {
   if (!user) return;
-  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  const setSrc = (id, val) => { const el = document.getElementById(id); if (el && val) el.src = val; };
+
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+
+  const setSrc = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val) el.src = val;
+  };
 
   setSrc("dashAvatar", user.photoURL);
-  setText("dashName",    user.name || "User");
-  setText("dashJoined",  t("dash.memberSince", { date: formatDate(user.createdAt) }));
+  setText("dashName", user.name || "User");
+  setText("dashJoined", t("dash.memberSince", { date: formatDate(user.createdAt) }));
   setText("dashCountry", `🌍 ${user.country || t("lb.globalLabel")}`);
 
-  animateCount(document.getElementById("statBalance"),   user.balance || 0);
+  animateCount(document.getElementById("statBalance"), user.balance || 0);
   animateCount(document.getElementById("statCommunity"), user.communityScore || 0);
-  animateCount(document.getElementById("statLoyalty"),   user.loyaltyScore || 0);
-  animateCount(document.getElementById("statRefs"),      user.totalReferrals || 0);
-  animateCount(document.getElementById("topbarBalNum"),  user.balance || 0);
+  animateCount(document.getElementById("statLoyalty"), user.loyaltyScore || 0);
+  animateCount(document.getElementById("statRefs"), user.totalReferrals || 0);
+  animateCount(document.getElementById("topbarBalNum"), user.balance || 0);
 
   const level = computeLevel(user.balance || 0);
   const levelName = t(level.nameKey || level.name);
-  const rankChip = document.getElementById("dashRankChip");
-  if (rankChip) {
-    rankChip.innerHTML = `<span class="dash__rank-icon">${level.icon}</span><span>${levelName}</span>`;
-  }
-  setText("dashRankName", levelName);
 
+  const rankChip = document.getElementById("dashRankChip");
+  if (rankChip) rankChip.innerHTML = `${levelName}`;
+
+  setText("dashRankName", levelName);
   setText("dashRefCode", user.referralCode || "NDOG—");
   setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
 
   renderLevelProgress(user.balance || 0);
 
   const ea = document.getElementById("earlyAdopterBanner");
-  if (ea) { ea.style.display = user.isFounder ? "flex" : "none"; }
+  if (ea) {
+    ea.style.display = user.isFounder ? "flex" : "none";
+  }
 }
 
 function renderLevelProgress(balance) {
-  const levels = APP_CONFIG.rewardLevels;
+  const levels = APP_CONFIG.rewardLevels || [];
   const current = computeLevel(balance);
-  const next = levels.find(l => l.min > balance);
+  const next = levels.find((l) => l.min > balance);
+
   const fill = document.getElementById("levelFill");
   const nextLbl = document.getElementById("levelNext");
 
@@ -89,9 +99,10 @@ function renderLevelProgress(balance) {
     if (fill) fill.style.width = "100%";
     if (nextLbl) nextLbl.textContent = t("dash.maxLevel");
   } else {
-    const prevMin = current.min;
-    const range = next.min - prevMin;
+    const prevMin = current.min || 0;
+    const range = Math.max(1, next.min - prevMin);
     const pct = Math.min(100, ((balance - prevMin) / range) * 100);
+
     if (fill) fill.style.width = pct + "%";
     if (nextLbl) {
       const nextName = t(next.nameKey || next.name);
@@ -104,28 +115,35 @@ function renderLevelProgress(balance) {
 
   const wrap = document.getElementById("levelBadges");
   if (wrap) {
-    wrap.innerHTML = levels.map(l => {
+    wrap.innerHTML = levels.map((l) => {
       const levelName = t(l.nameKey || l.name);
       return `
-      <div class="level-badge ${balance >= l.min ? "unlocked" : ""}">
-        <span class="lb-icon">${l.icon}</span>
-        <span class="lb-name">${levelName}</span>
-      </div>
-    `;
+        <span class="level-badge ${balance >= l.min ? "is-unlocked" : ""}">
+          <span class="level-badge__icon">${l.icon || "•"}</span>
+          <span class="level-badge__label">${levelName}</span>
+        </span>
+      `;
     }).join("");
   }
 }
 
 export function computeLevel(balance) {
-  const levels = APP_CONFIG.rewardLevels;
-  let result = levels[0];
-  for (const l of levels) if (balance >= l.min) result = l;
-  return result;
+  const levels = APP_CONFIG.rewardLevels || [];
+  let current = levels[0] || { min: 0, name: "Bronze", nameKey: "dash.level.bronze" };
+
+  for (const l of levels) {
+    if (balance >= l.min) current = l;
+  }
+
+  return current;
 }
 
 function formatDate(ts) {
-  if (!ts) return "—";
-  const d = new Date(ts);
+  if (!ts) return "";
   const locale = getLang() === "ar" ? "ar-EG" : "en-US";
-  return d.toLocaleDateString(locale, { month: "short", year: "numeric" });
+  return new Date(ts).toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
 }

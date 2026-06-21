@@ -6,8 +6,8 @@
  *      app.js → referral.js → share-utils.js (no cycle)
  */
 
-import { APP_CONFIG } from "./firebase-config.js";
-import { t } from "./i18n.js";
+import { APP_CONFIG } from "./firebase-config.js?v=2.0.5";
+import { t } from "./i18n.js?v=2.0.5";
 
 const SHARE_URLS = {
   whatsapp: txt => `https://wa.me/?text=${encodeURIComponent(txt)}`,

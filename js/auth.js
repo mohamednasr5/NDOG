@@ -1,10 +1,11 @@
 /**
- * NileDogs (NDOG) — Authentication Module (FIXED v1.3.0)
- * ✅ Fixed race condition: getRedirectResult() now called before onAuthStateChanged
+ * NileDogs (NDOG) — Authentication Module (FIXED v1.3.1)
+ * ✅ Fixed race condition: getRedirectResult() + improved timeout handling
+ * ✅ Fixed: onAuthStateChanged callback may not fire quickly enough
  * 
  * Handles the full login / logout lifecycle:
  *   1. Calls getRedirectResult() first to handle mobile redirect flow
- *   2. Listens for Firebase auth state changes.
+ *   2. Sets up onAuthStateChanged() with timeout fallback
  *   3. On sign-in: checks ban, fingerprint, creates profile if new,
  *      processes referral codes, loads data, then shows the app shell.
  *   4. On sign-out: clears local state and shows the login screen.
@@ -19,9 +20,6 @@
 
   /**
    * Guess the user's country from the browser timezone.
-   * This is a lightweight heuristic — not geolocation-accurate, but
-   * good enough for leaderboard grouping.
-   * @returns {string} 2-letter country code or 'XX'
    */
   function guessCountry() {
     try {
@@ -79,7 +77,7 @@
   }
 
   /**
-   * Escape HTML to prevent XSS in ban modal.
+   * Escape HTML to prevent XSS
    */
   function escapeHtml(text) {
     var div = document.createElement('div');
@@ -89,8 +87,6 @@
 
   /**
    * Determine rank from total earned NDOG.
-   * @param {number} totalEarned
-   * @returns {string}
    */
   function computeRank(totalEarned) {
     if (totalEarned >= 100000) return 'Diamond';
@@ -100,22 +96,24 @@
     return 'Bronze';
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Module                                                              */
-  /* ------------------------------------------------------------------ */
+  /* ================================================================== */
+  /*  AUTH MODULE                                                        */
+  /* ================================================================== */
 
   window.NDOG = window.NDOG || {};
   window.NDOG.Auth = {
-    /* ---------------------------------------------------------------- */
-    /*  Initialization                                                    */
-    /* ---------------------------------------------------------------- */
+    /* ================================================================ */
+    /*  Initialization                                                   */
+    /* ================================================================ */
 
     /**
      * Kick off the auth listener. Should be called once after all
      * scripts have loaded.
      * 
-     * FIXED: Now calls getRedirectResult() BEFORE onAuthStateChanged()
-     * This fixes the mobile redirect race condition.
+     * FIXED v1.3.1:
+     * - getRedirectResult() is called BEFORE onAuthStateChanged()
+     * - onAuthStateChanged has 3 second timeout fallback
+     * - If no auth state detected, shows login screen
      */
     init: function () {
       var self = this;
@@ -142,45 +140,73 @@
       }
 
       // ============================================================
-      // CRITICAL FIX: Handle getRedirectResult BEFORE onAuthStateChanged
-      // This prevents race conditions on mobile where redirect flow
-      // may not be captured by onAuthStateChanged alone.
+      // CRITICAL FIX v1.3.1: Handle getRedirectResult with proper
+      // state management and timeout fallback
       // ============================================================
+      var hasAuthStateChangedListener = false;
+      var authStateCheckTimeout = null;
+
+      console.log('[NDOG.Auth] Starting auth initialization...');
+
       window.NDOG.auth.getRedirectResult()
         .then(function(result) {
           if (result && result.user) {
             console.log('[NDOG.Auth] ✅ Redirect result received for:', result.user.uid);
-            // The user will be caught by onAuthStateChanged next
           } else {
-            console.log('[NDOG.Auth] No redirect result');
+            console.log('[NDOG.Auth] No redirect result (normal for first load)');
           }
         })
         .catch(function(err) {
-          // Common errors: auth/popup-closed-by-user, etc.
           // Don't fail — just log and continue
           if (err.code !== 'auth/popup-closed-by-user') {
-            console.warn('[NDOG.Auth] getRedirectResult error:', err.code, err.message);
+            console.warn('[NDOG.Auth] getRedirectResult warning:', err.code);
           }
         })
         .finally(function() {
-          // Now set up the state listener
-          // This will catch both new logins and existing sessions
+          // Prevent double initialization
+          if (hasAuthStateChangedListener) {
+            console.log('[NDOG.Auth] Auth listener already set');
+            return;
+          }
+
+          hasAuthStateChangedListener = true;
+          console.log('[NDOG.Auth] Setting up onAuthStateChanged listener...');
+
+          // Set up timeout fallback: if no auth state in 3 seconds, show login
+          authStateCheckTimeout = setTimeout(function() {
+            if (!window.NDOG.userProfile && !window.NDOG.currentUser) {
+              console.warn('[NDOG.Auth] ⏱️ Auth state timeout - no user detected, showing login screen');
+              self.showLoginScreen();
+              self.showPreloader(false);
+            }
+          }, 3000);
+
+          // Set up the real auth state listener
           window.NDOG.auth.onAuthStateChanged(function (user) {
+            // Clear the timeout since we got a response
+            if (authStateCheckTimeout) {
+              clearTimeout(authStateCheckTimeout);
+              authStateCheckTimeout = null;
+            }
+
             if (user) {
+              console.log('[NDOG.Auth] 🔓 User detected:', user.uid);
               window.NDOG.currentUser = user;
               self.handleLogin(user);
             } else {
+              console.log('[NDOG.Auth] 🔒 No user - showing login screen');
               window.NDOG.currentUser = null;
               window.NDOG.userProfile = null;
               self.showLoginScreen();
+              self.showPreloader(false);
             }
           });
         });
     },
 
-    /* ---------------------------------------------------------------- */
-    /*  Login / Logout                                                     */
-    /* ---------------------------------------------------------------- */
+    /* ================================================================ */
+    /*  Login / Logout                                                    */
+    /* ================================================================ */
 
     /**
      * Open the Google sign-in popup.
@@ -188,15 +214,19 @@
      */
     loginWithGoogle: async function () {
       try {
+        console.log('[NDOG.Auth] Starting Google sign-in...');
         var provider = new window.firebase.auth.GoogleAuthProvider();
         provider.addScope('profile');
         provider.addScope('email');
         var result = await window.NDOG.auth.signInWithPopup(provider);
+        console.log('[NDOG.Auth] ✅ Google sign-in successful:', result.user.uid);
         return result.user;
       } catch (error) {
         if (error.code === 'auth/popup-closed-by-user') {
+          console.log('[NDOG.Auth] User closed sign-in popup');
           window.NDOG.Notify.info('Sign-in popup was closed.');
         } else {
+          console.error('[NDOG.Auth] Google sign-in error:', error.code, error.message);
           window.NDOG.Notify.error('Login failed: ' + (error.message || 'Unknown error'));
         }
         return null;
@@ -208,6 +238,7 @@
      */
     logout: async function () {
       try {
+        console.log('[NDOG.Auth] Logging out...');
         if (window.NDOG.Particles) window.NDOG.Particles.destroy();
 
         await window.NDOG.auth.signOut();
@@ -218,6 +249,7 @@
         sessionStorage.clear();
 
         window.NDOG.userProfile = null;
+        console.log('[NDOG.Auth] ✅ Logout successful - reloading');
         window.location.reload();
       } catch (error) {
         console.error('[NDOG.Auth] logout error:', error);
@@ -225,9 +257,9 @@
       }
     },
 
-    /* ---------------------------------------------------------------- */
-    /*  Post-login handler                                                 */
-    /* ---------------------------------------------------------------- */
+    /* ================================================================ */
+    /*  Post-login handler                                                */
+    /* ================================================================ */
 
     /**
      * Full post-login flow:
@@ -246,13 +278,19 @@
      */
     handleLogin: async function (user) {
       var uid = user.uid;
+      console.log('[NDOG.Auth] handleLogin starting for:', uid);
 
       this.showPreloader(true);
 
       try {
+        // 1. Check ban status
         var isBanned = await this.checkBan(uid);
-        if (isBanned) return;
+        if (isBanned) {
+          console.log('[NDOG.Auth] User is banned');
+          return;
+        }
 
+        // 2. Device fingerprint check
         if (window.NDOG.Security) {
           var fingerprint = window.NDOG.Security.generateFingerprint();
           var duplicate = await window.NDOG.DB.checkFingerprint(fingerprint, uid);
@@ -270,11 +308,14 @@
           await window.NDOG.DB.storeFingerprint(fingerprint, uid);
         }
 
+        // 3. Load or create user profile
+        console.log('[NDOG.Auth] Loading user profile...');
         var profileSnap = await window.NDOG.db.ref('users/' + uid).once('value');
         var profile = profileSnap.val();
         var isNewUser = !profile;
 
         if (isNewUser) {
+          console.log('[NDOG.Auth] New user - creating profile');
           var refCode = window.NDOG.DB.generateReferralCode();
           var country = guessCountry();
 
@@ -306,37 +347,40 @@
           };
 
           await window.NDOG.DB.createUserProfile(uid, profile);
-          console.log('[NDOG.Auth] New user created:', uid);
+          console.log('[NDOG.Auth] ✅ New user profile created:', uid);
 
           // Process referral for new users
           await this.processReferral(uid, profile);
         } else {
           // Update lastLogin for existing users
+          console.log('[NDOG.Auth] Existing user - updating lastLogin');
           await window.NDOG.db.ref('users/' + uid).update({
             lastLogin: window.firebase.database.ServerValue.TIMESTAMP,
           });
         }
 
-        // Update rank
+        // 4. Update rank
         var rank = computeRank(profile.totalEarned || 0);
         if (profile.rank !== rank) {
           await window.NDOG.db.ref('users/' + uid).update({ rank: rank });
           profile.rank = rank;
         }
 
+        // 5. Set user profile in global state
         window.NDOG.userProfile = profile;
+        console.log('[NDOG.Auth] ✅ User profile loaded:', profile.displayName);
 
-        // Show app shell
+        // 6. Show app shell
         this.showAppShell();
         this.showPreloader(false);
 
-        // Initialize sub-modules
+        // 7. Initialize sub-modules
         this.initModules(profile);
 
-        // Check admin role
+        // 8. Check admin role
         this.checkAdminRole(uid);
 
-        // Update leaderboard entry
+        // 9. Update leaderboard entry
         if (profile) {
           window.NDOG.DB.updateLeaderboard(uid, {
             displayName: profile.displayName || 'Anon',
@@ -346,6 +390,8 @@
             avatar: profile.photoURL || '',
           });
         }
+
+        console.log('[NDOG.Auth] ✅ Login complete!');
       } catch (err) {
         console.error('[NDOG.Auth] handleLogin error:', err);
         window.NDOG.Notify.error('Something went wrong while loading your data.');
@@ -354,9 +400,9 @@
       }
     },
 
-    /* ---------------------------------------------------------------- */
-    /*  Ban checks                                                         */
-    /* ---------------------------------------------------------------- */
+    /* ================================================================ */
+    /*  Ban checks                                                        */
+    /* ================================================================ */
 
     /**
      * Check if a user is banned.
@@ -368,6 +414,7 @@
         var snap = await window.NDOG.db.ref('bannedUsers/' + uid).once('value');
         var banData = snap.val();
         if (banData) {
+          console.warn('[NDOG.Auth] User is banned:', banData.reason);
           this.showBannedModal(banData.reason || 'Violation of terms of service.');
           window.NDOG.auth.signOut();
           return true;
@@ -407,9 +454,9 @@
       this.showPreloader(false);
     },
 
-    /* ---------------------------------------------------------------- */
-    /*  Referral code from URL                                             */
-    /* ---------------------------------------------------------------- */
+    /* ================================================================ */
+    /*  Referral code from URL                                            */
+    /* ================================================================ */
 
     /**
      * Extract ?ref= from URL, store in sessionStorage, and clean URL.
@@ -420,6 +467,7 @@
       if (refCode && refCode.trim().length > 0) {
         sessionStorage.setItem('ndog_ref', refCode.trim());
         window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+        console.log('[NDOG.Auth] Referral code detected:', refCode);
       }
     },
 
@@ -457,6 +505,7 @@
         await window.NDOG.DB.processReferral(referrerUid, uid, refCode);
         await window.NDOG.DB.updateReferralCounts(referrerUid);
 
+        console.log('[NDOG.Auth] ✅ Referral processed:', refCode);
         window.NDOG.Notify.success('Referral code applied! You and your referrer earned rewards.');
       } catch (err) {
         console.error('[NDOG.Auth] processReferral error:', err);
@@ -465,11 +514,12 @@
       sessionStorage.removeItem('ndog_ref');
     },
 
-    /* ────────────────────────────────────────────────────
-       UI State Management
-    ──────────────────────────────────────────────────── */
+    /* ================================================================ */
+    /*  UI State Management                                               */
+    /* ================================================================ */
 
     showLoginScreen: function () {
+      console.log('[NDOG.Auth] Showing login screen');
       var loginScreen = document.getElementById('loginScreen');
       var appShell = document.getElementById('appShell');
       if (loginScreen) {
@@ -483,6 +533,7 @@
     },
 
     showAppShell: function () {
+      console.log('[NDOG.Auth] Showing app shell');
       var appShell = document.getElementById('appShell');
       var loginScreen = document.getElementById('loginScreen');
       if (appShell) {
@@ -514,59 +565,17 @@
     },
 
     initModules: function (profile) {
-      if (window.NDOG.UI && typeof window.NDOG.UI.init === 'function') {
-        try {
-          window.NDOG.UI.init();
-        } catch (err) {
-          console.error('[NDOG.Auth] Error initializing UI:', err);
-        }
-      }
-
-      if (window.NDOG.Claim && typeof window.NDOG.Claim.init === 'function') {
-        try {
-          window.NDOG.Claim.init();
-        } catch (err) {
-          console.error('[NDOG.Auth] Error initializing Claim:', err);
-        }
-      }
-
-      if (window.NDOG.Referrals && typeof window.NDOG.Referrals.init === 'function') {
-        try {
-          window.NDOG.Referrals.init();
-        } catch (err) {
-          console.error('[NDOG.Auth] Error initializing Referrals:', err);
-        }
-      }
-
-      if (window.NDOG.Missions && typeof window.NDOG.Missions.init === 'function') {
-        try {
-          window.NDOG.Missions.init();
-        } catch (err) {
-          console.error('[NDOG.Auth] Error initializing Missions:', err);
-        }
-      }
-
-      if (window.NDOG.Leaderboard && typeof window.NDOG.Leaderboard.init === 'function') {
-        try {
-          window.NDOG.Leaderboard.init();
-        } catch (err) {
-          console.error('[NDOG.Auth] Error initializing Leaderboard:', err);
-        }
-      }
-
-      if (window.NDOG.Staking && typeof window.NDOG.Staking.init === 'function') {
-        try {
-          window.NDOG.Staking.init();
-        } catch (err) {
-          console.error('[NDOG.Auth] Error initializing Staking:', err);
-        }
-      }
-
-      if (window.NDOG.Airdrop && typeof window.NDOG.Airdrop.init === 'function') {
-        try {
-          window.NDOG.Airdrop.init();
-        } catch (err) {
-          console.error('[NDOG.Auth] Error initializing Airdrop:', err);
+      var modules = ['UI', 'Claim', 'Referrals', 'Missions', 'Leaderboard', 'Staking', 'Airdrop'];
+      
+      for (var i = 0; i < modules.length; i++) {
+        var moduleName = modules[i];
+        if (window.NDOG[moduleName] && typeof window.NDOG[moduleName].init === 'function') {
+          try {
+            window.NDOG[moduleName].init();
+            console.log('[NDOG.Auth] ✅ ' + moduleName + ' initialized');
+          } catch (err) {
+            console.error('[NDOG.Auth] Error initializing ' + moduleName + ':', err);
+          }
         }
       }
     },
@@ -575,6 +584,7 @@
       try {
         var snap = await window.NDOG.db.ref('admins/' + uid).once('value');
         if (snap.val()) {
+          console.log('[NDOG.Auth] User is admin');
           if (window.NDOG.Admin && typeof window.NDOG.Admin.init === 'function') {
             window.NDOG.Admin.init();
           }
@@ -589,7 +599,7 @@
      */
     refreshSession: async function () {
       if (!window.NDOG.currentUser) return;
-      
+
       try {
         var uid = window.NDOG.currentUser.uid;
         var snap = await window.NDOG.db.ref('users/' + uid).once('value');

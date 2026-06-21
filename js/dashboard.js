@@ -36,7 +36,7 @@ export function bindDashboard() {
     openModal("qrModal");
   });
 
-  document.querySelectorAll("[data-share]").forEach((btn) => {
+  document.querySelectorAll("#view-dashboard .ref-card__share [data-share]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const u = getCurrentUser();
       if (!u) return;
@@ -61,11 +61,7 @@ function renderDashboard(user) {
   setSrc("dashAvatar", user.photoURL);
   setText("dashName", user.name || "User");
   setText("dashJoined", t("dash.memberSince", { date: formatDate(user.createdAt) }));
-  setText("dashCountry", user.country || t("lb.globalLabel"));
-  setText("dashRankName", t(computeLevel(user.balance || 0).nameKey || computeLevel(user.balance || 0).name));
-
-  setText("dashRefCode", user.referralCode || "NDOG—");
-  setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
+  setText("dashCountry", `🌍 ${user.country || t("lb.globalLabel")}`);
 
   animateCount(document.getElementById("statBalance"), user.balance || 0);
   animateCount(document.getElementById("statCommunity"), user.communityScore || 0);
@@ -77,24 +73,27 @@ function renderDashboard(user) {
   const levelName = t(level.nameKey || level.name);
 
   const rankChip = document.getElementById("dashRankChip");
-  if (rankChip) rankChip.textContent = levelName;
+  if (rankChip) rankChip.innerHTML = `${levelName}`;
+
+  setText("dashRankName", levelName);
+  setText("dashRefCode", user.referralCode || "NDOG—");
+  setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
 
   renderLevelProgress(user.balance || 0);
 
   const ea = document.getElementById("earlyAdopterBanner");
-  if (ea) ea.style.display = user.isFounder ? "flex" : "none";
+  if (ea) {
+    ea.style.display = user.isFounder ? "flex" : "none";
+  }
 }
 
 function renderLevelProgress(balance) {
   const levels = APP_CONFIG.rewardLevels || [];
-  if (!levels.length) return;
-
   const current = computeLevel(balance);
   const next = levels.find((l) => l.min > balance);
 
   const fill = document.getElementById("levelFill");
   const nextLbl = document.getElementById("levelNext");
-  const wrap = document.getElementById("levelBadges");
 
   if (!next) {
     if (fill) fill.style.width = "100%";
@@ -104,7 +103,7 @@ function renderLevelProgress(balance) {
     const range = Math.max(1, next.min - prevMin);
     const pct = Math.min(100, ((balance - prevMin) / range) * 100);
 
-    if (fill) fill.style.width = `${pct}%`;
+    if (fill) fill.style.width = pct + "%";
     if (nextLbl) {
       const nextName = t(next.nameKey || next.name);
       nextLbl.textContent = t("dash.nextLevel", {
@@ -114,12 +113,12 @@ function renderLevelProgress(balance) {
     }
   }
 
+  const wrap = document.getElementById("levelBadges");
   if (wrap) {
     wrap.innerHTML = levels.map((l) => {
-      const unlocked = balance >= l.min;
       const levelName = t(l.nameKey || l.name);
       return `
-        <span class="level-badge ${unlocked ? "is-unlocked" : ""}">
+        <span class="level-badge ${balance >= l.min ? "is-unlocked" : ""}">
           <span class="level-badge__icon">${l.icon || "•"}</span>
           <span class="level-badge__label">${levelName}</span>
         </span>
@@ -129,11 +128,11 @@ function renderLevelProgress(balance) {
 }
 
 function computeLevel(balance) {
-  const levels = [...(APP_CONFIG.rewardLevels || [])].sort((a, b) => a.min - b.min);
+  const levels = APP_CONFIG.rewardLevels || [];
   let current = levels[0] || { min: 0, name: "Bronze", nameKey: "dash.level.bronze" };
 
-  for (const level of levels) {
-    if (balance >= level.min) current = level;
+  for (const l of levels) {
+    if (balance >= l.min) current = l;
   }
 
   return current;

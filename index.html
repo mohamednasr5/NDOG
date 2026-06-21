@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0a1f44" />
+  <meta name="description" content="NileDogs (NDOG) — community-driven rewards ecosystem. Earn, refer, and climb the leaderboard before the official launch on January 1, 2028." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NileDogs" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="NileDogs (NDOG) — Rewards Ecosystem" />
+  <meta property="og:description" content="Earn NDOG tokens, invite friends, and climb the leaderboard. Launch: January 1, 2028." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mohamednasr5.github.io/NDOG/" />
+  <meta property="og:image" content="https://mohamednasr5.github.io/NDOG/assets/icons/icon-512.png" />
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
+  <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="./assets/icons/favicon.png" />
+  <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+
+  <title>NileDogs (NDOG) — Rewards Ecosystem</title>
+</head>
+<body>
+
+  <!-- ────────────────────────────── PARTICLE BG ────────────────────────────── -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb--1"></span>
+    <span class="orb orb--2"></span>
+    <span class="orb orb--3"></span>
+  </div>
+
+  <!-- ────────────────────────────── PRELOADER ────────────────────────────── -->
+  <div id="preloader" class="preloader">
+    <div class="preloader__logo">
+      <span class="preloader__dog">🐕</span>
+      <span class="preloader__ring"></span>
+    </div>
+    <div class="preloader__title">NileDogs</div>
+    <div class="preloader__bar"><span></span></div>
+    <div class="preloader__hint">Loading ecosystem…</div>
+  </div>
+
+  <!-- ────────────────────────────── TOAST HOST ────────────────────────────── -->
+  <div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ────────────────────────────── LOGIN SCREEN ────────────────────────────── -->
+  <section id="loginScreen" class="screen screen--login hidden">
+    <div class="login__wrap">
+      <div class="login__brand">
+        <div class="login__logo">🐕</div>
+        <h1 class="login__title">NileDogs</h1>
+        <p class="login__ticker">$NDOG · Community Rewards</p>
+      </div>
+      <p class="login__tagline">
+        Join the early adopter program. Earn tokens, invite friends,
+        and become a founder before the official launch on
+        <strong>January 1, 2028</strong>.
+      </p>
+
+      <div class="login__countdown" id="launchCountdown">
+        <div class="lc__unit"><span id="lcDays">0</span><small>Days</small></div>
+        <div class="lc__unit"><span id="lcHours">0</span><small>Hrs</small></div>
+        <div class="lc__unit"><span id="lcMins">0</span><small>Min</small></div>
+        <div class="lc__unit"><span id="lcSecs">0</span><small>Sec</small></div>
+      </div>
+
+      <button id="googleLoginBtn" class="btn btn--google">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path fill="#fff" d="M21.35 11.1h-9.18v2.92h5.27c-.23 1.4-1.6 4.1-5.27 4.1-3.17 0-5.76-2.62-5.76-5.86s2.59-5.86 5.76-5.86c1.81 0 3.02.77 3.71 1.43l2.53-2.44C16.9 3.4 14.79 2.5 12.17 2.5 6.99 2.5 2.81 6.68 2.81 11.86S6.99 21.22 12.17 21.22c5.86 0 9.74-4.11 9.74-9.9 0-.66-.07-1.17-.16-1.67z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <p class="login__note">
+        By continuing you agree to the
+        <a href="./whitepaper-en.html">Whitepaper</a> and confirm you are 13+.
+      </p>
+
+      <div class="login__features">
+        <div class="lf"><span>🪙</span><p>Daily NDOG rewards</p></div>
+        <div class="lf"><span>👥</span><p>3-tier referral bonuses</p></div>
+        <div class="lf"><span>🏆</span><p>Global leaderboard</p></div>
+        <div class="lf"><span>🎁</span><p>Missions &amp; spin wheel</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────────────── APP SHELL ────────────────────────────── -->
+  <section id="appShell" class="app-shell hidden">
+
+    <!-- TOP BAR -->
+    <header class="topbar glass">
+      <button class="topbar__menu" id="menuToggle" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="#" class="topbar__brand" data-view="dashboard">
+        <span class="topbar__logo">🐕</span>
+        <span class="topbar__name">NileDogs</span>
+      </a>
+      <div class="topbar__balance" id="topbarBalance">
+        <span class="topbar__bal-icon">🪙</span>
+        <span class="topbar__bal-num" id="topbarBalNum">0</span>
+        <span class="topbar__bal-ticker">NDOG</span>
+      </div>
+    </header>
+
+    <!-- SIDE NAV -->
+    <aside class="sidenav glass" id="sidenav" aria-hidden="true">
+      <div class="sidenav__head">
+        <img id="sideAvatar" class="sidenav__avatar" alt="avatar" />
+        <div class="sidenav__name" id="sideName">User</div>
+        <div class="sidenav__code" id="sideCode">NDOG—</div>
+      </div>
+      <nav class="sidenav__links">
+        <a href="#" data-view="dashboard"    class="nav-link active"><span>🏠</span> Dashboard</a>
+        <a href="#" data-view="claim"        class="nav-link"><span>🎁</span> Daily Claim</a>
+        <a href="#" data-view="referral"     class="nav-link"><span>👥</span> Referrals</a>
+        <a href="#" data-view="missions"     class="nav-link"><span>🎯</span> Missions</a>
+        <a href="#" data-view="leaderboard"  class="nav-link"><span>🏆</span> Leaderboard</a>
+        <a href="#" data-view="whitepaper"   class="nav-link"><span>📄</span> Whitepaper</a>
+        <a href="./admin.html"               class="nav-link"><span>🛡️</span> Admin</a>
+      </nav>
+      <button class="btn btn--ghost" id="logoutBtn"><span>⏻</span> Sign Out</button>
+    </aside>
+    <div class="sidenav__scrim" id="sidenavScrim"></div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottomnav glass">
+      <a href="#" data-view="dashboard"   class="bn-link active"><span>🏠</span><small>Home</small></a>
+      <a href="#" data-view="claim"       class="bn-link"><span>🎁</span><small>Claim</small></a>
+      <a href="#" data-view="referral"    class="bn-link"><span>👥</span><small>Refer</small></a>
+      <a href="#" data-view="missions"    class="bn-link"><span>🎯</span><small>Missions</small></a>
+      <a href="#" data-view="leaderboard" class="bn-link"><span>🏆</span><small>Ranks</small></a>
+    </nav>
+
+    <!-- MAIN VIEWPORT -->
+    <main id="viewport" class="viewport">
+
+      <!-- DASHBOARD VIEW -->
+      <section id="view-dashboard" class="view view--active">
+        <div class="view__in">
+
+          <div class="dash__hero glass">
+            <div class="dash__hero-l">
+              <img id="dashAvatar" class="dash__avatar" alt="avatar" />
+              <div>
+                <div class="dash__hello">Welcome back,</div>
+                <h2 class="dash__name" id="dashName">User</h2>
+                <div class="dash__meta">
+                  <span id="dashJoined">Member since —</span>
+                  ·
+                  <span id="dashCountry">🌍 —</span>
+                </div>
+              </div>
+            </div>
+            <div class="dash__hero-r">
+              <div class="dash__rank-chip" id="dashRankChip">
+                <span class="dash__rank-icon">🥉</span>
+                <span id="dashRankName">Bronze</span>
+              </div>
+              <button class="btn btn--gold btn--sm" data-view="claim">Claim Today</button>
+            </div>
+          </div>
+
+          <div class="dash__grid">
+            <div class="stat-card glass">
+              <div class="stat-card__icon">🪙</div>
+              <div class="stat-card__meta">
+                <div class="stat-card__label">Balance</div>
+                <div class="stat-card__value" data-counter id="statBalance">0</div>
+                <div class="stat-card__sub">NDOG</div>
+              </div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-card__icon">⭐</div>
+              <div class="stat-card__meta">
+                <div class="stat-card__label">Community Score</div>
+                <div class="stat-card__value" data-counter id="statCommunity">0</div>
+                <div class="stat-card__sub">points</div>
+              </div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-card__icon">💎</div>
+              <div class="stat-card__meta">
+                <div class="stat-card__label">Loyalty Score</div>
+                <div class="stat-card__value" data-counter id="statLoyalty">0</div>
+                <div class="stat-card__sub">points</div>
+              </div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-card__icon">👥</div>
+              <div class="stat-card__meta">
+                <div class="stat-card__label">Referrals</div>
+                <div class="stat-card__value" data-counter id="statRefs">0</div>
+                <div class="stat-card__sub">invited</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Referral code card -->
+          <div class="ref-card glass">
+            <div class="ref-card__head">
+              <h3>Your Referral Link</h3>
+              <button class="btn btn--ghost btn--sm" id="copyRefBtn">Copy</button>
+            </div>
+            <div class="ref-card__code" id="dashRefCode">NDOG—</div>
+            <div class="ref-card__link" id="dashRefLink">https://mohamednasr5.github.io/NDOG/?ref=NDOG—</div>
+            <div class="ref-card__share">
+              <a class="share-btn share--wa"  data-share="whatsapp" title="WhatsApp">💬</a>
+              <a class="share-btn share--tg"  data-share="telegram" title="Telegram">✈️</a>
+              <a class="share-btn share--fb"  data-share="facebook" title="Facebook">📘</a>
+              <a class="share-btn share--x"   data-share="x"        title="X">𝕏</a>
+              <a class="share-btn share--ms"  data-share="messenger" title="Messenger">💬</a>
+              <button class="share-btn share--qr" id="qrTrigger" title="QR Code">▦</button>
+            </div>
+          </div>
+
+          <!-- Reward level progress -->
+          <div class="level-card glass">
+            <div class="level-card__head">
+              <h3>Reward Level</h3>
+              <span class="level-card__next" id="levelNext">Next: Silver</span>
+            </div>
+            <div class="level-track">
+              <div class="level-track__fill" id="levelFill"></div>
+            </div>
+            <div class="level-card__levels" id="levelBadges"></div>
+          </div>
+
+          <!-- Early adopter banner -->
+          <div class="ea-banner glass" id="earlyAdopterBanner">
+            <div class="ea-banner__icon">👑</div>
+            <div class="ea-banner__txt">
+              <strong>Founder Badge Unlocked</strong>
+              <p>You joined before launch — you receive priority rewards and a higher reward multiplier forever.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- CLAIM VIEW -->
+      <section id="view-claim" class="view">
+        <div class="view__in">
+          <div class="claim__hero glass">
+            <div class="claim__ring" id="claimRing">
+              <svg viewBox="0 0 220 220" width="220" height="220">
+                <circle cx="110" cy="110" r="100" class="claim__ring-bg"/>
+                <circle cx="110" cy="110" r="100" class="claim__ring-fg" id="claimRingFg"/>
+              </svg>
+              <div class="claim__ring-center">
+                <div class="claim__reward" id="claimReward">+10 NDOG</div>
+                <div class="claim__hint" id="claimHint">Ready to claim</div>
+              </div>
+            </div>
+            <button id="claimBtn" class="btn btn--gold btn--lg">Claim Daily Reward</button>
+            <div class="claim__streak">
+              <span>🔥 Streak:</span>
+              <strong id="claimStreak">0 days</strong>
+              <span class="claim__mult" id="claimMult">×1.0</span>
+            </div>
+            <div class="claim__countdown" id="claimCountdown"></div>
+          </div>
+
+          <div class="claim__levels">
+            <h3>Reward Levels</h3>
+            <div class="claim__levels-grid" id="claimLevelsGrid"></div>
+          </div>
+
+          <div class="claim__history glass">
+            <h3>Claim History</h3>
+            <div class="claim__history-list" id="claimHistoryList">
+              <div class="empty">No claims yet — claim your first reward today!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REFERRAL VIEW -->
+      <section id="view-referral" class="view">
+        <div class="view__in">
+          <div class="ref__hero glass">
+            <h2>Invite &amp; Earn Big</h2>
+            <p>Share your link. Earn NDOG across <strong>3 levels</strong> of referrals — forever.</p>
+            <div class="ref__tiers">
+              <div class="ref__tier">
+                <div class="ref__tier-l">L1</div>
+                <div class="ref__tier-r"><strong>+50</strong> NDOG</div>
+              </div>
+              <div class="ref__tier">
+                <div class="ref__tier-l">L2</div>
+                <div class="ref__tier-r"><strong>+20</strong> NDOG</div>
+              </div>
+              <div class="ref__tier">
+                <div class="ref__tier-l">L3</div>
+                <div class="ref__tier-r"><strong>+10</strong> NDOG</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ref__stats">
+            <div class="stat-card glass"><div class="stat-card__icon">🎯</div><div class="stat-card__meta"><div class="stat-card__label">Total Referrals</div><div class="stat-card__value" data-counter id="refStatTotal">0</div></div></div>
+            <div class="stat-card glass"><div class="stat-card__icon">✅</div><div class="stat-card__meta"><div class="stat-card__label">Active Referrals</div><div class="stat-card__value" data-counter id="refStatActive">0</div></div></div>
+            <div class="stat-card glass"><div class="stat-card__icon">💰</div><div class="stat-card__meta"><div class="stat-card__label">Referral Earnings</div><div class="stat-card__value" data-counter id="refStatEarn">0</div></div></div>
+            <div class="stat-card glass"><div class="stat-card__icon">📊</div><div class="stat-card__meta"><div class="stat-card__label">Conversion Rate</div><div class="stat-card__value" id="refStatConv">0%</div></div></div>
+          </div>
+
+          <div class="ref__link-card glass">
+            <label>Your Referral Code</label>
+            <div class="ref__link-row">
+              <input id="refCodeInput" readonly />
+              <button class="btn btn--ghost btn--sm" data-copy-target="refCodeInput">Copy</button>
+            </div>
+            <label>Your Referral Link</label>
+            <div class="ref__link-row">
+              <input id="refLinkInput" readonly />
+              <button class="btn btn--ghost btn--sm" data-copy-target="refLinkInput">Copy</button>
+            </div>
+            <div class="ref-card__share">
+              <a class="share-btn share--wa"  data-share="whatsapp">💬</a>
+              <a class="share-btn share--tg"  data-share="telegram">✈️</a>
+              <a class="share-btn share--fb"  data-share="facebook">📘</a>
+              <a class="share-btn share--x"   data-share="x">𝕏</a>
+              <a class="share-btn share--ms"  data-share="messenger">💬</a>
+              <button class="share-btn share--qr" id="qrTrigger2">▦</button>
+            </div>
+          </div>
+
+          <div class="ref__tree glass">
+            <h3>Referral Network</h3>
+            <div class="ref__tree-list" id="refTreeList">
+              <div class="empty">No referrals yet — share your link to grow your network.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MISSIONS VIEW -->
+      <section id="view-missions" class="view">
+        <div class="view__in">
+          <div class="missions__tabs">
+            <button class="tab active" data-mtab="daily">Daily</button>
+            <button class="tab" data-mtab="weekly">Weekly</button>
+            <button class="tab" data-mtab="monthly">Monthly</button>
+            <button class="tab" data-mtab="badges">Badges</button>
+            <button class="tab" data-mtab="events">Events</button>
+          </div>
+
+          <div class="missions__list" id="missionsList"></div>
+
+          <div class="missions__fun glass">
+            <h3>Mini Games</h3>
+            <div class="missions__fun-grid">
+              <button class="game-card" id="openSpin">
+                <span class="game-card__icon">🎡</span>
+                <strong>Spin Wheel</strong>
+                <small>Free daily spin</small>
+              </button>
+              <button class="game-card" id="openLucky">
+                <span class="game-card__icon">📦</span>
+                <strong>Lucky Box</strong>
+                <small>Open every 6h</small>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEADERBOARD VIEW -->
+      <section id="view-leaderboard" class="view">
+        <div class="view__in">
+          <div class="lb__tabs">
+            <button class="tab active" data-ltab="global">🌍 Global</button>
+            <button class="tab" data-ltab="country">🏳️ Country</button>
+            <button class="tab" data-ltab="referral">👥 Referral</button>
+          </div>
+          <div class="lb__podium" id="lbPodium"></div>
+          <div class="lb__list" id="lbList"></div>
+        </div>
+      </section>
+
+      <!-- WHITEPAPER VIEW (inline preview) -->
+      <section id="view-whitepaper" class="view">
+        <div class="view__in">
+          <div class="wp__hero glass">
+            <h2>NileDogs Whitepaper</h2>
+            <p>Read the full vision, tokenomics, and roadmap.</p>
+            <div class="wp__links">
+              <a class="btn btn--gold" href="./whitepaper-en.html">English Whitepaper</a>
+              <a class="btn btn--ghost" href="./whitepaper-ar.html">النسخة العربية</a>
+            </div>
+          </div>
+          <div class="wp__quick glass">
+            <h3>Quick Highlights</h3>
+            <ul class="wp__quick-list">
+              <li><strong>Launch:</strong> January 1, 2028 — mainnet activation.</li>
+              <li><strong>Early Adopter Program:</strong> Founder Badge + 1.5× reward multiplier for life.</li>
+              <li><strong>Distribution:</strong> 60% community, 15% team (4y vest), 10% liquidity, 10% partnerships, 5% reserve.</li>
+              <li><strong>Referral Rewards:</strong> 3-tier system (L1: 50, L2: 20, L3: 10 NDOG).</li>
+              <li><strong>Anti-Fraud:</strong> Device fingerprint + rate limiting + admin review.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </section>
+
+  <!-- ────────────────────────────── QR MODAL ────────────────────────────── -->
+  <div id="qrModal" class="modal hidden">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel glass">
+      <button class="modal__close" data-close-modal>×</button>
+      <h3>Scan to Join</h3>
+      <div id="qrCanvas" class="qr-canvas"></div>
+      <p class="modal__hint">Point your camera at the QR code to start earning NDOG.</p>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────── SPIN WHEEL MODAL ────────────────────────────── -->
+  <div id="spinModal" class="modal hidden">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel glass">
+      <button class="modal__close" data-close-modal>×</button>
+      <h3>Daily Spin Wheel</h3>
+      <div class="spin__wrap">
+        <canvas id="spinCanvas" width="320" height="320"></canvas>
+        <div class="spin__pointer">▼</div>
+      </div>
+      <button id="spinNowBtn" class="btn btn--gold btn--lg">Spin Now</button>
+      <p class="modal__hint">One free spin every 24 hours.</p>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────── LUCKY BOX MODAL ────────────────────────────── -->
+  <div id="luckyModal" class="modal hidden">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel glass">
+      <button class="modal__close" data-close-modal>×</button>
+      <h3>Lucky Box</h3>
+      <div class="lucky__box" id="luckyBox">🎁</div>
+      <button id="luckyOpenBtn" class="btn btn--gold btn--lg">Open Box</button>
+      <p class="modal__hint">Mystery reward between 5 and 100 NDOG.</p>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────── BANNED MODAL ────────────────────────────── -->
+  <div id="bannedModal" class="modal hidden">
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel glass">
+      <div class="banned__icon">⛔</div>
+      <h3>Account Suspended</h3>
+      <p>Your account has been suspended for violating community rules. Contact support if you believe this is a mistake.</p>
+      <button class="btn btn--ghost" id="bannedLogout">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────── SCRIPTS ────────────────────────────── -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

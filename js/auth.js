@@ -78,13 +78,55 @@ export async function googleLogin() {
     throw e;
   }
 
-  console.log("[NDOG] Login attempt — using signInWithRedirect (COOP-safe)");
+  // ─── POPUP FIRST (DESKTOP), REDIRECT FALLBACK ───────────────────
+  // IMPORTANT: The authDomain (ndog-a3265.firebaseapp.com) is a
+  // DIFFERENT origin from the hosting domain (ndogcoin.com).
+  // signInWithRedirect requires Firebase to persist the pending
+  // redirect state in IndexedDB on the authDomain, then read it back
+  // after navigating back to the hosting domain. Modern browsers
+  // (Chrome, Safari) partition storage by top-level origin, so that
+  // state can silently fail to carry over — the user comes back
+  // signed in on Google but getRedirectResult() resolves to null,
+  // with NO visible error. This is exactly the "stuck on login
+  // screen after a successful Google sign-in" bug.
+  //
+  // signInWithPopup does NOT have this problem: the popup and main
+  // window communicate directly while both are open, so there's no
+  // dependency on storage surviving a full top-level navigation.
+  // GitHub Pages does not set a Cross-Origin-Opener-Policy header by
+  // default, so popups work fine here on desktop.
+  //
+  // Mobile browsers still use redirect because popups are unreliable
+  // there (popup blockers, multi-window support, etc.).
+  if (!isMobile()) {
+    console.log("[NDOG] Login attempt — using signInWithPopup (desktop)");
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // Success: onAuthStateChanged will fire with the signed-in user.
+      return;
+    } catch (err) {
+      console.warn("[NDOG] Popup sign-in failed:", err.code, err.message);
 
-  // ─── REDIRECT FOR ALL DEVICES ───────────────────────────────
-  // The site has a Cross-Origin-Opener-Policy header (set by the
-  // hosting CDN) that blocks signInWithPopup on all devices.
-  // signInWithRedirect bypasses this entirely because it navigates
-  // the main window instead of opening a popup.
+      // If the popup was blocked or unsupported in this environment,
+      // fall back to redirect. Otherwise (user closed it, cancelled,
+      // etc.) surface the real error instead of silently retrying.
+      const fallbackCodes = [
+        "auth/popup-blocked",
+        "auth/operation-not-supported-in-this-environment",
+        "auth/cancelled-popup-request"
+      ];
+      if (!fallbackCodes.includes(err.code)) {
+        const friendly = friendlyAuthError(err);
+        const e = new Error(friendly);
+        e.code = err.code;
+        e.original = err;
+        throw e;
+      }
+      console.log("[NDOG] Falling back to signInWithRedirect...");
+    }
+  }
+
+  console.log("[NDOG] Login attempt — using signInWithRedirect");
   try {
     await signInWithRedirect(auth, googleProvider);
     // The page will now navigate to Google sign-in.
@@ -302,23 +344,25 @@ export async function initAuth(onReady) {
   // ── CRITICAL: Consume pending redirect result FIRST ────────────
   // When signInWithRedirect completes, Firebase stores the credential
   // in a temporary storage. getRedirectResult() consumes it and
-  // returns the signed-in user.
+  // returns the signed-in user. If we don't call this, the result
+  // sits unprocessed and onAuthStateChanged may not fire correctly
+  // on the redirected page load.
   //
-  // IMPORTANT: getRedirectResult can HANG if COOP blocks the internal
-  // cross-origin iframe communication. We use a 3-second timeout so
-  // the auth initialization always proceeds.
+  // This is called ONCE here and never again, preventing infinite loops.
   try {
     console.log("[NDOG] Checking for pending redirect result...");
-    const result = await Promise.race([
-      getRedirectResult(auth),
-      new Promise(resolve => setTimeout(() => resolve(null), 3000))
-    ]);
+    const result = await getRedirectResult(auth);
     if (result && result.user) {
       console.log("[NDOG] Redirect result received for:", result.user.uid);
+      // The user is now signed in — onAuthStateChanged below will
+      // fire with this user and handle provisioning/UI.
     } else {
       console.log("[NDOG] No pending redirect result");
     }
   } catch (err) {
+    // Errors here mean the redirect auth failed (user cancelled,
+    // network error, etc.). Log it but don't crash — onAuthStateChanged
+    // will fire with null and show the login screen.
     console.error("[NDOG] getRedirectResult error:", err.code, err.message);
   }
 

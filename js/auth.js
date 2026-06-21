@@ -302,25 +302,23 @@ export async function initAuth(onReady) {
   // ── CRITICAL: Consume pending redirect result FIRST ────────────
   // When signInWithRedirect completes, Firebase stores the credential
   // in a temporary storage. getRedirectResult() consumes it and
-  // returns the signed-in user. If we don't call this, the result
-  // sits unprocessed and onAuthStateChanged may not fire correctly
-  // on the redirected page load.
+  // returns the signed-in user.
   //
-  // This is called ONCE here and never again, preventing infinite loops.
+  // IMPORTANT: getRedirectResult can HANG if COOP blocks the internal
+  // cross-origin iframe communication. We use a 3-second timeout so
+  // the auth initialization always proceeds.
   try {
     console.log("[NDOG] Checking for pending redirect result...");
-    const result = await getRedirectResult(auth);
+    const result = await Promise.race([
+      getRedirectResult(auth),
+      new Promise(resolve => setTimeout(() => resolve(null), 3000))
+    ]);
     if (result && result.user) {
       console.log("[NDOG] Redirect result received for:", result.user.uid);
-      // The user is now signed in — onAuthStateChanged below will
-      // fire with this user and handle provisioning/UI.
     } else {
       console.log("[NDOG] No pending redirect result");
     }
   } catch (err) {
-    // Errors here mean the redirect auth failed (user cancelled,
-    // network error, etc.). Log it but don't crash — onAuthStateChanged
-    // will fire with null and show the login screen.
     console.error("[NDOG] getRedirectResult error:", err.code, err.message);
   }
 

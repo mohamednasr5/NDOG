@@ -11,7 +11,7 @@
     style-src 'self' https://www.gstatic.com 'unsafe-inline';
     connect-src 'self' https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebasedatabase.app https://*.firebasedatabase.app https://apis.google.com https://*.firebaseio.com;
     img-src 'self' data: https:;
-    font-src 'self' https://www.gstatic.com data:;
+    font-src 'self' https://www.gstatic.com https://frontend-cdn.perplexity.ai data:;
   ">
   <!-- SEO Meta Tags -->
   <meta name="description" content="NileDogs (NDOG) — منصة مكافآت مجتمعية: اطلب نقاطك اليومية، ادعُ أصدقاءك، وتسلّق لوحة المتصدرين فى برنامج المؤسسين المبكر قبل الإطلاق الرسمي فى 1 يناير 2028." />
@@ -1200,6 +1200,11 @@
   <!-- ============================================ -->
   <!-- SCRIPTS                                      -->
   <!-- ============================================ -->
+
+  <!-- Firebase Compat SDK — MUST load before firebase.js -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
   <!-- Failsafe — shows reload button after 8s if app doesn't load -->
   <script>

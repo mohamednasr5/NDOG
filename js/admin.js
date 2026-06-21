@@ -1,702 +1,486 @@
 /**
- * NileDogs (NDOG) — Admin Dashboard
- * ------------------------------------------------------------------
- * Access control: only UIDs listed in APP_CONFIG.adminUIDs OR
- *                 present in the `admins` Realtime DB node.
- * Features: users, referrals, claims, tasks, notifications, events,
- *           leaderboards, analytics, CSV export.
+ * FILE NAME: js/admin.js
+ * PURPOSE: Admin panel controller. Role-gated. User/balance/ban/referral/mission/
+ *          news/fraud/analytics management. Audit log for every admin action.
+ * DEPENDENCIES: firebase.js, auth.js, database.js, antifraud.js, utils.js
+ * EXPORTS: admin.init, admin.tabs
  */
 
-import {
-  auth, db, googleProvider, APP_CONFIG,
-  ref, get, set, update, push, remove, onValue,
-  signInWithPopup, signOut, onAuthStateChanged
-} from "./firebase-config.js?v=2.0.5";
-import { t, getLang, setLang, applyTranslations, onLangChange } from "./i18n.js?v=2.0.5";
+import { firebaseDb } from "./firebase.js";
+import { auth } from "./auth.js";
+import { db, PATHS } from "./database.js";
+import { antifraud } from "./antifraud.js";
+import { $, $$, safeHTML, showToast, formatNDOG, formatNumber, formatDate, downloadCSV, timeAgo } from "./utils.js";
+import { ref, get, query, orderByChild, limitToLast, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-let currentUser = null;
-let allUsers = [];
-let allClaims = [];
-let allReferrals = [];
-let allGifts = [];
-let editingUid = null;
+const TABS = ["overview", "users", "balance", "bans", "missions", "news", "fraud", "analytics"];
 
-// ───────────────────────────────────────────────────────────────────
-// LANGUAGE SWITCHER (AR / EN)
-// ───────────────────────────────────────────────────────────────────
-function bindLanguageSwitcher() {
-  document.querySelectorAll(".lang-pill[data-lang]").forEach(pill => {
-    pill.classList.toggle("active", pill.dataset.lang === getLang());
-    pill.addEventListener("click", () => setLang(pill.dataset.lang));
-  });
-  onLangChange(() => {
-    applyTranslations();
-    document.title = t("admin.brand") + " — Secure Dashboard";
-    updateActiveSectionTitle();
-    renderSection(document.querySelector(".admin-link.active")?.dataset.asec || "overview");
-  });
-}
-applyTranslations();
-document.title = t("admin.brand") + " — Secure Dashboard";
-bindLanguageSwitcher();
-
-function updateActiveSectionTitle() {
-  const active = document.querySelector("[data-asec].active");
-  if (!active) return;
-  const key = "admin.nav." + active.dataset.asec;
-  document.getElementById("adminTitle").textContent = t(key);
-}
-
-// ───────────────────────────────────────────────────────────────────
-// AUTH GATE
-// ───────────────────────────────────────────────────────────────────
-document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
-  try {
-    await signInWithPopup(auth, googleProvider);
-  } catch (err) {
-    toast(err.message || t("admin.toast.loginFailed"), "err");
-  }
-});
-
-document.getElementById("adminLogout")?.addEventListener("click", async () => {
-  await signOut(auth);
-  location.reload();
-});
-
-onAuthStateChanged(auth, async (fbUser) => {
-  if (!fbUser) {
-    show("adminLogin");
-    return;
-  }
-  // Check admin list
-  let isAdmin = APP_CONFIG.adminUIDs.includes(fbUser.uid);
-  if (!isAdmin) {
-    const adminSnap = await get(ref(db, `admins/${fbUser.uid}`));
-    isAdmin = adminSnap.exists();
-  }
-  if (!isAdmin) {
-    show("adminDeny");
-    return;
-  }
-  // Logged in as admin
-  show("adminShell");
-  document.getElementById("adminAvatar").src = fbUser.photoURL || "";
-  document.getElementById("adminName").textContent = fbUser.displayName || "Admin";
-  bootstrapAdmin();
-});
-
-function show(id) {
-  ["adminLogin", "adminDeny", "adminShell"].forEach(el => {
-    document.getElementById(el)?.classList.add("hidden");
-  });
-  document.getElementById(id)?.classList.remove("hidden");
-}
-
-// ───────────────────────────────────────────────────────────────────
-// TOAST
-// ───────────────────────────────────────────────────────────────────
-function toast(msg, type = "info", duration = 2800) {
-  const host = document.getElementById("toastHost");
-  if (!host) return;
-  const t = document.createElement("div");
-  t.className = `toast toast--${type}`;
-  t.innerHTML = `<span>${msg}</span>`;
-  host.appendChild(t);
-  setTimeout(() => t.remove(), duration + 400);
-}
-
-// ───────────────────────────────────────────────────────────────────
-// SECTION NAVIGATION
-// ───────────────────────────────────────────────────────────────────
-document.querySelectorAll("[data-asec]").forEach(link => {
-  link.addEventListener("click", () => {
-    document.querySelectorAll("[data-asec]").forEach(l => l.classList.remove("active"));
-    link.classList.add("active");
-    document.querySelectorAll(".admin-section").forEach(s => s.classList.remove("active"));
-    document.getElementById(`asec-${link.dataset.asec}`).classList.add("active");
-    updateActiveSectionTitle();
-    renderSection(link.dataset.asec);
-  });
-});
-
-function renderSection(sec) {
-  switch (sec) {
-    case "overview":     renderOverview(); break;
-    case "users":        renderUsers(); break;
-    case "referrals":    renderReferrals(); break;
-    case "claims":       renderClaims(); break;
-    case "gifts":        renderGifts(); break;
-    case "tasks":        renderTasks(); break;
-    case "notifications":renderNotifications(); break;
-    case "events":       renderEvents(); break;
-    case "leaderboards": renderAdminLb(); break;
-    case "analytics":    renderAnalytics(); break;
-  }
-}
-
-// ───────────────────────────────────────────────────────────────────
-// BOOTSTRAP
-// ───────────────────────────────────────────────────────────────────
-async function bootstrapAdmin() {
-  await loadAll();
-  renderOverview();
-
-  // Wire buttons
-  document.getElementById("refreshUsers")?.addEventListener("click", loadAll);
-  document.getElementById("userSearch")?.addEventListener("input", renderUsers);
-  document.getElementById("userFilter")?.addEventListener("change", renderUsers);
-  document.getElementById("createTaskBtn")?.addEventListener("click", createTask);
-  document.getElementById("sendNotifBtn")?.addEventListener("click", sendNotif);
-  document.getElementById("createEventBtn")?.addEventListener("click", createEvent);
-  document.getElementById("saveEditBtn")?.addEventListener("click", saveEdit);
-  document.getElementById("sendGiftBtn")?.addEventListener("click", sendGift);
-  document.getElementById("exportUsersBtn")?.addEventListener("click", () => exportCSV("users"));
-  document.getElementById("exportClaimsBtn")?.addEventListener("click", () => exportCSV("claims"));
-  document.getElementById("exportReferralsBtn")?.addEventListener("click", () => exportCSV("referrals"));
-  document.getElementById("exportGiftsBtn")?.addEventListener("click", () => exportCSV("gifts"));
-}
-
-async function loadAll() {
-  const [usersSnap, claimsSnap, refSnap, giftsSnap] = await Promise.all([
-    get(ref(db, "users")),
-    get(ref(db, "claims")),
-    get(ref(db, "referrals")),
-    get(ref(db, "gifts"))
-  ]);
-  allUsers = [];
-  if (usersSnap.exists()) usersSnap.forEach(c => allUsers.push(c.val()));
-  allClaims = [];
-  if (claimsSnap.exists()) claimsSnap.forEach(c => allClaims.push(c.val()));
-  allReferrals = [];
-  if (refSnap.exists()) refSnap.forEach(c => allReferrals.push(c.val()));
-  allGifts = [];
-  if (giftsSnap.exists()) giftsSnap.forEach(c => allGifts.push({ id: c.key, ...c.val() }));
-  renderSection(document.querySelector(".admin-link.active")?.dataset.asec);
-}
-
-// ───────────────────────────────────────────────────────────────────
-// OVERVIEW
-// ───────────────────────────────────────────────────────────────────
-function renderOverview() {
-  const total    = allUsers.length;
-  const now      = Date.now();
-  const dayAgo   = now - 24 * 3600 * 1000;
-  const active   = allUsers.filter(u => (u.lastClaim || 0) > dayAgo).length;
-  const claimsT  = allClaims.filter(c => (c.date || 0) > dayAgo).length;
-  const supply   = allUsers.reduce((s, u) => s + (u.balance || 0), 0);
-  const refs     = allReferrals.length;
-  const founders = allUsers.filter(u => u.isFounder).length;
-  const banned   = allUsers.filter(u => u.banned).length;
-  const avg      = total ? Math.round(supply / total) : 0;
-
-  setText("kpiTotal", total);
-  setText("kpiActive", active);
-  setText("kpiClaims", claimsT);
-  setText("kpiSupply", supply.toLocaleString());
-  setText("kpiRefs", refs);
-  setText("kpiFounders", founders);
-  setText("kpiBanned", banned);
-  setText("kpiAvg", avg.toLocaleString());
-
-  // recent users
-  const recent = [...allUsers].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 8);
-  const body = document.getElementById("recentUsersBody");
-  if (body) body.innerHTML = recent.map(u => `
-    <tr>
-      <td>${escapeHtml(u.name || "—")}</td>
-      <td>${escapeHtml(u.email || "—")}</td>
-      <td>${u.country || "—"}</td>
-      <td>${(u.balance || 0).toLocaleString()}</td>
-      <td>${formatDate(u.createdAt)}</td>
-    </tr>`).join("");
-}
-
-// ───────────────────────────────────────────────────────────────────
-// USERS
-// ───────────────────────────────────────────────────────────────────
-function renderUsers() {
-  const q = (document.getElementById("userSearch")?.value || "").toLowerCase();
-  const filter = document.getElementById("userFilter")?.value || "";
-  const dayAgo = Date.now() - 24 * 3600 * 1000;
-
-  let list = allUsers.filter(u => {
-    const matches = (u.name || "").toLowerCase().includes(q) ||
-                    (u.email || "").toLowerCase().includes(q) ||
-                    (u.referralCode || "").toLowerCase().includes(q) ||
-                    (u.country || "").toLowerCase().includes(q);
-    if (!matches) return false;
-    if (filter === "founder") return !!u.isFounder;
-    if (filter === "banned")  return !!u.banned;
-    if (filter === "active")  return (u.lastClaim || 0) > dayAgo;
-    return true;
-  });
-
-  const body = document.getElementById("usersBody");
-  if (!body) return;
-  body.innerHTML = list.slice(0, 200).map(u => `
-    <tr>
-      <td>${escapeHtml(u.name || "—")}</td>
-      <td>${escapeHtml(u.email || "—")}</td>
-      <td><code>${u.referralCode || "—"}</code></td>
-      <td>${u.country || "—"}</td>
-      <td>${(u.balance || 0).toLocaleString()}</td>
-      <td>${u.totalReferrals || 0}</td>
-      <td>
-        ${u.banned ? `<span class="pill pill--ban">${t("admin.pill.banned")}</span>` : `<span class="pill pill--ok">${t("admin.pill.active")}</span>`}
-        ${u.isFounder ? `<span class="pill pill--founder">${t("admin.pill.founder")}</span>` : ''}
-      </td>
-      <td class="row-actions">
-        <button class="gold"   data-edit="${u.uid}">${t("admin.action.edit")}</button>
-        <button data-add="${u.uid}">${t("admin.action.addReward")}</button>
-        <button data-sub="${u.uid}">${t("admin.action.subReward")}</button>
-        <button class="${u.banned ? "" : "danger"}" data-ban="${u.uid}">${u.banned ? t("admin.action.unban") : t("admin.action.ban")}</button>
-        <button class="danger" data-del="${u.uid}">${t("admin.action.delete")}</button>
-      </td>
-    </tr>`).join("");
-
-  body.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openEdit(b.dataset.edit)));
-  body.querySelectorAll("[data-add]").forEach(b => b.addEventListener("click", () => adjustBalance(b.dataset.add,  +50)));
-  body.querySelectorAll("[data-sub]").forEach(b => b.addEventListener("click", () => adjustBalance(b.dataset.sub,  -50)));
-  body.querySelectorAll("[data-ban]").forEach(b => b.addEventListener("click", () => toggleBan(b.dataset.ban)));
-  body.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteUser(b.dataset.del)));
-}
-
-function openEdit(uid) {
-  const u = allUsers.find(x => x.uid === uid);
-  if (!u) return;
-  editingUid = uid;
-  document.getElementById("editName").value    = u.name || "";
-  document.getElementById("editBalance").value = u.balance || 0;
-  document.getElementById("editCountry").value = u.country || "";
-  document.getElementById("editScore").value   = u.communityScore || 0;
-  document.getElementById("editModal").classList.remove("hidden");
-}
-
-async function saveEdit() {
-  if (!editingUid) return;
-  await update(ref(db, `users/${editingUid}`), {
-    name:           document.getElementById("editName").value,
-    balance:        +document.getElementById("editBalance").value,
-    country:        document.getElementById("editCountry").value,
-    communityScore: +document.getElementById("editScore").value
-  });
-  toast(t("admin.toast.userUpdated"), "ok");
-  document.getElementById("editModal").classList.add("hidden");
-  await loadAll();
-}
-
-async function adjustBalance(uid, delta) {
-  const u = allUsers.find(x => x.uid === uid);
-  if (!u) return;
-  await update(ref(db, `users/${uid}`), { balance: Math.max(0, (u.balance || 0) + delta) });
-  toast(t("admin.toast.rewardApplied", { delta: (delta > 0 ? "+" : "") + delta }), "ok");
-  await loadAll();
-}
-
-async function toggleBan(uid) {
-  const u = allUsers.find(x => x.uid === uid);
-  if (!u) return;
-  await update(ref(db, `users/${uid}`), { banned: !u.banned });
-  toast(u.banned ? t("admin.toast.unbanned") : t("admin.toast.banned"), "ok");
-  await loadAll();
-}
-
-async function deleteUser(uid) {
-  if (!confirm(t("admin.confirm.deleteUser"))) return;
-  await remove(ref(db, `users/${uid}`));
-  toast(t("admin.toast.deleted"), "ok");
-  await loadAll();
-}
-
-// ───────────────────────────────────────────────────────────────────
-// REFERRALS
-// ───────────────────────────────────────────────────────────────────
-function renderReferrals() {
-  const body = document.getElementById("referralsBody");
-  if (!body) return;
-  const usersMap = {};
-  allUsers.forEach(u => usersMap[u.uid] = u);
-  body.innerHTML = allReferrals.slice(0, 200).map(r => `
-    <tr>
-      <td>${escapeHtml(usersMap[r.referrer]?.name || r.referrer)}</td>
-      <td>${escapeHtml(usersMap[r.referredUser]?.name || r.referredUser)}</td>
-      <td><span class="pill pill--founder">L${r.level || 1}</span></td>
-      <td>${formatDate(r.createdAt)}</td>
-    </tr>`).join("");
-}
-
-// ───────────────────────────────────────────────────────────────────
-// CLAIMS
-// ───────────────────────────────────────────────────────────────────
-function renderClaims() {
-  const body = document.getElementById("claimsBody");
-  if (!body) return;
-  const recent = [...allClaims].sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 200);
-  if (!recent.length) { body.innerHTML = `<tr><td colspan="4" class="empty">${t("admin.noClaims")}</td></tr>`; return; }
-  body.innerHTML = recent.map(c => `
-    <tr>
-      <td><code>${c.userId?.slice(0, 10)}…</code></td>
-      <td>${c.type || "daily"}</td>
-      <td>+${c.amount || 0}</td>
-      <td>${formatDate(c.date)}</td>
-    </tr>`).join("");
-}
-
-// ───────────────────────────────────────────────────────────────────
-// GIFTS — manual NDOG grants to a single user or broadcast to all
-// ───────────────────────────────────────────────────────────────────
-function findUserByLookup(lookup) {
-  const q = lookup.trim().toLowerCase();
-  if (!q) return null;
-  return allUsers.find(u =>
-    (u.uid || "").toLowerCase() === q ||
-    (u.email || "").toLowerCase() === q ||
-    (u.referralCode || "").toLowerCase() === q
-  ) || null;
-}
-
-async function sendGift() {
-  const targetInput = document.getElementById("giftTarget");
-  const amountInput = document.getElementById("giftAmount");
-  const reasonInput = document.getElementById("giftReason");
-  const lookup = (targetInput.value || "").trim();
-  const amount = +amountInput.value;
-  const reason = (reasonInput.value || "").trim();
-
-  if (!amount || amount <= 0) return toast(t("admin.gifts.amountRequired"), "err");
-
-  if (!lookup) {
-    // Broadcast to everyone
-    if (!confirm(`${t("admin.gifts.all")}: +${amount} NDOG × ${allUsers.length}?`)) return;
-    const updates = {};
-    allUsers.forEach(u => {
-      updates[`users/${u.uid}/balance`] = Math.max(0, (u.balance || 0) + amount);
+export const admin = {
+  init() {
+    auth.onReady((user) => {
+      if (!user) {
+        location.href = "/";
+        return;
+      }
+      if (!auth.isAdmin()) {
+        $("#admin-root").innerHTML = `
+          <div class="card card--denied">
+            <h2>🚫 Access Denied</h2>
+            <p>Admin privileges required.</p>
+            <a href="/" class="btn btn--primary">Back to Home</a>
+          </div>`;
+        return;
+      }
+      this._renderShell();
+      this._loadOverview();
     });
-    await update(ref(db), updates);
-    await push(ref(db, "gifts"), {
-      target: "all", targetName: t("admin.gifts.all"), amount, reason,
-      createdAt: Date.now()
+  },
+
+  _renderShell() {
+    $("#admin-root").innerHTML = `
+      <aside class="admin-sidebar">
+        ${TABS.map((t) => `<button class="admin-nav-btn ${t === "overview" ? "active" : ""}" data-tab="${t}">${this._tabIcon(t)} ${t.charAt(0).toUpperCase() + t.slice(1)}</button>`).join("")}
+      </aside>
+      <main class="admin-main" id="admin-main"></main>
+    `;
+    $$(".admin-nav-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        $$(".admin-nav-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        this._switchTab(btn.dataset.tab);
+      });
     });
-    toast(t("admin.gifts.sentAll", { amount, count: allUsers.length }), "ok");
-  } else {
-    const u = findUserByLookup(lookup);
-    if (!u) return toast(t("admin.gifts.userNotFound"), "err");
-    await update(ref(db, `users/${u.uid}`), { balance: Math.max(0, (u.balance || 0) + amount) });
-    await push(ref(db, "gifts"), {
-      target: u.uid, targetName: u.name || u.email || u.uid, amount, reason,
-      createdAt: Date.now()
+  },
+
+  _tabIcon(t) {
+    return { overview: "📊", users: "👥", balance: "💰", bans: "🚫", missions: "🎯", news: "📰", fraud: "🛡️", analytics: "📈" }[t] || "•";
+  },
+
+  _switchTab(tab) {
+    const fn = this[`_load${tab.charAt(0).toUpperCase() + tab.slice(1)}`];
+    if (fn) fn.call(this);
+  },
+
+  /* ============ Overview ============ */
+  async _loadOverview() {
+    const main = $("#admin-main");
+    main.innerHTML = '<div class="muted">Loading…</div>';
+
+    const [usersSnap, fraudSnap, newsSnap, missionsSnap, contractsSnap] = await Promise.all([
+      get(ref(firebaseDb, PATHS.users)),
+      get(ref(firebaseDb, PATHS.fraudLogs)),
+      get(ref(firebaseDb, PATHS.news)),
+      get(ref(firebaseDb, PATHS.missions)),
+      get(ref(firebaseDb, PATHS.stakingContracts))
+    ]);
+
+    const users = usersSnap.val() || {};
+    const userCount = Object.keys(users).length;
+    const totalSupply = Object.values(users).reduce((s, u) => s + (u.balance || 0), 0);
+    const bannedCount = Object.values(users).filter((u) => u.banned).length;
+    const fraudCount = Object.keys(fraudSnap.val() || {}).length;
+
+    main.innerHTML = `
+      <h2>📊 Overview</h2>
+      <div class="admin-cards">
+        <div class="card"><div class="card__label">Total Users</div><div class="card__value">${formatNumber(userCount)}</div></div>
+        <div class="card"><div class="card__label">Banned Users</div><div class="card__value">${formatNumber(bannedCount)}</div></div>
+        <div class="card"><div class="card__label">Circulating NDOG</div><div class="card__value">${formatNDOG(totalSupply)}</div></div>
+        <div class="card"><div class="card__label">Fraud Alerts</div><div class="card__value">${formatNumber(fraudCount)}</div></div>
+        <div class="card"><div class="card__label">News Posts</div><div class="card__value">${formatNumber(Object.keys(newsSnap.val() || {}).length)}</div></div>
+        <div class="card"><div class="card__label">Active Missions</div><div class="card__value">${formatNumber(Object.keys(missionsSnap.val() || {}).length)}</div></div>
+        <div class="card"><div class="card__label">Staking Contracts</div><div class="card__value">${formatNumber(Object.keys(contractsSnap.val() || {}).length)}</div></div>
+      </div>
+      <div class="card">
+        <h3>Quick Actions</h3>
+        <div class="admin-quick">
+          <button class="btn btn--ghost" data-quick="users">Manage Users</button>
+          <button class="btn btn--ghost" data-quick="news">Post News</button>
+          <button class="btn btn--ghost" data-quick="fraud">Review Fraud</button>
+          <button class="btn btn--ghost" data-quick="analytics">View Analytics</button>
+        </div>
+      </div>
+    `;
+    $$("[data-quick]").forEach((b) => b.addEventListener("click", () => this._switchTab(b.dataset.quick)));
+  },
+
+  /* ============ Users ============ */
+  async _loadUsers() {
+    const main = $("#admin-main");
+    main.innerHTML = `
+      <h2>👥 User Management</h2>
+      <div class="admin-toolbar">
+        <input type="search" id="user-search" placeholder="Search by email, name, uid…" />
+        <button class="btn btn--ghost" id="user-export">Export CSV</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>UID</th><th>Name</th><th>Email</th><th>Balance</th><th>Role</th><th>Banned</th><th>Actions</th></tr></thead>
+          <tbody id="user-tbody"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    `;
+    const snap = await get(ref(firebaseDb, PATHS.users));
+    const users = snap.val() || {};
+    this._renderUsers(users);
+
+    $("#user-search").addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      const filtered = {};
+      for (const [k, v] of Object.entries(users)) {
+        if (
+          (v.displayName || "").toLowerCase().includes(q) ||
+          (v.email || "").toLowerCase().includes(q) ||
+          k.toLowerCase().includes(q)
+        ) {
+          filtered[k] = v;
+        }
+      }
+      this._renderUsers(filtered);
     });
-    toast(t("admin.gifts.sentOne", { amount, name: u.name || u.email || u.uid }), "ok");
-  }
 
-  targetInput.value = "";
-  amountInput.value = "";
-  reasonInput.value = "";
-  await loadAll();
-  renderGifts();
-}
+    $("#user-export").addEventListener("click", () => {
+      const rows = [["UID", "Name", "Email", "Balance", "Role", "Country", "Banned"]];
+      for (const [k, v] of Object.entries(users)) {
+        rows.push([k, v.displayName, v.email, v.balance, v.role, v.country, v.banned ? "YES" : "NO"]);
+      }
+      downloadCSV("ndog-users.csv", rows);
+    });
+  },
 
-function renderGifts() {
-  const body = document.getElementById("giftsBody");
-  if (!body) return;
-  const sorted = [...allGifts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  if (!sorted.length) { body.innerHTML = `<tr><td colspan="5" class="empty">${t("admin.gifts.noGifts")}</td></tr>`; return; }
-  body.innerHTML = sorted.slice(0, 200).map(g => `
-    <tr>
-      <td>${escapeHtml(g.targetName || g.target || "—")}</td>
-      <td>+${g.amount || 0}</td>
-      <td>${escapeHtml(g.reason || "—")}</td>
-      <td>${formatDate(g.createdAt)}</td>
-      <td class="row-actions"><button class="danger" data-delgift="${g.id}">${t("admin.action.deleteFull")}</button></td>
-    </tr>`).join("");
-  body.querySelectorAll("[data-delgift]").forEach(b =>
-    b.addEventListener("click", async () => {
-      if (!confirm(t("admin.gifts.confirmDelete"))) return;
-      await remove(ref(db, `gifts/${b.dataset.delgift}`));
-      toast(t("admin.gifts.deleted"), "ok");
-      await loadAll();
-      renderGifts();
-    })
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────
-// TASKS
-// ───────────────────────────────────────────────────────────────────
-async function createTask() {
-  const title  = document.getElementById("taskTitle").value.trim();
-  const desc   = document.getElementById("taskDesc").value.trim();
-  const type   = document.getElementById("taskType").value;
-  const reward = +document.getElementById("taskReward").value;
-  if (!title || !reward) return toast(t("admin.tasks.titleReq"), "err");
-  await push(ref(db, "tasks"), {
-    title, desc, type, reward,
-    status: "active",
-    createdAt: Date.now()
-  });
-  toast(t("admin.tasks.created"), "ok");
-  document.getElementById("taskTitle").value = "";
-  document.getElementById("taskDesc").value = "";
-  document.getElementById("taskReward").value = "";
-  renderTasks();
-}
-
-async function renderTasks() {
-  const snap = await get(ref(db, "tasks"));
-  const body = document.getElementById("tasksBody");
-  if (!body) return;
-  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="5" class="empty">${t("admin.tasks.noTasks")}</td></tr>`; return; }
-  const tasks = [];
-  snap.forEach(c => tasks.push({ id: c.key, ...c.val() }));
-  body.innerHTML = tasks.map(task => `
-    <tr>
-      <td>${escapeHtml(task.title)}</td>
-      <td>${task.type}</td>
-      <td>+${task.reward}</td>
-      <td><span class="pill pill--ok">${task.status}</span></td>
-      <td class="row-actions"><button class="danger" data-deltask="${task.id}">${t("admin.action.deleteFull")}</button></td>
-    </tr>`).join("");
-  body.querySelectorAll("[data-deltask]").forEach(b =>
-    b.addEventListener("click", async () => {
-      await remove(ref(db, `tasks/${b.dataset.deltask}`));
-      toast(t("admin.tasks.deleted"), "ok");
-      renderTasks();
-    })
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────
-// NOTIFICATIONS
-// ───────────────────────────────────────────────────────────────────
-async function sendNotif() {
-  const title   = document.getElementById("notifTitle").value.trim();
-  const message = document.getElementById("notifMessage").value.trim();
-  if (!title || !message) return toast(t("admin.notif.titleReq"), "err");
-  await push(ref(db, "notifications"), { title, message, createdAt: Date.now() });
-  toast(t("admin.notif.sent"), "ok");
-  document.getElementById("notifTitle").value = "";
-  document.getElementById("notifMessage").value = "";
-  renderNotifications();
-}
-
-async function renderNotifications() {
-  const snap = await get(ref(db, "notifications"));
-  const body = document.getElementById("notifsBody");
-  if (!body) return;
-  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="3" class="empty">${t("admin.notif.noNotifs")}</td></tr>`; return; }
-  const notifs = [];
-  snap.forEach(c => notifs.push(c.val()));
-  notifs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  body.innerHTML = notifs.slice(0, 20).map(n => `
-    <tr>
-      <td><strong>${escapeHtml(n.title)}</strong></td>
-      <td>${escapeHtml(n.message)}</td>
-      <td>${formatDate(n.createdAt)}</td>
-    </tr>`).join("");
-}
-
-// ───────────────────────────────────────────────────────────────────
-// EVENTS
-// ───────────────────────────────────────────────────────────────────
-async function createEvent() {
-  const title  = document.getElementById("eventTitle").value.trim();
-  const desc   = document.getElementById("eventDesc").value.trim();
-  const reward = +document.getElementById("eventReward").value;
-  const status = document.getElementById("eventStatus").value;
-  if (!title) return toast(t("admin.events.titleReq"), "err");
-  await push(ref(db, "events"), { title, desc, reward, status, createdAt: Date.now() });
-  toast(t("admin.events.created"), "ok");
-  document.getElementById("eventTitle").value = "";
-  document.getElementById("eventDesc").value = "";
-  document.getElementById("eventReward").value = "";
-  renderEvents();
-}
-
-async function renderEvents() {
-  const snap = await get(ref(db, "events"));
-  const body = document.getElementById("eventsBody");
-  if (!body) return;
-  if (!snap.exists()) { body.innerHTML = `<tr><td colspan="4" class="empty">${t("admin.events.noEvents")}</td></tr>`; return; }
-  const events = [];
-  snap.forEach(c => events.push({ id: c.key, ...c.val() }));
-  body.innerHTML = events.map(e => `
-    <tr>
-      <td>${escapeHtml(e.title)}</td>
-      <td>+${e.reward || 0}</td>
-      <td><span class="pill pill--ok">${e.status}</span></td>
-      <td class="row-actions"><button class="danger" data-delev="${e.id}">${t("admin.action.deleteFull")}</button></td>
-    </tr>`).join("");
-  body.querySelectorAll("[data-delev]").forEach(b =>
-    b.addEventListener("click", async () => {
-      await remove(ref(db, `events/${b.dataset.delev}`));
-      toast(t("admin.events.deleted"), "ok");
-      renderEvents();
-    })
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────
-// ADMIN LEADERBOARD
-// ───────────────────────────────────────────────────────────────────
-function renderAdminLb() {
-  const body = document.getElementById("adminLbBody");
-  if (!body) return;
-  const top = [...allUsers].sort((a, b) => (b.balance || 0) - (a.balance || 0)).slice(0, 50);
-  body.innerHTML = top.map((u, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${escapeHtml(u.name || "—")}</td>
-      <td>${u.country || "—"}</td>
-      <td>${(u.balance || 0).toLocaleString()}</td>
-      <td>${u.totalReferrals || 0}</td>
-    </tr>`).join("");
-}
-
-// ───────────────────────────────────────────────────────────────────
-// ANALYTICS
-// ───────────────────────────────────────────────────────────────────
-function renderAnalytics() {
-  const now = Date.now();
-  const dayAgo = now - 24 * 3600 * 1000;
-  const weekAgo = now - 7 * 24 * 3600 * 1000;
-  const twoWeeksAgo = now - 14 * 24 * 3600 * 1000;
-
-  const dau = allUsers.filter(u => (u.lastClaim || 0) > dayAgo).length;
-  const retained = allUsers.filter(u => (u.createdAt || 0) < weekAgo && (u.lastClaim || 0) > dayAgo).length;
-  const eligible = allUsers.filter(u => (u.createdAt || 0) < weekAgo).length;
-  const ret7 = eligible ? Math.round((retained / eligible) * 100) : 0;
-
-  const refsThisWeek = allReferrals.filter(r => (r.createdAt || 0) > weekAgo).length;
-  const refsLastWeek = allReferrals.filter(r => (r.createdAt || 0) > twoWeeksAgo && (r.createdAt || 0) < weekAgo).length;
-  const refGrowth = refsLastWeek ? Math.round(((refsThisWeek - refsLastWeek) / refsLastWeek) * 100) : 0;
-
-  const todayClaims = allClaims.filter(c => (c.date || 0) > dayAgo);
-  const avgClaim = todayClaims.length
-    ? Math.round(todayClaims.reduce((s, c) => s + (c.amount || 0), 0) / todayClaims.length)
-    : 0;
-
-  setText("aDau", dau);
-  setText("aRet7", ret7 + "%");
-  setText("aRefGrowth", (refGrowth >= 0 ? "+" : "") + refGrowth + "%");
-  setText("aAvgClaim", avgClaim);
-
-  // Bar chart: claims per day, last 14 days
-  const chart = document.getElementById("claimsChart");
-  if (chart) {
-    const days = [];
-    for (let i = 13; i >= 0; i--) {
-      const start = now - i * 86400000;
-      const dayStart = new Date(start).setHours(0,0,0,0);
-      const dayEnd = dayStart + 86400000;
-      const count = allClaims.filter(c => (c.date || 0) >= dayStart && (c.date || 0) < dayEnd).length;
-      days.push(count);
+  _renderUsers(users) {
+    const body = $("#user-tbody");
+    const entries = Object.entries(users);
+    if (entries.length === 0) {
+      body.innerHTML = '<tr><td colspan="7" class="muted">No users found.</td></tr>';
+      return;
     }
-    const max = Math.max(1, ...days);
-    chart.innerHTML = days.map((v, i) => `
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px">
-        <div style="width:100%;max-width:40px;background:linear-gradient(180deg,var(--gold),var(--nile));border-radius:6px 6px 0 0;height:${(v / max) * 100}%;min-height:4px;box-shadow:0 0 8px rgba(255,215,0,0.3)"></div>
-        <small style="font-size:9px;color:var(--text-mute)">${13 - i}d</small>
-      </div>`).join("");
+    body.innerHTML = entries
+      .slice(0, 200)
+      .map(
+        ([uid, u]) => `
+      <tr>
+        <td><code>${uid.slice(0, 8)}…</code></td>
+        <td>${safeHTML(u.displayName || "—")}</td>
+        <td>${safeHTML(u.email || "—")}</td>
+        <td>${formatNDOG(u.balance || 0)}</td>
+        <td><span class="badge badge--${u.role || "user"}">${u.role || "user"}</span></td>
+        <td>${u.banned ? "🚫" : "✓"}</td>
+        <td>
+          <button class="btn btn--sm btn--ghost" data-promote="${uid}" data-role="admin">Make Admin</button>
+          <button class="btn btn--sm btn--ghost" data-promote="${uid}" data-role="mod">Mod</button>
+          <button class="btn btn--sm btn--ghost" data-promote="${uid}" data-role="user">User</button>
+          <button class="btn btn--sm ${u.banned ? "btn--primary" : "btn--danger"}" data-ban="${uid}" data-banned="${u.banned ? "1" : "0"}">${u.banned ? "Unban" : "Ban"}</button>
+        </td>
+      </tr>`
+      )
+      .join("");
+    $$("[data-promote]").forEach((b) =>
+      b.addEventListener("click", async () => {
+        await db.users.setRole(b.dataset.promote, b.dataset.role);
+        await this._audit("set_role", { uid: b.dataset.promote, role: b.dataset.role });
+        showToast(`Role updated to ${b.dataset.role}`, "success");
+        this._loadUsers();
+      })
+    );
+    $$("[data-ban]").forEach((b) =>
+      b.addEventListener("click", async () => {
+        const uid = b.dataset.ban;
+        const banned = b.dataset.banned === "1";
+        if (banned) {
+          await db.users.unban(uid);
+          await this._audit("unban", { uid });
+          showToast("User unbanned.", "success");
+        } else {
+          const reason = prompt("Ban reason?");
+          if (!reason) return;
+          await db.users.ban(uid, reason, auth.currentUser().uid);
+          await this._audit("ban", { uid, reason });
+          showToast("User banned.", "success");
+        }
+        this._loadUsers();
+      })
+    );
+  },
+
+  /* ============ Balance Management ============ */
+  async _loadBalance() {
+    const main = $("#admin-main");
+    main.innerHTML = `
+      <h2>💰 Balance Management</h2>
+      <div class="card">
+        <h3>Adjust User Balance</h3>
+        <div class="admin-form">
+          <input type="text" id="bal-uid" placeholder="User UID" />
+          <select id="bal-action">
+            <option value="credit">Credit (+)</option>
+            <option value="debit">Debit (-)</option>
+            <option value="set">Set</option>
+          </select>
+          <input type="number" id="bal-amount" placeholder="Amount NDOG" min="0" step="0.01" />
+          <input type="text" id="bal-reason" placeholder="Reason" />
+          <button class="btn btn--primary" id="bal-submit">Apply</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Recent Transactions</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>UID</th><th>Type</th><th>Amount</th><th>Reason</th><th>Time</th></tr></thead>
+            <tbody id="bal-tx-tbody"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    $("#bal-submit").addEventListener("click", async () => {
+      const uid = $("#bal-uid").value.trim();
+      const action = $("#bal-action").value;
+      const amount = Number($("#bal-amount").value);
+      const reason = $("#bal-reason").value.trim();
+      if (!uid || !Number.isFinite(amount) || amount < 0) return showToast("Invalid input.", "warn");
+      if (!reason) return showToast("Reason required.", "warn");
+      try {
+        if (action === "credit") await db.atomicCredit(uid, amount, `admin_credit:${reason}`, { by: auth.currentUser().uid });
+        else if (action === "debit") await db.atomicDebit(uid, amount, `admin_debit:${reason}`, { by: auth.currentUser().uid });
+        else if (action === "set") await db.update(`${PATHS.users}/${uid}`, { balance: amount });
+        await this._audit(`balance_${action}`, { uid, amount, reason });
+        showToast("Balance adjusted.", "success");
+        this._loadBalance();
+      } catch (e) {
+        showToast(e.message || "Failed.", "error");
+      }
+    });
+    // Recent transactions
+    const txSnap = await get(query(ref(firebaseDb, PATHS.transactions), limitToLast(50)));
+    const txs = txSnap.val() || {};
+    const txList = Object.entries(txs).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+    $("#bal-tx-tbody").innerHTML =
+      txList.length === 0
+        ? '<tr><td colspan="5" class="muted">No transactions.</td></tr>'
+        : txList
+            .map(
+              ([, t]) => `
+        <tr>
+          <td><code>${(t.uid || "").slice(0, 8)}…</code></td>
+          <td>${t.type}</td>
+          <td>${formatNDOG(t.amount || 0)}</td>
+          <td>${safeHTML(t.reason || "—")}</td>
+          <td>${timeAgo(t.ts)}</td>
+        </tr>`
+            )
+            .join("");
+  },
+
+  /* ============ Bans ============ */
+  async _loadBans() {
+    const main = $("#admin-main");
+    main.innerHTML = "<h2>🚫 Banned Users</h2><div id='ban-list' class='admin-table-wrap'></div>";
+    const snap = await get(ref(firebaseDb, PATHS.bannedUsers));
+    const list = snap.val() || {};
+    const wrap = $("#ban-list");
+    if (Object.keys(list).length === 0) {
+      wrap.innerHTML = '<p class="muted">No banned users.</p>';
+      return;
+    }
+    wrap.innerHTML = `<table class="admin-table"><thead><tr><th>UID</th><th>Reason</th><th>Banned By</th><th>Time</th><th>Action</th></tr></thead><tbody>${Object.entries(list)
+      .map(
+        ([uid, b]) => `
+      <tr>
+        <td><code>${uid.slice(0, 8)}…</code></td>
+        <td>${safeHTML(b.reason || "—")}</td>
+        <td><code>${(b.bannedBy || "").slice(0, 8)}…</code></td>
+        <td>${timeAgo(b.ts)}</td>
+        <td><button class="btn btn--sm btn--primary" data-unban="${uid}">Unban</button></td>
+      </tr>`
+      )
+      .join("")}</tbody></table>`;
+    $$("[data-unban]").forEach((b) =>
+      b.addEventListener("click", async () => {
+        await db.users.unban(b.dataset.unban);
+        await this._audit("unban", { uid: b.dataset.unban });
+        showToast("Unbanned.", "success");
+        this._loadBans();
+      })
+    );
+  },
+
+  /* ============ Missions ============ */
+  async _loadMissions() {
+    const main = $("#admin-main");
+    main.innerHTML = `
+      <h2>🎯 Mission Management</h2>
+      <div class="card">
+        <h3>Create Mission</h3>
+        <div class="admin-form">
+          <select id="m-type"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="events">Event</option><option value="achievements">Achievement</option></select>
+          <input type="text" id="m-title" placeholder="Title" />
+          <input type="text" id="m-desc" placeholder="Description" />
+          <input type="text" id="m-url" placeholder="Task URL (optional)" />
+          <input type="number" id="m-reward" placeholder="Reward NDOG" min="1" />
+          <button class="btn btn--primary" id="m-create">Create</button>
+        </div>
+      </div>
+      <div class="card"><h3>Existing Missions</h3><div id="m-list"></div></div>
+    `;
+    $("#m-create").addEventListener("click", async () => {
+      const type = $("#m-type").value;
+      const title = $("#m-title").value.trim();
+      const description = $("#m-desc").value.trim();
+      const url = $("#m-url").value.trim();
+      const reward = Number($("#m-reward").value);
+      if (!title || !reward) return showToast("Title and reward required.", "warn");
+      await db.push(`${PATHS.missions}/${type}`, { title, description, url, reward, createdAt: serverTimestamp() });
+      await this._audit("mission_create", { type, title, reward });
+      showToast("Mission created.", "success");
+      this._loadMissions();
+    });
+    const snap = await get(ref(firebaseDb, PATHS.missions));
+    const data = snap.val() || {};
+    const items = [];
+    for (const [type, missions] of Object.entries(data)) {
+      for (const [id, m] of Object.entries(missions)) {
+        items.push({ type, id, ...m });
+      }
+    }
+    $("#m-list").innerHTML = items.length === 0
+      ? '<p class="muted">No missions.</p>'
+      : `<ul class="admin-list">${items.map((m) => `<li><span class="badge">${m.type}</span> ${safeHTML(m.title)} — ${formatNDOG(m.reward)} <button class="btn btn--sm btn--danger" data-del-mission="${m.type}/${m.id}">Delete</button></li>`).join("")}</ul>`;
+    $$("[data-del-mission]").forEach((b) =>
+      b.addEventListener("click", async () => {
+        await db.remove(`${PATHS.missions}/${b.dataset.delMission}`);
+        await this._audit("mission_delete", { key: b.dataset.delMission });
+        this._loadMissions();
+      })
+    );
+  },
+
+  /* ============ News ============ */
+  async _loadNews() {
+    const main = $("#admin-main");
+    main.innerHTML = `
+      <h2>📰 News Management</h2>
+      <div class="card">
+        <h3>Post News</h3>
+        <div class="admin-form">
+          <input type="text" id="n-title" placeholder="Title" />
+          <select id="n-cat"><option value="announcement">Announcement</option><option value="event">Event</option><option value="partnership">Partnership</option><option value="update">Update</option></select>
+          <textarea id="n-body" placeholder="Body (markdown supported)…" rows="5"></textarea>
+          <button class="btn btn--primary" id="n-publish">Publish</button>
+        </div>
+      </div>
+      <div class="card"><h3>Existing Posts</h3><div id="n-list"></div></div>
+    `;
+    $("#n-publish").addEventListener("click", async () => {
+      const title = $("#n-title").value.trim();
+      const category = $("#n-cat").value;
+      const body = $("#n-body").value.trim();
+      if (!title || !body) return showToast("Title and body required.", "warn");
+      await db.push(PATHS.news, { title, category, body, author: auth.currentUser().uid, publishedAt: serverTimestamp() });
+      await this._audit("news_publish", { title });
+      showToast("News published.", "success");
+      this._loadNews();
+    });
+    const snap = await get(ref(firebaseDb, PATHS.news));
+    const news = snap.val() || {};
+    const items = Object.entries(news).sort((a, b) => (b[1].publishedAt || 0) - (a[1].publishedAt || 0));
+    $("#n-list").innerHTML = items.length === 0
+      ? '<p class="muted">No news.</p>'
+      : `<ul class="admin-list">${items.map(([id, n]) => `<li><span class="badge">${n.category}</span> ${safeHTML(n.title)} <button class="btn btn--sm btn--danger" data-del-news="${id}">Delete</button></li>`).join("")}</ul>`;
+    $$("[data-del-news]").forEach((b) =>
+      b.addEventListener("click", async () => {
+        await db.remove(`${PATHS.news}/${b.dataset.delNews}`);
+        await this._audit("news_delete", { id: b.dataset.delNews });
+        this._loadNews();
+      })
+    );
+  },
+
+  /* ============ Fraud Monitor ============ */
+  async _loadFraud() {
+    const main = $("#admin-main");
+    main.innerHTML = `
+      <h2>🛡️ Fraud Monitor</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Type</th><th>UID</th><th>Severity</th><th>FP</th><th>Time</th><th>Details</th></tr></thead>
+          <tbody id="fraud-tbody"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    `;
+    const snap = await get(query(ref(firebaseDb, PATHS.fraudLogs), limitToLast(200)));
+    const logs = snap.val() || {};
+    const items = Object.entries(logs).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+    $("#fraud-tbody").innerHTML = items.length === 0
+      ? '<tr><td colspan="6" class="muted">No fraud events.</td></tr>'
+      : items.map(([, l]) => `
+        <tr class="fraud-row fraud-row--${l.severity || "low"}">
+          <td>${safeHTML(l.type || "—")}</td>
+          <td><code>${(l.uid || "").slice(0, 8)}…</code></td>
+          <td><span class="badge badge--${l.severity || "low"}">${l.severity || "low"}</span></td>
+          <td><code>${(l.fingerprint || "").slice(0, 8)}…</code></td>
+          <td>${timeAgo(l.ts)}</td>
+          <td><button class="btn btn--sm btn--ghost" data-fraud-detail='${JSON.stringify(l).replace(/'/g, "&#39;")}'>View</button></td>
+        </tr>`).join("");
+  },
+
+  /* ============ Analytics ============ */
+  async _loadAnalytics() {
+    const main = $("#admin-main");
+    main.innerHTML = `
+      <h2>📈 Analytics</h2>
+      <div class="admin-cards">
+        <div class="card"><div class="card__label">DAU (today)</div><div class="card__value" id="a-dau">—</div></div>
+        <div class="card"><div class="card__label">Claims (24h)</div><div class="card__value" id="a-claims">—</div></div>
+        <div class="card"><div class="card__label">New Users (24h)</div><div class="card__value" id="a-new">—</div></div>
+        <div class="card"><div class="card__label">Staking Volume</div><div class="card__value" id="a-stake">—</div></div>
+      </div>
+      <div class="card"><canvas id="a-chart" height="120"></canvas></div>
+    `;
+    // Compute simple stats
+    const dayAgo = Date.now() - 86400000;
+    const [claimsSnap, usersSnap, stakesSnap] = await Promise.all([
+      get(ref(firebaseDb, PATHS.claims)),
+      get(ref(firebaseDb, PATHS.users)),
+      get(ref(firebaseDb, PATHS.stakingContracts))
+    ]);
+    const claims = claimsSnap.val() || {};
+    const users = usersSnap.val() || {};
+    const stakes = stakesSnap.val() || {};
+    const claims24h = Object.values(claims).filter((c) => (c.ts?.seconds ? c.ts.seconds * 1000 : c.ts || 0) >= dayAgo).length;
+    const new24h = Object.values(users).filter((u) => (u.createdAt?.seconds ? u.createdAt.seconds * 1000 : u.createdAt || 0) >= dayAgo).length;
+    const stakeVol = Object.values(stakes).filter((s) => (s.startedAt?.seconds ? s.startedAt.seconds * 1000 : s.startedAt || 0) >= dayAgo).reduce((sum, s) => sum + (s.amount || 0), 0);
+    const dau = new Set(Object.values(claims).filter((c) => (c.ts?.seconds ? c.ts.seconds * 1000 : c.ts || 0) >= dayAgo).map((c) => c.uid)).size;
+    $("#a-dau").textContent = formatNumber(dau);
+    $("#a-claims").textContent = formatNumber(claims24h);
+    $("#a-new").textContent = formatNumber(new24h);
+    $("#a-stake").textContent = formatNDOG(stakeVol);
+
+    // Simple bar chart of last 7 days claims
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const start = Date.now() - i * 86400000;
+      const end = start + 86400000;
+      const count = Object.values(claims).filter((c) => {
+        const ts = c.ts?.seconds ? c.ts.seconds * 1000 : c.ts || 0;
+        return ts >= start && ts < end;
+      }).length;
+      days.push({ label: new Date(start).toLocaleDateString(undefined, { weekday: "short" }), count });
+    }
+    import("./charts.js").then((m) => m.charts.bar($("#a-chart"), days.map((d) => d.label), days.map((d) => d.count), "#f59e0b"));
+  },
+
+  /* ============ Audit Log ============ */
+  async _audit(action, details) {
+    try {
+      await db.push("adminAuditLog", {
+        adminUid: auth.currentUser().uid,
+        action,
+        details,
+        ts: serverTimestamp()
+      });
+    } catch (e) {
+      console.warn("[admin] audit failed:", e);
+    }
   }
-}
+};
 
-// ───────────────────────────────────────────────────────────────────
-// EXPORT CSV
-// ───────────────────────────────────────────────────────────────────
-function exportCSV(type) {
-  let csv = "";
-  let filename = "";
-  if (type === "users") {
-    filename = "ndog_users.csv";
-    csv = "uid,name,email,country,balance,referralCode,totalReferrals,communityScore,loyaltyScore,isFounder,banned,createdAt\n";
-    allUsers.forEach(u => {
-      csv += [
-        u.uid, u.name, u.email, u.country, u.balance, u.referralCode,
-        u.totalReferrals, u.communityScore, u.loyaltyScore, u.isFounder, u.banned, u.createdAt
-      ].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
-    });
-  } else if (type === "claims") {
-    filename = "ndog_claims.csv";
-    csv = "userId,amount,type,date\n";
-    allClaims.forEach(c => {
-      csv += [c.userId, c.amount, c.type, c.date].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
-    });
-  } else if (type === "referrals") {
-    filename = "ndog_referrals.csv";
-    csv = "referrer,referredUser,level,createdAt\n";
-    allReferrals.forEach(r => {
-      csv += [r.referrer, r.referredUser, r.level, r.createdAt].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
-    });
-  } else if (type === "gifts") {
-    filename = "ndog_gifts.csv";
-    csv = "target,targetName,amount,reason,createdAt\n";
-    allGifts.forEach(g => {
-      csv += [g.target, g.targetName, g.amount, g.reason, g.createdAt].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",") + "\n";
-    });
-  }
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-  toast(t("admin.export.ready"), "ok");
-}
-
-// ───────────────────────────────────────────────────────────────────
-// HELPERS
-// ───────────────────────────────────────────────────────────────────
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
-}
-
-function formatDate(ts) {
-  if (!ts) return "—";
-  const locale = getLang() === "ar" ? "ar-EG" : "en-US";
-  return new Date(ts).toLocaleDateString(locale, {
-    month: "short", day: "numeric", year: "numeric"
-  });
-}
-
-function escapeHtml(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[c]));
-}
-
-// Init particles for admin page too
-function initParticles() {
-  const canvas = document.getElementById("particles");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  let w, h, particles = [];
-  function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-    const count = Math.min(40, Math.floor(w * h / 28000));
-    particles = Array.from({ length: count }, () => ({
-      x: Math.random() * w, y: Math.random() * h,
-      r: Math.random() * 1.4 + 0.3,
-      vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25,
-      hue: Math.random() < 0.5 ? 205 : 48
-    }));
-  }
-  function draw() {
-    ctx.clearRect(0, 0, w, h);
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > w) p.vx *= -1;
-      if (p.y < 0 || p.y > h) p.vy *= -1;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${p.hue},90%,65%,0.6)`;
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  resize();
-  window.addEventListener("resize", resize);
-  draw();
-}
-initParticles();
+window.__admin = admin;

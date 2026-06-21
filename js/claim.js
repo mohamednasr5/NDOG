@@ -1,217 +1,203 @@
 /**
- * NileDogs (NDOG) — Daily Claim module
+ * FILE NAME: js/claim.js
+ * PURPOSE: Daily mining claim logic. Enforces 24h cooldown, streak bonus,
+ *          VIP/Founder multipliers, anti-fraud pre-check, atomic credit,
+ *          claim history log, leaderboard rank update.
+ * DEPENDENCIES: firebase.js, auth.js, database.js, antifraud.js, utils.js
+ * EXPORTS: claim.now, claim.nextClaimAt, claim.history
  */
 
-import {
-  db, ref, get, update, push, onValue,
-  APP_CONFIG, serverTimestamp
-} from "./firebase-config.js";
-import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, toast } from "./app.js";
-import { computeLevel } from "./dashboard.js";
-import { t, getLang, onLangChange } from "./i18n.js";
+import { firebaseDb } from "./firebase.js";
+import { auth } from "./auth.js";
+import { db, PATHS } from "./database.js";
+import { antifraud } from "./antifraud.js";
+import { showToast, formatNDOG } from "./utils.js";
+import { ref, runTransaction, serverTimestamp, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-let claimTimer = null;
-let currentUser = null;
-let viewBound = false;
+const BASE_CLAIM = 50;          // base NDOG per claim
+const STREAK_BONUS_PER_DAY = 2; // +2 NDOG per consecutive day
+const STREAK_CAP = 100;         // max streak bonus
+const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
-export function initClaim() {
-  onUser((u) => {
-    currentUser = u;
-    if (u) renderClaim();
-  });
+const VIP_MULTIPLIERS = { 0: 1, 1: 1.1, 2: 1.25, 3: 1.5, 4: 2, 5: 3 };
+const FOUNDER_MULTIPLIER = 1.25;
 
-  document.getElementById("claimBtn")?.addEventListener("click", doClaim);
+export const claim = {
+  /**
+   * Returns timestamp (ms) when next claim is available.
+   */
+  nextClaimAt(lastClaimAt) {
+    return lastClaimAt ? lastClaimAt + COOLDOWN_MS : 0;
+  },
 
-  if (!viewBound) {
-    viewBound = true;
-    document.addEventListener("ndog:viewchange", (e) => {
-      if (e.detail.view === "claim") renderClaim();
-    });
-  }
+  /**
+   * Compute the reward for a claim given user profile.
+   */
+  computeReward(profile) {
+    const streak = (profile?.streak || 0) + 1;
+    const streakBonus = Math.min(STREAK_CAP, streak * STREAK_BONUS_PER_DAY);
+    const vipMult = VIP_MULTIPLIERS[profile?.vipLevel || 0] || 1;
+    const founderMult = profile?.founder ? FOUNDER_MULTIPLIER : 1;
+    const reward = Math.round(((BASE_CLAIM + streakBonus) * vipMult * founderMult) * 100) / 100;
+    return { reward, streak, streakBonus, vipMult, founderMult };
+  },
 
-  renderLevelsGrid();
-
-  onLangChange(() => {
-    renderLevelsGrid();
-    if (currentUser) renderClaim();
-  });
-}
-
-function renderLevelsGrid() {
-  const grid = document.getElementById("claimLevelsGrid");
-  if (!grid) return;
-  grid.innerHTML = APP_CONFIG.rewardLevels.map(l => {
-    const levelName = t(l.nameKey || l.name);
-    return `
-    <div class="claim-level" data-level="${l.nameKey || l.name}">
-      <div class="claim-level__icon">${l.icon}</div>
-      <div class="claim-level__name" style="color:${l.color}">${levelName}</div>
-      <div class="claim-level__req">${l.min.toLocaleString()}+</div>
-    </div>
-  `;
-  }).join("");
-}
-
-function computeReward(user) {
-  let amount = APP_CONFIG.claimBase;
-  let multiplier = 1;
-  const streak = user.streak || 0;
-  for (const [days, mult] of Object.entries(APP_CONFIG.streakBonus)) {
-    if (streak >= +days) multiplier = mult;
-  }
-  if (user.referredBy) multiplier += APP_CONFIG.referralBonus;
-  if (user.isFounder) multiplier += 0.5;
-  amount = Math.round(amount * multiplier);
-  return { amount, multiplier };
-}
-
-function nextClaimTime(lastClaim) {
-  return lastClaim + 24 * 3600 * 1000;
-}
-
-function renderClaim() {
-  if (!currentUser) return;
-  const user = currentUser;
-
-  const curLevel = computeLevel(user.balance || 0);
-  document.querySelectorAll("#claimLevelsGrid .claim-level").forEach(el => {
-    el.classList.toggle("current", el.dataset.level === (curLevel.nameKey || curLevel.name));
-  });
-
-  const { amount, multiplier } = computeReward(user);
-  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setText("claimReward", `+${amount} NDOG`);
-  setText("claimMult",   `×${multiplier.toFixed(1)}`);
-  setText("claimStreak", t("claim.streakDays", { n: user.streak || 0 }));
-
-  const btn = document.getElementById("claimBtn");
-  const hint = document.getElementById("claimHint");
-  const ringFg = document.getElementById("claimRingFg");
-  const ringCirc = 628;
-
-  const now = Date.now();
-  const next = nextClaimTime(user.lastClaim || 0);
-
-  if (now >= next) {
-    if (btn) { btn.disabled = false; btn.textContent = t("claim.btn"); btn.classList.add("btn--gold"); }
-    if (hint) hint.textContent = t("claim.ready");
-    setText("claimCountdown", "");
-    if (ringFg) ringFg.style.strokeDashoffset = 0;
-    if (claimTimer) { clearInterval(claimTimer); claimTimer = null; }
-  } else {
-    if (btn) { btn.disabled = true; btn.classList.remove("btn--gold"); btn.textContent = t("claim.btnClaimed"); }
-    if (hint) hint.textContent = t("claim.nextIn");
-
-    if (claimTimer) clearInterval(claimTimer);
-    claimTimer = setInterval(() => {
-      const remaining = next - Date.now();
-      if (remaining <= 0) {
-        clearInterval(claimTimer);
-        claimTimer = null;
-        renderClaim();
-        return;
-      }
-      const h = Math.floor(remaining / 3600000);
-      const m = Math.floor((remaining % 3600000) / 60000);
-      const s = Math.floor((remaining % 60000) / 1000);
-      setText("claimCountdown",
-        `⏳ ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
-
-      const total = 24 * 3600 * 1000;
-      const elapsed = total - remaining;
-      const pct = elapsed / total;
-      if (ringFg) ringFg.style.strokeDashoffset = ringCirc * (1 - pct);
-    }, 1000);
-  }
-
-  loadClaimHistory(user.uid);
-}
-
-async function doClaim() {
-  if (!currentUser) return;
-  const user = currentUser;
-  const now = Date.now();
-  const next = nextClaimTime(user.lastClaim || 0);
-
-  if (now < next) {
-    toast(t("claim.alreadyClaimed"), "err");
-    return;
-  }
-
-  const btn = document.getElementById("claimBtn");
-  btn.disabled = true;
-  btn.textContent = t("claim.btnClaiming");
-
-  try {
-    const { amount, multiplier } = computeReward(user);
-    const streak = (user.streak || 0) + 1;
-
-    await update(ref(db, `users/${user.uid}`), {
-      balance:        (user.balance || 0) + amount,
-      lastClaim:      now,
-      streak,
-      loyaltyScore:   (user.loyaltyScore || 0) + 1,
-      communityScore: (user.communityScore || 0) + 5
-    });
-
-    await push(ref(db, "claims"), {
-      userId: user.uid,
-      amount,
-      multiplier,
-      streak,
-      date: now,
-      type: "daily"
-    });
-
-    toast(t("claim.success", { n: amount, m: multiplier.toFixed(1) }), "ok", 3000);
-    btn.textContent = t("claim.btnClaimedShort");
-    btn.classList.remove("btn--gold");
-
-    setTimeout(renderClaim, 600);
-  } catch (err) {
-    console.error("[NDOG] Claim failed:", err);
-    toast(t("claim.failed"), "err");
-    btn.disabled = false;
-    btn.textContent = t("claim.btn");
-  }
-}
-
-function loadClaimHistory(uid) {
-  const list = document.getElementById("claimHistoryList");
-  if (!list) return;
-  list.innerHTML = `<div class="empty">${t("claim.loadingHistory")}</div>`;
-
-  const q = ref(db, "claims");
-  onValue(q, (snap) => {
-    const rows = [];
-    snap.forEach(child => {
-      const c = child.val();
-      if (c.userId !== uid) return;
-      rows.push(c);
-    });
-    rows.sort((a, b) => (b.date || 0) - (a.date || 0));
-    if (!rows.length) {
-      list.innerHTML = `<div class="empty">${t("claim.emptyHistory")}</div>`;
+  /**
+   * Execute a claim. Atomic + fraud-checked.
+   */
+  async now() {
+    const user = auth.currentUser();
+    if (!user) {
+      showToast("Please sign in first.", "warn");
+      auth.signIn();
       return;
     }
-    list.innerHTML = rows.slice(0, 30).map(c => `
-      <div class="claim-row">
-        <div>
-          <div class="claim-row__amt">+${c.amount} NDOG</div>
-          <div class="claim-row__date">${formatDate(c.date)} · 🔥 ${c.streak || 0}</div>
-        </div>
-        <div>${c.multiplier ? `×${c.multiplier.toFixed(1)}` : ""}</div>
-      </div>
-    `).join("");
-  }, { onlyOnce: false });
-}
+    if (user.banned) {
+      showToast("Account banned.", "error");
+      return;
+    }
 
-function formatDate(ts) {
-  if (!ts) return "—";
-  const locale = getLang() === "ar" ? "ar-EG" : "en-US";
-  return new Date(ts).toLocaleString(locale, {
-    month: "short", day: "numeric",
-    hour: "2-digit", minute: "2-digit"
-  });
-}
+    // 1. Fresh profile fetch (don't trust stale cache)
+    const profileSnap = await get(ref(firebaseDb, `users/${user.uid}`));
+    const p = profileSnap.val();
+    if (!p) {
+      showToast("Profile not loaded.", "error");
+      return;
+    }
+
+    // 2. Cooldown check
+    const nextAt = this.nextClaimAt(p.lastClaimAt || 0);
+    if (nextAt > Date.now()) {
+      const wait = Math.ceil((nextAt - Date.now()) / 60000);
+      showToast(`Too early. Try again in ${wait} min.`, "warn");
+      return;
+    }
+
+    // 3. Anti-fraud pre-check
+    const check = await antifraud.preActionCheck(user.uid, "claim", 1, COOLDOWN_MS);
+    if (!check.allowed) {
+      showToast("Claim blocked by anti-fraud system.", "error");
+      return;
+    }
+
+    // 4. Compute reward
+    const { reward, streak, streakBonus, vipMult, founderMult } = this.computeReward(p);
+
+    // 5. Atomic update: balance + streak + lastClaimAt + bestStreak
+    try {
+      const txResult = await runTransaction(ref(firebaseDb, `users/${user.uid}`), (cur) => {
+        const c = cur || {};
+        // Re-validate cooldown inside transaction (race-safe)
+        if (c.lastClaimAt && Date.now() - c.lastClaimAt < COOLDOWN_MS - 1000) {
+          return; // abort — someone else claimed under us
+        }
+        c.balance = (c.balance || 0) + reward;
+        c.streak = streak;
+        c.bestStreak = Math.max(c.bestStreak || 0, streak);
+        c.lastClaimAt = Date.now();
+        c.lastClaimAmount = reward;
+        c.totalClaimed = (c.totalClaimed || 0) + reward;
+        c.loyaltyScore = (c.loyaltyScore || 0) + 1;
+        return c;
+      });
+
+      if (!txResult.committed) {
+        showToast("Claim race-condition detected. Try again.", "warn");
+        return;
+      }
+
+      // 6. Log claim history
+      await db.claims.log(user.uid, reward, streak, vipMult * founderMult);
+
+      // 7. Update leaderboards (denormalized for fast queries)
+      await this._updateLeaderboards(user.uid, p, reward);
+
+      // 8. Push notification
+      await db.notifications.send(
+        user.uid,
+        "Mining Claim Successful",
+        `You mined ${reward.toFixed(2)} NDOG. Streak: ${streak} 🔥`,
+        "success"
+      );
+
+      // 9. Check streak achievements
+      await this._checkStreakAchievements(user.uid, streak);
+
+      showToast(`Claimed ${reward.toFixed(2)} NDOG! 🔥 Streak: ${streak}`, "success");
+      // Refresh dashboard
+      import("./dashboard.js").then((m) => m.dashboard.init());
+    } catch (e) {
+      console.error("[claim] failed:", e);
+      showToast(e.message || "Claim failed.", "error");
+      await antifraud.logSuspicious({
+        type: "CLAIM_FAILED",
+        uid: user.uid,
+        error: e.message,
+        severity: "medium"
+      });
+    }
+  },
+
+  async _updateLeaderboards(uid, profile, newClaimAmount) {
+    const total = (profile?.totalClaimed || 0) + newClaimAmount;
+    const updates = {
+      [`${PATHS.leaderboards_alltime}/${uid}`]: total,
+      [`${PATHS.leaderboards_weekly}/${uid}`]: (await this._weeklyTotal(uid)) + newClaimAmount,
+      [`${PATHS.leaderboards_monthly}/${uid}`]: (await this._monthlyTotal(uid)) + newClaimAmount
+    };
+    if (profile?.country) {
+      updates[`leaderboards/country/${profile.country}/${uid}`] = total;
+    }
+    updates[`leaderboards/global/${uid}`] = total;
+    updates[`leaderboards/referral/${uid}`] = profile?.referralCount || 0;
+    // Atomic multi-path write
+    const { ref, update } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    await update(ref(firebaseDb), updates);
+  },
+
+  async _weeklyTotal(uid) {
+    // Compute current week's total from /claims
+    const weekAgo = Date.now() - 7 * 86400000;
+    const snap = await get(ref(firebaseDb, "claims"));
+    if (!snap.exists()) return 0;
+    let total = 0;
+    for (const [, c] of Object.entries(snap.val())) {
+      const ts = c.ts?.seconds ? c.ts.seconds * 1000 : c.ts || 0;
+      if (c.uid === uid && ts >= weekAgo) total += c.amount || 0;
+    }
+    return total;
+  },
+
+  async _monthlyTotal(uid) {
+    const monthAgo = Date.now() - 30 * 86400000;
+    const snap = await get(ref(firebaseDb, "claims"));
+    if (!snap.exists()) return 0;
+    let total = 0;
+    for (const [, c] of Object.entries(snap.val())) {
+      const ts = c.ts?.seconds ? c.ts.seconds * 1000 : c.ts || 0;
+      if (c.uid === uid && ts >= monthAgo) total += c.amount || 0;
+    }
+    return total;
+  },
+
+  async _checkStreakAchievements(uid, streak) {
+    const milestones = [7, 14, 30, 60, 100, 365];
+    if (milestones.includes(streak)) {
+      const bonus = streak * 5;
+      await db.atomicCredit(uid, bonus, `streak_milestone:${streak}`);
+      await db.notifications.send(
+        uid,
+        "🔥 Streak Milestone!",
+        `${streak}-day streak! Bonus: ${bonus} NDOG`,
+        "success"
+      );
+    }
+  },
+
+  async history(uid, limit = 20) {
+    return db.claims.history(uid, limit);
+  }
+};
+
+// Expose for inline buttons
+window.__claim = claim;

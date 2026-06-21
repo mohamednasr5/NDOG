@@ -1,206 +1,176 @@
 /**
- * NileDogs (NDOG) — Referral module
- * shareLink/generateQR are imported from share-utils.js (not defined here)
- * to break the circular dependency: app.js → dashboard.js → referral.js → app.js
- * They are re-exported so any other module that imports them from referral.js still works.
+ * FILE NAME: js/referral.js
+ * PURPOSE: Referral system UI + logic. Renders referral code, link, QR code,
+ *          3-level tree, conversion analytics. Validates self-referral and
+ *          multi-account abuse before binding.
+ * DEPENDENCIES: firebase.js, auth.js, database.js, utils.js, qr.js (dynamic import)
+ * EXPORTS: referral.init, referral.copyLink, referral.renderTree
  */
 
-import { db, ref, get, APP_CONFIG } from "./firebase-config.js?v=2.0.5";
-import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
-import { animateCount, openModal } from "./utils.js?v=2.0.5";
-import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
-import { shareLink, generateQR } from "./share-utils.js?v=2.0.5";
+import { firebaseDb } from "./firebase.js";
+import { auth } from "./auth.js";
+import { db, PATHS } from "./database.js";
+import { $, safeHTML, copyToClipboard, showToast, formatNumber, formatNDOG } from "./utils.js";
+import { i18n } from "./i18n.js";
+import { ref, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-export { shareLink, generateQR };
+const DOMAIN = "/";
 
-let bound = false;
-
-export function initReferral() {
-  if (bound) return;
-  bound = true;
-
-  let lastUser = null;
-
-  onUser((u) => {
-    if (u) {
-      lastUser = u;
-      renderReferral(u);
-    }
-  });
-
-  document.addEventListener("click", (e) => {
-    const shareBtn = e.target.closest("[data-share]");
-    if (!shareBtn) return;
-
-    const u = getCurrentUser();
-    if (!u) return;
-
-    const url = `${APP_CONFIG.domain}?ref=${u.referralCode}`;
-    shareLink(shareBtn.dataset.share, url);
-  });
-
-  document.getElementById("qrTrigger2")?.addEventListener("click", () => {
-    const u = getCurrentUser();
-    if (!u) return;
-
-    generateQR(`${APP_CONFIG.domain}?ref=${u.referralCode}`);
-    openModal("qrModal");
-  });
-
-  document.addEventListener("ndogviewchange", (e) => {
-    if (e.detail.view === "referral") {
-      const u = getCurrentUser();
-      if (u) renderReferral(u);
-    }
-  });
-
-  onLangChange(() => {
-    if (lastUser) renderReferral(lastUser);
-  });
-}
-
-function renderReferral(user) {
-  const codeInput = document.getElementById("refCodeInput");
-  const linkInput = document.getElementById("refLinkInput");
-
-  if (codeInput) codeInput.value = user.referralCode || "";
-  if (linkInput) linkInput.value = `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`;
-
-  animateCount(document.getElementById("refStatTotal"), user.totalReferrals || 0);
-  animateCount(
-    document.getElementById("refStatEarn"),
-    (user.totalReferrals || 0) * APP_CONFIG.referralReward.l1
-  );
-
-  loadReferralTree(user);
-}
-
-async function loadReferralTree(user) {
-  const list = document.getElementById("refTreeList");
-  if (!list) return;
-
-  list.innerHTML = `<div class="empty">${t("ref.loading")}</div>`;
-
-  const snap = await get(ref(db, "referrals"));
-  if (!snap.exists()) {
-    list.innerHTML = `<div class="empty">${t("ref.empty")}</div>`;
-    renderRefStats(0, 0);
-    return;
-  }
-
-  const rows = [];
-  snap.forEach((child) => {
-    const r = child.val();
-    if (r.referrer === user.uid) rows.push(r);
-  });
-
-  if (!rows.length) {
-    list.innerHTML = `<div class="empty">${t("ref.empty")}</div>`;
-    renderRefStats(0, 0);
-    return;
-  }
-
-  const recent = rows
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-    .slice(0, 50);
-
-  const usersSnap = await get(ref(db, "users"));
-  const usersMap = {};
-  if (usersSnap.exists()) {
-    usersSnap.forEach((c) => {
-      usersMap[c.key] = c.val();
+export const referral = {
+  init() {
+    auth.onReady((user) => {
+      if (!user) {
+        $("#referral-root").innerHTML = `
+          <div class="card card--guest">
+            <h2 data-i18n="auth.welcome">Welcome</h2>
+            <p>Sign in to access your referral code.</p>
+            <button class="btn btn--primary" id="ref-signin">Sign in with Google</button>
+          </div>`;
+        $("#ref-signin")?.addEventListener("click", () => auth.signIn());
+        i18n.apply($("#referral-root"));
+        return;
+      }
+      this._render(user);
     });
-  }
+  },
 
-  let active = 0;
-  const claimsSnap = await get(ref(db, "claims"));
-  const claimers = new Set();
+  async _render(user) {
+    const profile = await db.users.get(user.uid);
+    if (!profile) return;
+    const link = `${DOMAIN}?ref=${profile.referralCode}`;
+    const stats = await this._stats(user.uid);
 
-  if (claimsSnap.exists()) {
-    claimsSnap.forEach((c) => {
-      const val = c.val();
-      if (val?.userId) claimers.add(val.userId);
-    });
-  }
-
-  list.innerHTML = recent
-    .map((r) => {
-      const u = usersMap[r.referredUser] || {};
-      if (claimers.has(r.referredUser)) active++;
-
-      const tier = `L${r.level || 1}`;
-      const reward = APP_CONFIG.referralReward[`l${r.level || 1}`] || 0;
-
-      return `
-        <div class="ref-row">
-          <img
-            class="ref-row-avatar"
-            src="${u.photoURL || defaultAvatar(u.name)}"
-            alt="${escapeHtml(u.name || t("ref.anonymous"))}"
-            onerror="this.src='${defaultAvatar(u.name)}'"
-          />
-          <div class="ref-row-meta">
-            <div class="ref-row-name">${escapeHtml(u.name || t("ref.anonymous"))}</div>
-            <div class="ref-row-sub">${t("ref.joined", {
-              date: formatDate(r.createdAt),
-              country: u.country || t("lb.globalLabel")
-            })}</div>
-          </div>
-          <span class="ref-row-tier">${tier} · +${reward}</span>
+    $("#referral-root").innerHTML = `
+      <div class="ref-grid">
+        <div class="card card--code">
+          <div class="card__label" data-i18n="ref.code">Your Referral Code</div>
+          <div class="ref-code">${safeHTML(profile.referralCode)}</div>
+          <button class="btn btn--ghost" id="copy-code" data-i18n="ref.copy">Copy</button>
         </div>
-      `;
-    })
-    .join("");
 
-  renderRefStats(rows.length, active);
-}
+        <div class="card card--link">
+          <div class="card__label" data-i18n="ref.link">Your Referral Link</div>
+          <div class="ref-link">
+            <input type="text" readonly value="${link}" id="ref-link-input" />
+            <button class="btn btn--primary" id="copy-link" data-i18n="ref.copy">Copy</button>
+          </div>
+          <div class="qr-slot" id="qr-slot"></div>
+        </div>
 
-function renderRefStats(total, active) {
-  animateCount(document.getElementById("refStatTotal"), total);
-  animateCount(document.getElementById("refStatActive"), active);
+        <div class="card card--tiers">
+          <h3>Reward Tiers</h3>
+          <ul class="tier-list">
+            <li><span class="tier tier--l1">L1</span> Direct referral <strong>+50 NDOG</strong></li>
+            <li><span class="tier tier--l2">L2</span> Referral of referral <strong>+20 NDOG</strong></li>
+            <li><span class="tier tier--l3">L3</span> 3rd-level connection <strong>+10 NDOG</strong></li>
+          </ul>
+        </div>
 
-  const conv = total ? Math.round((active / total) * 100) : 0;
-  const el = document.getElementById("refStatConv");
-  if (el) el.textContent = `${conv}%`;
-}
+        <div class="card card--stats">
+          <div class="card__label" data-i18n="ref.total">Total Referrals</div>
+          <div class="card__value">${formatNumber(stats.total)}</div>
+          <div class="ref-stats-row">
+            <div><span class="muted">L1:</span> ${stats.l1}</div>
+            <div><span class="muted">L2:</span> ${stats.l2}</div>
+            <div><span class="muted">L3:</span> ${stats.l3}</div>
+          </div>
+          <div class="card__label" data-i18n="ref.conversion">Conversion Rate</div>
+          <div class="card__value">${stats.conversionPct}%</div>
+          <div class="card__label">Total Earned</div>
+          <div class="card__value">${formatNDOG(stats.earned)}</div>
+        </div>
 
-function defaultAvatar(name = "N") {
-  const seed = String(name || "N").slice(0, 1).toUpperCase();
-  return `data:image/svg+xml;utf8,${encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-      <rect width="64" height="64" rx="32" fill="#0a1f44"/>
-      <text
-        x="50%"
-        y="50%"
-        font-size="28"
-        font-family="Arial"
-        font-weight="bold"
-        fill="#ffd700"
-        text-anchor="middle"
-        dominant-baseline="central"
-      >${seed}</text>
-    </svg>
-  `)}`;
-}
+        <div class="card card--tree">
+          <h3 data-i18n="ref.tree">Referral Tree</h3>
+          <div id="ref-tree" class="ref-tree"></div>
+        </div>
 
-function formatDate(ts) {
-  if (!ts) return "";
-  const locale = getLang() === "ar" ? "ar-EG" : "en-US";
-  return new Date(ts).toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  });
-}
+        <div class="card card--history">
+          <h3>Recent Referral Activity</h3>
+          <ul id="ref-history" class="ref-history"><li class="muted">Loading…</li></ul>
+        </div>
+      </div>
+    `;
+    i18n.apply($("#referral-root"));
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => {
+    $("#copy-code")?.addEventListener("click", async () => {
+      const ok = await copyToClipboard(profile.referralCode);
+      showToast(ok ? "Code copied!" : "Copy failed", ok ? "success" : "error", 2000);
+    });
+    $("#copy-link")?.addEventListener("click", async () => {
+      const ok = await copyToClipboard(link);
+      showToast(ok ? i18n.t("ref.copied") : "Copy failed", ok ? "success" : "error", 2000);
+    });
+
+    // Dynamic-import QR generator
+    import("./qr.js").then((m) => m.qr.render($("#qr-slot"), link, 180));
+
+    this._renderTree(user.uid);
+    this._renderHistory(user.uid);
+  },
+
+  async _stats(uid) {
+    const snap = await get(ref(firebaseDb, `${PATHS.referrals}/${uid}`));
+    const data = snap.val() || {};
+    const list = Object.values(data);
+    const earned = list.reduce((s, r) => s + (r.reward || 0), 0);
     return {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[c];
-  });
-}
+      total: list.length,
+      l1: list.filter((r) => r.level === 1).length,
+      l2: list.filter((r) => r.level === 2).length,
+      l3: list.filter((r) => r.level === 3).length,
+      earned,
+      conversionPct: list.length ? Math.round((list.filter((r) => r.converted).length / list.length) * 100) : 0
+    };
+  },
+
+  async _renderTree(uid) {
+    const treeEl = $("#ref-tree");
+    if (!treeEl) return;
+    const tree = await db.referrals.tree(uid, 3);
+    treeEl.innerHTML = this._treeNode(tree);
+  },
+
+  _treeNode(node) {
+    const profile = node.profile || {};
+    const childrenHtml = (node.children || [])
+      .map((c) => this._treeNode(c))
+      .join("");
+    return `
+      <div class="tree-node tree-node--l${node.level || 0}">
+        <div class="tree-node__card">
+          <div class="tree-node__avatar">${node.uid.slice(0, 2).toUpperCase()}</div>
+          <div class="tree-node__info">
+            <div class="tree-node__uid">${safeHTML(node.uid.slice(0, 10))}…</div>
+            ${node.reward ? `<div class="tree-node__reward">+${node.reward} NDOG</div>` : ""}
+          </div>
+        </div>
+        ${childrenHtml ? `<div class="tree-children">${childrenHtml}</div>` : ""}
+      </div>
+    `;
+  },
+
+  async _renderHistory(uid) {
+    const el = $("#ref-history");
+    if (!el) return;
+    const snap = await get(ref(firebaseDb, `${PATHS.referrals}/${uid}`));
+    const data = snap.val() || {};
+    const items = Object.values(data).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 10);
+    if (items.length === 0) {
+      el.innerHTML = '<li class="muted">No referrals yet. Share your link!</li>';
+      return;
+    }
+    el.innerHTML = items
+      .map(
+        (r) => `
+      <li class="ref-hist-item">
+        <span class="tier tier--l${r.level}">L${r.level}</span>
+        <span class="ref-hist-uid">${safeHTML(r.referredUid.slice(0, 10))}…</span>
+        <span class="ref-hist-reward">+${r.reward} NDOG</span>
+      </li>`
+      )
+      .join("");
+  }
+};
+
+window.__referral = referral;

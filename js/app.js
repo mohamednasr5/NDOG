@@ -1,450 +1,189 @@
 /**
- * NileDogs (NDOG) — App Shell
- * v2.0.4 - REMOVED ALL location.reload() ON LOGIN FAILURE
- * =====================================================
- * - إزالة جميع عمليات location.reload() التي كانت تسبب الحلقة.
- * - الاعتماد فقط على onAuthStateChanged لتحديث واجهة المستخدم.
- * - تحسين معالجة أخطاء تسجيل الدخول مع رسائل واضحة.
- * - إزالة أي كود يعتمد على sessionStorage للـ redirect.
- * =====================================================
+ * FILE NAME: js/app.js
+ * PURPOSE: Application bootstrap. Initializes i18n, auth, notifications, analytics,
+ *          particles, theme, service worker registration, and global UI wiring.
+ *          This is the entry point imported by every HTML page.
+ * DEPENDENCIES: All other js/* modules
+ * EXPORTS: app (window.app)
  */
 
-import { APP_CONFIG, persistenceReady } from "./firebase-config.js?v=2.0.5";
-import { onUser, getCurrentUser, googleLogin, logout, initAuth } from "./auth.js?v=2.0.5";
-import { bindDashboard } from "./dashboard.js?v=2.0.5";
-import { initClaim } from "./claim.js?v=2.0.5";
-import { initReferral } from "./referral.js?v=2.0.5";
-import { initMissions } from "./missions.js?v=2.0.5";
-import { initLeaderboard } from "./leaderboard.js?v=2.0.5";
-import { initNotifications } from "./notifications.js?v=2.0.5";
-import {
-  t, getLang, setLang, toggleLang, applyTranslations, onLangChange, isRTL
-} from "./i18n.js?v=2.0.5";
+import { auth } from "./auth.js";
+import { i18n } from "./i18n.js";
+import { notifications } from "./notifications.js";
+import { analytics } from "./analytics.js";
+import { particles } from "./particles.js";
+import { $, $$, getCookie, setCookie, isMobile, showToast } from "./utils.js";
 
-// ───────────────────────────────────────────────────────────────────
-// TOAST
-// ───────────────────────────────────────────────────────────────────
-export function toast(message, type = "info", duration = 3200) {
-  const host = document.getElementById("toastHost");
-  if (!host) return;
-
-  const existing = Array.from(host.children).find(
-    el => el.dataset.toastKey === `${type}:${message}`
-  );
-  if (existing) {
-    clearTimeout(existing._toastTimer);
-    existing._toastTimer = setTimeout(() => existing.remove(), duration + 400);
-    return;
+class App {
+  constructor() {
+    this.ready = false;
   }
 
-  const tEl = document.createElement("div");
-  tEl.className = `toast toast--${type}`;
-  tEl.dataset.toastKey = `${type}:${message}`;
-  const icons = { ok: "✅", err: "⚠️", info: "ℹ️" };
-  tEl.innerHTML = `<span class="toast__icon">${icons[type] || "ℹ️"}</span><span>${message}</span>`;
-  host.appendChild(tEl);
-  tEl._toastTimer = setTimeout(() => tEl.remove(), duration + 400);
-}
-window.ndogToast = toast;
+  async init() {
+    // 1. Theme (instant to avoid flash)
+    this._initTheme();
 
-// ───────────────────────────────────────────────────────────────────
-// COUNTER ANIMATION
-// ───────────────────────────────────────────────────────────────────
-export function animateCount(el, target, duration = 800) {
-  if (!el) return;
-  const start = parseInt(el.textContent.replace(/[^0-9.-]/g, "")) || 0;
-  if (start === target) return;
-  const t0 = performance.now();
-  function step(now) {
-    const p = Math.min(1, (now - t0) / duration);
-    const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(start + (target - start) * eased).toLocaleString();
-    if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
+    // 2. i18n
+    await i18n.init();
 
-// ───────────────────────────────────────────────────────────────────
-// MODAL
-// ───────────────────────────────────────────────────────────────────
-export function openModal(id) {
-  document.getElementById(id)?.classList.remove("hidden");
-}
-export function closeModal(id) {
-  document.getElementById(id)?.classList.add("hidden");
-}
-document.addEventListener("click", (e) => {
-  if (e.target.matches("[data-close-modal]") || e.target.closest("[data-close-modal]")) {
-    const modal = e.target.closest(".modal");
-    if (modal) modal.classList.add("hidden");
-  }
-});
+    // 3. Auth
+    auth.onReady((user) => this._onUserChange(user));
 
-// ───────────────────────────────────────────────────────────────────
-// PARTICLE BACKGROUND
-// ───────────────────────────────────────────────────────────────────
-function initParticles() {
-  const canvas = document.getElementById("particles");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  let particles = [];
-  let w, h;
+    // 4. Notifications
+    notifications.start();
 
-  function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-    const count = Math.min(60, Math.floor(w * h / 22000));
-    particles = Array.from({ length: count }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: Math.random() * 1.6 + 0.4,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      hue: Math.random() < 0.6 ? 205 : 48
-    }));
-  }
+    // 5. Particles (only on hero sections, desktop)
+    if (!isMobile()) {
+      const hero = $(".hero, .particles-target");
+      if (hero) particles.mount(hero, { color: "#f59e0b", linkColor: "rgba(245,158,11,0.18)" });
+    }
 
-  function draw() {
-    ctx.clearRect(0, 0, w, h);
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > w) p.vx *= -1;
-      if (p.y < 0 || p.y > h) p.vy *= -1;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, 0.7)`;
-      ctx.fill();
+    // 6. Wire global UI (nav, login button, theme toggle, language switcher)
+    this._wireNav();
+    this._wireAuthButtons();
+    this._wireThemeToggle();
+    this._wireLangSwitcher();
+
+    // 7. Service worker
+    this._registerSW();
+
+    // 8. Track page view
+    analytics.screen(document.title || location.pathname);
+
+    // 9. Mark ready
+    this.ready = true;
+    document.body.classList.add("app-ready");
+    document.dispatchEvent(new CustomEvent("ndog:ready"));
+
+    console.log("[app] Ready ✓", {
+      lang: i18n.getLang(),
+      theme: this._theme(),
+      mobile: isMobile()
     });
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 110) {
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(78, 192, 255, ${0.15 * (1 - d / 110)})`;
-          ctx.lineWidth = 0.6;
-          ctx.stroke();
+  }
+
+  _onUserChange(user) {
+    if (user) {
+      // Update profile button in nav
+      $$("[data-auth-slot]").forEach((slot) => {
+        slot.innerHTML = `
+          <button class="btn btn--profile" data-action="profile">
+            <img src="${user.photoURL || "/assets/icons/icon-512.png"}" alt="" width="28" height="28" />
+            <span class="profile-name">${(user.displayName || "User").split(" ")[0]}</span>
+          </button>
+          <button class="btn btn--ghost btn--sm" data-action="logout">Logout</button>
+        `;
+        slot.querySelector('[data-action="logout"]').addEventListener("click", () => auth.signOut());
+        slot.querySelector('[data-action="profile"]').addEventListener("click", () => (location.href = "/dashboard"));
+      });
+      analytics.setUser(user.uid, {
+        role: user.role || "user",
+        country: user.country || "unknown",
+        vip: user.vipLevel || 0,
+        founder: !!user.founder
+      });
+      // Show role-specific nav items
+      if (user.role === "admin" || user.role === "mod") {
+        $$("[data-admin-only]").forEach((el) => el.style.display = "");
+      }
+    } else {
+      $$("[data-auth-slot]").forEach((slot) => {
+        slot.innerHTML = `<button class="btn btn--primary" data-action="signin">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21.35 11.1H12v2.8h5.35c-.5 2.4-2.65 4.1-5.35 4.1-3.2 0-5.8-2.6-5.8-5.8s2.6-5.8 5.8-5.8c1.45 0 2.75.5 3.8 1.45l2-2C16.45 3.85 14.4 3 12 3 7 3 3 7 3 12s4 9 9 9c5.4 0 9-3.85 9-9 0-.65-.05-1.25-.15-1.9z"/></svg>
+          <span>Sign in</span>
+        </button>`;
+        slot.querySelector('[data-action="signin"]').addEventListener("click", () => auth.signIn());
+      });
+      // Trigger One Tap
+      auth.initOneTap();
+    }
+  }
+
+  _wireNav() {
+    // Mobile menu toggle
+    const toggle = $("[data-menu-toggle]");
+    const nav = $("[data-nav]");
+    if (toggle && nav) {
+      toggle.addEventListener("click", () => {
+        nav.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", nav.classList.contains("open"));
+      });
+      // Close on outside click
+      document.addEventListener("click", (e) => {
+        if (!nav.contains(e.target) && !toggle.contains(e.target)) nav.classList.remove("open");
+      });
+    }
+    // Highlight active link in main nav
+    const path = location.pathname.split("/").pop() || "index.html";
+    $$("[data-nav] a").forEach((a) => {
+      const href = a.getAttribute("href") || "";
+      if (href.endsWith(path)) a.classList.add("active");
+    });
+
+    // Bottom-nav: highlight active link (CSS handles show/hide on mobile)
+    const bn = document.getElementById("bottom-nav");
+    if (bn) {
+      const cur = path.toLowerCase();
+      bn.querySelectorAll("a").forEach((a) => {
+        const href = (a.getAttribute("href") || "").toLowerCase();
+        const target = href.replace(/^\//, "");
+        if (target === cur || (target === "index.html" && (cur === "" || cur === "index.html"))) {
+          a.classList.add("active");
         }
-      }
+      });
     }
-    requestAnimationFrame(draw);
   }
 
-  resize();
-  window.addEventListener("resize", resize);
-  draw();
-}
-
-// ───────────────────────────────────────────────────────────────────
-// LAUNCH COUNTDOWN
-// ───────────────────────────────────────────────────────────────────
-function initCountdown() {
-  const els = {
-    d: document.getElementById("lcDays"),
-    h: document.getElementById("lcHours"),
-    m: document.getElementById("lcMins"),
-    s: document.getElementById("lcSecs")
-  };
-  if (!els.d) return;
-  function tick() {
-    const now = Date.now();
-    const diff = Math.max(0, APP_CONFIG.launchDate.getTime() - now);
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    els.d.textContent = String(d).padStart(2, "0");
-    els.h.textContent = String(h).padStart(2, "0");
-    els.m.textContent = String(m).padStart(2, "0");
-    els.s.textContent = String(s).padStart(2, "0");
-  }
-  tick();
-  setInterval(tick, 1000);
-}
-
-// ───────────────────────────────────────────────────────────────────
-// SPA ROUTER
-// ───────────────────────────────────────────────────────────────────
-const VIEWS = ["dashboard", "claim", "referral", "missions", "leaderboard", "whitepaper"];
-
-function setView(name) {
-  if (!VIEWS.includes(name)) name = "dashboard";
-  document.querySelectorAll(".view").forEach(v => v.classList.remove("view--active"));
-  const target = document.getElementById(`view-${name}`);
-  if (target) target.classList.add("view--active");
-
-  document.querySelectorAll("[data-view]").forEach(el => {
-    el.classList.toggle("active", el.dataset.view === name);
-  });
-
-  closeSidenav();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-
-  const url = new URL(location.href);
-  url.searchParams.set("view", name);
-  history.replaceState(null, "", url);
-
-  document.dispatchEvent(new CustomEvent("ndog:viewchange", { detail: { view: name } }));
-}
-
-function closeSidenav() {
-  document.getElementById("sidenav")?.classList.remove("open");
-  document.getElementById("sidenavScrim")?.classList.remove("show");
-}
-
-function bindNavigation() {
-  document.addEventListener("click", (e) => {
-    const link = e.target.closest("[data-view]");
-    if (!link) return;
-    e.preventDefault();
-    setView(link.dataset.view);
-  });
-
-  document.getElementById("menuToggle")?.addEventListener("click", () => {
-    document.getElementById("sidenav").classList.toggle("open");
-    document.getElementById("sidenavScrim").classList.toggle("show");
-  });
-  document.getElementById("sidenavScrim")?.addEventListener("click", closeSidenav);
-
-  document.getElementById("logoutBtn")?.addEventListener("click", logout);
-  document.getElementById("bannedLogout")?.addEventListener("click", logout);
-
-  // ─── زر تسجيل الدخول ────────────────────────────────────────
-  document.getElementById("googleLoginBtn")?.addEventListener("click", async function handler(e) {
-    const btn = this;
-    if (btn.disabled) return;
-
-    btn.disabled = true;
-    const labelSpan = btn.querySelector("span");
-    const originalText = labelSpan ? labelSpan.textContent : "";
-    if (labelSpan) labelSpan.textContent = t("login.connecting");
-
-    try {
-      await googleLogin();
-      // نجاح: سيتم التعامل معه عبر onAuthStateChanged
-    } catch (err) {
-      const isInfo = err.code === "auth/standalone-escape";
-      toast(err.message || t("login.connectFailed"), isInfo ? "info" : "err", isInfo ? 6000 : 3200);
-      btn.disabled = false;
-      if (labelSpan) labelSpan.textContent = originalText || t("login.googleBtn");
-    }
-
-    // شبكة أمان
-    setTimeout(() => {
-      if (btn.disabled) {
-        btn.disabled = false;
-        if (labelSpan) labelSpan.textContent = originalText || t("login.googleBtn");
-      }
-    }, 5000);
-  });
-}
-
-// ───────────────────────────────────────────────────────────────────
-// LANGUAGE SWITCHER
-// ───────────────────────────────────────────────────────────────────
-function bindLanguageSwitcher() {
-  const langToggle = document.getElementById("langToggle");
-  const langToggleLbl = document.getElementById("langToggleLbl");
-  if (langToggle) {
-    if (langToggleLbl) langToggleLbl.textContent = (getLang() === "ar") ? "ع" : "EN";
-    langToggle.addEventListener("click", () => {
-      const newLang = toggleLang();
-      if (langToggleLbl) langToggleLbl.textContent = (newLang === "ar") ? "ع" : "EN";
-    });
+  _wireAuthButtons() {
+    $$("[data-action='signin']").forEach((b) => b.addEventListener("click", () => auth.signIn()));
+    $$("[data-action='logout']").forEach((b) => b.addEventListener("click", () => auth.signOut()));
   }
 
-  document.querySelectorAll(".lang-pill[data-lang]").forEach(pill => {
-    pill.classList.toggle("active", pill.dataset.lang === getLang());
-    pill.addEventListener("click", () => {
-      setLang(pill.dataset.lang);
-      document.querySelectorAll(".lang-pill[data-lang]").forEach(p =>
-        p.classList.toggle("active", p.dataset.lang === pill.dataset.lang));
-      if (langToggleLbl) langToggleLbl.textContent = (getLang() === "ar") ? "ع" : "EN";
-    });
-  });
-
-  onLangChange(() => {
-    applyTranslations();
-    document.dispatchEvent(new CustomEvent("ndog:langchange"));
-  });
-}
-
-// ───────────────────────────────────────────────────────────────────
-// COPY TO CLIPBOARD
-// ───────────────────────────────────────────────────────────────────
-export async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast(t("common.copied"), "ok", 1800);
-    return true;
-  } catch {
-    const ta = document.createElement("textarea");
-    ta.value = text; document.body.appendChild(ta);
-    ta.select(); document.execCommand("copy"); ta.remove();
-    toast(t("common.copied"), "ok", 1800);
-    return true;
+  _initTheme() {
+    const saved = getCookie("ndog_theme") || (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "dark");
+    document.documentElement.dataset.theme = saved;
   }
-}
 
-document.addEventListener("click", (e) => {
-  const cpBtn = e.target.closest("[data-copy-target]");
-  if (!cpBtn) return;
-  const target = document.getElementById(cpBtn.dataset.copyTarget);
-  if (target) copyText(target.value);
-  const btn = e.target.closest("#copyRefBtn");
-  if (btn) {
-    const link = document.getElementById("dashRefLink")?.textContent;
-    if (link) copyText(link);
+  _theme() {
+    return document.documentElement.dataset.theme || "dark";
   }
-});
 
-// ───────────────────────────────────────────────────────────────────
-// SERVICE WORKER
-// ───────────────────────────────────────────────────────────────────
-function registerSW() {
-  if (!("serviceWorker" in navigator)) return;
-  if (location.protocol !== "https:" && location.hostname !== "localhost") return;
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=2.0.3")
-      .then(reg => {
-        console.log("[NDOG] SW registered:", reg.scope);
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener("statechange", () => {
-              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                console.log("[NDOG] New SW installed, requesting skipWaiting");
-                newWorker.postMessage({ type: "SKIP_WAITING" });
-              }
-            });
-          }
-        });
-
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-          if (refreshing) return;
-          refreshing = true;
-          console.log("[NDOG] New SW activated — reloading");
-          window.location.reload();
-        });
-
-        navigator.serviceWorker.addEventListener("message", (event) => {
-          if (event.data?.type === "SW_UPDATED") {
-            console.log("[NDOG] SW update confirmed, version:", event.data.version);
-          }
-        });
-
-        setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000);
+  _wireThemeToggle() {
+    $$("[data-theme-toggle]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const cur = this._theme();
+        const next = cur === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        setCookie("ndog_theme", next, 365);
+        document.dispatchEvent(new CustomEvent("ndog:themechange", { detail: { theme: next } }));
       })
-      .catch(err => console.warn("[NDOG] SW failed:", err));
-  });
-}
+    );
+  }
 
-// ───────────────────────────────────────────────────────────────────
-// PRELOADER
-// ───────────────────────────────────────────────────────────────────
-function hidePreloader() {
-  const p = document.getElementById("preloader");
-  if (!p) return;
-  setTimeout(() => {
-    p.classList.add("done");
-    setTimeout(() => p.remove(), 600);
-  }, 900);
-}
+  _wireLangSwitcher() {
+    $$("[data-lang-btn]").forEach((b) =>
+      b.addEventListener("click", () => i18n.setLang(b.dataset.langBtn))
+    );
+  }
 
-setTimeout(() => {
-  const p = document.getElementById("preloader");
-  if (p && !p.classList.contains("done")) {
-    console.warn("[NDOG] Failsafe: forcing preloader hide");
-    p.classList.add("done");
-    setTimeout(() => p.remove(), 600);
-    const shell = document.getElementById("appShell");
-    const login = document.getElementById("loginScreen");
-    if (shell?.classList.contains("hidden") && login?.classList.contains("hidden")) {
-      login?.classList.remove("hidden");
+  async _registerSW() {
+    if (!("serviceWorker" in navigator)) return;
+    try {
+      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      console.log("[app] SW registered:", reg.scope);
+    } catch (e) {
+      console.warn("[app] SW registration failed:", e);
     }
   }
-}, 6000);
-
-window.addEventListener("error", (e) => {
-  console.error("[NDOG] Uncaught error:", e.error || e.message);
-  const p = document.getElementById("preloader");
-  if (p && !p.classList.contains("done")) {
-    p.classList.add("done");
-    setTimeout(() => p.remove(), 600);
-  }
-});
-
-window.addEventListener("unhandledrejection", (e) => {
-  console.error("[NDOG] Unhandled promise rejection:", e.reason);
-});
-
-document.addEventListener("ndog:authError", (e) => {
-  toast(e.detail?.message || "خطأ في المصادقة", "err", 5000);
-});
-
-// ───────────────────────────────────────────────────────────────────
-// BOOTSTRAP
-// ───────────────────────────────────────────────────────────────────
-async function bootstrap() {
-  applyTranslations();
-  bindNavigation();
-  bindLanguageSwitcher();
-  initParticles();
-  initCountdown();
-  registerSW();
-
-  bindDashboard();
-  initClaim();
-  initReferral();
-  initMissions();
-  initLeaderboard();
-  initNotifications();
-
-  onUser((user) => {
-    const login = document.getElementById("loginScreen");
-    const shell = document.getElementById("appShell");
-
-    if (!user) {
-      login?.classList.remove("hidden");
-      shell?.classList.add("hidden");
-      hidePreloader();
-      document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
-      return;
-    }
-
-    login?.classList.add("hidden");
-    shell?.classList.remove("hidden");
-    hidePreloader();
-
-    animateCount(document.getElementById("topbarBalNum"), user.balance || 0);
-
-    const sideAvatar = document.getElementById("sideAvatar");
-    if (sideAvatar && user.photoURL) sideAvatar.src = user.photoURL;
-    document.getElementById("sideName").textContent = user.name || "User";
-    document.getElementById("sideCode").textContent = user.referralCode || "NDOG—";
-
-    document.querySelector(".nav-link.admin-only")?.classList.add("hidden");
-  });
-
-  await persistenceReady;
-  initAuth(() => {
-    const initialView = new URLSearchParams(location.search).get("view") || "dashboard";
-    setTimeout(() => setView(initialView), 100);
-  });
 }
 
-window.ndogSetView = setView;
-window.ndogCopyText = copyText;
-window.ndogGetLang = getLang;
-window.ndogSetLang = setLang;
-window.ndogToggleLang = toggleLang;
-window.ndogIsRTL = isRTL;
+export const app = new App();
 
-const refParam = new URLSearchParams(location.search).get("ref");
-if (refParam) sessionStorage.setItem("ndog_ref", refParam);
+// Bootstrap
+if (document.readyState !== "loading") {
+  app.init();
+} else {
+  document.addEventListener("DOMContentLoaded", () => app.init());
+}
 
-setTimeout(bootstrap, 0);
+window.app = app;

@@ -1,0 +1,163 @@
+/**
+ * FILE NAME: css/referral.css
+ * PURPOSE: Referral page styles — code box, link input, QR slot, tier list, tree.
+ * DEPENDENCIES: styles.css
+ */
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.card--code { text-align: center; }
+.ref-code {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  background: linear-gradient(135deg, var(--ndog-gold), var(--ndog-gold-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding: var(--space-3);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  margin: var(--space-3) 0;
+  user-select: all;
+}
+
+.card--link .ref-link {
+  display: flex;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+.card--link input {
+  flex: 1;
+  padding: var(--space-3);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.qr-slot {
+  margin-top: var(--space-4);
+  display: flex;
+  justify-content: center;
+}
+.qr-slot canvas {
+  border: 8px solid white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* Tier list */
+.tier-list { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-3); }
+.tier-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-elev);
+  border-radius: var(--radius);
+}
+.tier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: white;
+  flex-shrink: 0;
+}
+.tier--l1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.tier--l2 { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+.tier--l3 { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+
+/* Stats */
+.ref-stats-row {
+  display: flex;
+  justify-content: space-around;
+  margin: var(--space-3) 0;
+  padding: var(--space-2);
+  background: var(--bg-elev);
+  border-radius: var(--radius);
+}
+
+/* Tree */
+.ref-tree {
+  margin-top: var(--space-3);
+  overflow-x: auto;
+  padding: var(--space-3);
+}
+.tree-node {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-2);
+  vertical-align: top;
+}
+.tree-node__card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+  min-width: 140px;
+}
+.tree-node--l1 .tree-node__card { border-color: var(--ndog-gold); }
+.tree-node--l2 .tree-node__card { border-color: var(--ndog-nile); }
+.tree-node--l3 .tree-node__card { border-color: var(--ndog-purple); }
+.tree-node__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--primary);
+}
+.tree-node__uid { font-family: var(--font-mono); font-size: 0.75rem; }
+.tree-node__reward { font-size: 0.75rem; color: var(--success); }
+.tree-children {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 2px dashed var(--border);
+  position: relative;
+}
+.tree-children::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 2px;
+  height: var(--space-3);
+  background: var(--border);
+  transform: translateX(-50%);
+}
+
+/* History */
+.ref-history { display: flex; flex-direction: column; gap: var(--space-2); }
+.ref-hist-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-elev);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+.ref-hist-item .tier { width: 28px; height: 28px; font-size: 0.7rem; }
+.ref-hist-uid { flex: 1; font-family: var(--font-mono); color: var(--text-muted); }
+.ref-hist-reward { color: var(--success); font-weight: 600; }

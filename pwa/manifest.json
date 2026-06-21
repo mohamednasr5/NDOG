@@ -14,31 +14,31 @@
   "id": "/?utm_source=pwa",
   "icons": [
     {
-      "src": "/assets/icons/favicon.png",
+      "src": "https://ndogcoin.com/assets/icons/favicon.png",
       "sizes": "16x16 32x32",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/apple-touch-icon.png",
+      "src": "https://ndogcoin.com/assets/icons/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-192.png",
+      "src": "https://ndogcoin.com/assets/icons/icon-512.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-512.png",
+      "src": "https://ndogcoin.com/assets/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-maskable.png",
+      "src": "https://ndogcoin.com/assets/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -46,14 +46,14 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/icons/icon-512.png",
+      "src": "https://ndogcoin.com/assets/screenshots/desktop.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "NileDogs Dashboard"
     },
     {
-      "src": "/assets/icons/icon-512.png",
+      "src": "https://ndogcoin.com/assets/screenshots/mobile.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
@@ -66,25 +66,22 @@
       "short_name": "Claim",
       "description": "Mine your daily NDOG",
       "url": "/?action=claim&utm_source=pwa_shortcut",
-      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "https://ndogcoin.com/assets/icons/icon-512.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Airdrop Center",
       "short_name": "Airdrop",
-      "url": "/airdrop.html?utm_source=pwa_shortcut",
-      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "96x96", "type": "image/png" }]
+      "url": "/airdrop.html?utm_source=pwa_shortcut"
     },
     {
       "name": "Staking",
       "short_name": "Stake",
-      "url": "/staking.html?utm_source=pwa_shortcut",
-      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "96x96", "type": "image/png" }]
+      "url": "/staking.html?utm_source=pwa_shortcut"
     },
     {
       "name": "Leaderboard",
       "short_name": "Ranks",
-      "url": "/leaderboard.html?utm_source=pwa_shortcut",
-      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "96x96", "type": "image/png" }]
+      "url": "/leaderboard.html?utm_source=pwa_shortcut"
     }
   ],
   "prefer_related_applications": false,

@@ -1,107 +1,139 @@
 /**
- * NileDogs (NDOG) — Leaderboard module
+ * FILE NAME: js/leaderboard.js
+ * PURPOSE: Leaderboard rendering. 6 boards (Global, Country, Referral, Weekly,
+ *          Monthly, All-Time). Realtime subscription, virtualized rows for
+ *          performance, highlights current user.
+ * DEPENDENCIES: firebase.js, auth.js, database.js, utils.js, i18n.js
+ * EXPORTS: leaderboard.init, leaderboard.render
  */
 
-import { db, ref, onValue, get, query, orderByChild, limitToLast } from "./firebase-config.js?v=2.0.5";
-import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
-import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
+import { firebaseDb } from "./firebase.js";
+import { auth } from "./auth.js";
+import { db, PATHS } from "./database.js";
+import { $, $$, safeHTML, formatNDOG, formatNumber, shortAddr } from "./utils.js";
+import { i18n } from "./i18n.js";
+import { ref, query, orderByValue, limitToLast, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-let currentTab = "global";
-let currentUser = null;
+const BOARDS = [
+  { id: "global", label: "Global", icon: "🌍" },
+  { id: "country", label: "Country", icon: "🏳️" },
+  { id: "referral", label: "Referral", icon: "🔗" },
+  { id: "weekly", label: "Weekly", icon: "📅" },
+  { id: "monthly", label: "Monthly", icon: "📆" },
+  { id: "alltime", label: "All-Time", icon: "🏆" }
+];
 
-export function initLeaderboard() {
-  onUser((u) => { currentUser = u; });
+const ROWS_PER_RENDER = 100; // virtualization cap
 
-  document.querySelectorAll("[data-ltab]").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll("[data-ltab]").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      currentTab = tab.dataset.ltab;
-      loadLeaderboard();
+export const leaderboard = {
+  _unsub: null,
+  _currentBoard: "global",
+
+  init() {
+    const root = $("#leaderboard-root");
+    if (!root) return;
+    root.innerHTML = `
+      <div class="lb-tabs">
+        ${BOARDS.map((b) => `<button class="tab-btn ${b.id === "global" ? "active" : ""}" data-board="${b.id}">${b.icon} ${b.label}</button>`).join("")}
+      </div>
+      <div class="lb-table-wrap">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>User</th>
+              <th>Country</th>
+              <th>Score</th>
+              <th>Reward</th>
+            </tr>
+          </thead>
+          <tbody id="lb-body">
+            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    root.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        root.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        this._currentBoard = btn.dataset.board;
+        this._loadBoard();
+      });
     });
-  });
 
-  document.addEventListener("ndog:viewchange", (e) => {
-    if (e.detail.view === "leaderboard") loadLeaderboard();
-  });
+    this._loadBoard();
+  },
 
-  onLangChange(() => {
-    if (document.getElementById("view-leaderboard")?.classList.contains("view--active")) {
-      loadLeaderboard();
+  async _loadBoard() {
+    if (this._unsub) this._unsub();
+    const board = this._currentBoard;
+    const body = $("#lb-body");
+    if (!body) return;
+    body.innerHTML = '<tr><td colspan="5" class="muted">Loading…</td></tr>';
+
+    const user = auth.currentUser();
+    const userCountry = user?.country;
+
+    // Build query
+    let path = `${PATHS.leaderboards}/${board}`;
+    if (board === "country" && userCountry) {
+      path = `${PATHS.leaderboards}/country/${userCountry}`;
     }
-  });
-}
+    const q = query(ref(firebaseDb, path), orderByValue(), limitToLast(ROWS_PER_RENDER));
 
-async function loadLeaderboard() {
-  const podium = document.getElementById("lbPodium");
-  const list   = document.getElementById("lbList");
-  if (!podium || !list) return;
-  podium.innerHTML = `<div style="grid-column:1/-1" class="empty">${t("lb.loading")}</div>`;
-  list.innerHTML = "";
+    this._unsub = onValue(q, async (snap) => {
+      const data = snap.val() || {};
+      const entries = Object.entries(data)
+        .map(([uid, score]) => ({ uid, score: Number(score) || 0 }))
+        .sort((a, b) => b.score - a.score);
 
-  const snap = await get(ref(db, "users"));
-  if (!snap.exists()) {
-    podium.innerHTML = `<div style="grid-column:1/-1" class="empty">${t("lb.noData")}</div>`;
-    return;
+      if (entries.length === 0) {
+        body.innerHTML = '<tr><td colspan="5" class="muted">No data yet. Be the first!</td></tr>';
+        return;
+      }
+
+      // Batch-load user profiles (top 100)
+      const profilePromises = entries.slice(0, ROWS_PER_RENDER).map((e) => db.users.get(e.uid));
+      const profiles = await Promise.all(profilePromises);
+
+      body.innerHTML = entries
+        .slice(0, ROWS_PER_RENDER)
+        .map((e, idx) => {
+          const p = profiles[idx] || {};
+          const isMe = user && e.uid === user.uid;
+          const rank = idx + 1;
+          const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
+          const displayName = p.displayName || shortAddr(e.uid, 4, 4);
+          const country = p.country || "—";
+          const reward = this._rankReward(rank);
+          return `
+            <tr class="lb-row ${isMe ? "is-me" : ""}">
+              <td class="lb-rank">${medal || rank}</td>
+              <td class="lb-user">
+                <img src="${p.photoURL || "/assets/icons/icon-512.png"}" alt="" width="32" height="32" loading="lazy" />
+                ${safeHTML(displayName)} ${p.founder ? '<span class="badge badge--founder">★</span>' : ""}
+                ${p.vipLevel > 0 ? `<span class="badge badge--vip">VIP${p.vipLevel}</span>` : ""}
+              </td>
+              <td>${safeHTML(country)}</td>
+              <td><strong>${formatNumber(e.score)}</strong></td>
+              <td>${reward > 0 ? formatNDOG(reward) : "—"}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    });
+  },
+
+  _rankReward(rank) {
+    if (rank === 1) return 1000;
+    if (rank === 2) return 500;
+    if (rank === 3) return 250;
+    if (rank <= 10) return 100;
+    if (rank <= 50) return 50;
+    if (rank <= 100) return 25;
+    return 0;
   }
+};
 
-  let users = [];
-  snap.forEach(c => { const u = c.val(); if (!u.banned) users.push(u); });
-
-  if (currentTab === "global") {
-    users.sort((a, b) => (b.balance || 0) - (a.balance || 0));
-  } else if (currentTab === "country") {
-    if (currentUser) users = users.filter(u => u.country === currentUser.country);
-    users.sort((a, b) => (b.balance || 0) - (a.balance || 0));
-  } else if (currentTab === "referral") {
-    users.sort((a, b) => (b.totalReferrals || 0) - (a.totalReferrals || 0));
-  }
-
-  const top3 = users.slice(0, 3);
-  const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean);
-  podium.innerHTML = podiumOrder.map((u) => {
-    const realRank = top3.indexOf(u) + 1;
-    const medals = ["🥇", "🥈", "🥉"];
-    return `
-      <div class="podium podium--${realRank}">
-        <div class="podium__rank">${medals[realRank - 1]}</div>
-        <img class="podium__avatar" src="${u.photoURL || defaultAvatar(u.name)}" onerror="this.src='${defaultAvatar()}'" alt=""/>
-        <div class="podium__name">${escapeHtml(u.name || t("lb.anonymous"))}</div>
-        <div class="podium__score">${metric(u).toLocaleString()}</div>
-      </div>`;
-  }).join("");
-
-  const rest = users.slice(3, 50);
-  list.innerHTML = rest.map((u, i) => {
-    const rank = i + 4;
-    const me = currentUser && u.uid === currentUser.uid ? " me" : "";
-    return `
-      <div class="lb-row${me}">
-        <div class="lb-row__rank">${rank}</div>
-        <img class="lb-row__avatar" src="${u.photoURL || defaultAvatar(u.name)}" onerror="this.src='${defaultAvatar()}'" alt=""/>
-        <div class="lb-row__meta">
-          <div class="lb-row__name">${escapeHtml(u.name || t("lb.anonymous"))}</div>
-          <div class="lb-row__country">${u.country || t("lb.globalLabel")}</div>
-        </div>
-        <div class="lb-row__score">${metric(u).toLocaleString()}</div>
-      </div>`;
-  }).join("");
-}
-
-function metric(u) {
-  if (currentTab === "referral") return u.totalReferrals || 0;
-  return u.balance || 0;
-}
-
-function defaultAvatar(name) {
-  const seed = (name || "ndog").slice(0, 1).toUpperCase();
-  return `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="32" fill="#0a1f44"/><text x="50%" y="50%" font-size="28" font-family="Arial" font-weight="bold" fill="#ffd700" text-anchor="middle" dominant-baseline="central">${seed}</text></svg>`
-  )}`;
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[c]));
-}
+window.__leaderboard = leaderboard;

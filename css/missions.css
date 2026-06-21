@@ -1,0 +1,90 @@
+/**
+ * FILE NAME: css/missions.css
+ * PURPOSE: Missions page styles — tabs, mission list, completion states.
+ * DEPENDENCIES: styles.css
+ */
+
+.mission-tabs {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3);
+  background: var(--bg-elev);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-4);
+}
+
+.mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mission-item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all var(--t);
+}
+.mission-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--primary);
+  transform: translateX(4px);
+}
+html[dir="rtl"] .mission-item:hover { transform: translateX(-4px); }
+.mission-item.is-completed {
+  opacity: 0.7;
+  background: var(--bg-elev);
+}
+.mission-item.is-completed:hover { border-color: var(--success); }
+
+.mission-item__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+}
+
+.mission-item__body { min-width: 0; }
+.mission-item__title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+.mission-item__desc {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+.mission-item__link {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.mission-item__reward {
+  font-weight: 700;
+  color: var(--ndog-gold);
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .mission-item {
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto auto;
+    gap: var(--space-2);
+  }
+  .mission-item__reward { grid-column: 2; grid-row: 2; }
+  .mission-item .btn { grid-column: 1 / -1; grid-row: 3; }
+}

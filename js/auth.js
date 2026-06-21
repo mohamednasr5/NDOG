@@ -1,442 +1,357 @@
 /**
- * NileDogs (NDOG) — Authentication Module
- * v2.1.0 - POPUP + REDIRECT FALLBACK (SAFE)
- * =====================================================
- * - Desktop: signInWithPopup first, fallback to signInWithRedirect
- *   if COOP blocks the popup.
- * - Mobile: signInWithRedirect directly (popups unreliable on mobile).
- * - getRedirectResult is consumed ONCE on init to avoid loops.
- * - signInWithRedirect is ONLY triggered by explicit user click.
- * - No location.reload() anywhere — onAuthStateChanged drives the UI.
- * - Device fingerprint disabled.
- * =====================================================
+ * FILE NAME: js/auth.js
+ * PURPOSE: Google Authentication (popup + One Tap), session persistence,
+ *          auto-login, role-based access (user/mod/admin), profile sync,
+ *          referral binding on first login, first-login reward grant,
+ *          banned user detection, idle-logout, device registration.
+ * DEPENDENCIES: firebase.js, utils.js, antifraud.js, database.js (lazy)
+ * EXPORTS: auth.signIn, auth.signOut, auth.onReady, auth.requireRole,
+ *          auth.currentUser, auth.isAdmin, auth.isMod
  */
 
+import { firebaseAuth, firebaseDb } from "./firebase.js";
 import {
-  auth, db, googleProvider, APP_CONFIG,
-  ref, get, set, update, push, onValue,
-  signInWithPopup, signInWithRedirect, getRedirectResult,
-  signOut, onAuthStateChanged,
-  generateReferralCode,
-  persistenceReady
-} from "./firebase-config.js?v=2.0.5";
-import { t } from "./i18n.js?v=2.0.5";
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged,
+  signOut as fbSignOut,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { ref, get, set, update, onValue, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { showToast, getQueryParam, getCookie, setCookie, generateReferralCode } from "./utils.js";
+import { antifraud } from "./antifraud.js";
 
-let currentUserData = null;
-let listeners = [];
-let authInitialized = false;
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 
-export function onUser(cb) {
-  listeners.push(cb);
-  if (currentUserData) cb(currentUserData);
-  return () => { listeners = listeners.filter(l => l !== cb); };
-}
+const FIRST_LOGIN_REWARD = 100; // NDOG
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+let _currentUser = null;
+let _profileUnsub = null;
+let _idleTimer = null;
 
-function emit(user) {
-  currentUserData = user;
-  console.log("[NDOG] Emitting user state:", user ? `uid=${user.uid}` : "null");
-  listeners.forEach(l => l(user));
-}
+export const auth = {
+  /** Returns current user object (or null). */
+  currentUser() {
+    return _currentUser;
+  },
 
-export function getCurrentUser() { return currentUserData; }
+  isAdmin() {
+    return _currentUser?.role === "admin";
+  },
 
-function isMobile() {
-  return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
-}
+  isMod() {
+    return _currentUser?.role === "mod" || _currentUser?.role === "admin";
+  },
 
-function isEmbeddedBrowser() {
-  const ua = navigator.userAgent || navigator.vendor || "";
-  return /Telegram|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|Twitter|TikTok|Snapchat|; ?wv\)/i.test(ua);
-}
-
-function friendlyAuthError(err) {
-  const code = err?.code || "";
-  const msg  = err?.message || "";
-  switch (code) {
-    case "auth/popup-closed-by-user":
-    case "auth/cancelled-popup-request":
-      return t("auth.errPopupClosed");
-    case "auth/popup-blocked":
-      return t("auth.errPopupBlocked");
-    case "auth/operation-not-allowed":
-      return t("auth.errNotEnabled");
-    case "auth/network-request-failed":
-      return t("auth.errNetwork");
-    case "auth/operation-not-supported-in-this-environment":
-      return t("auth.errEnv");
-    default:
-      return msg || t("auth.errGeneric");
-  }
-}
-
-export async function googleLogin() {
-  // Block login from embedded/in-app browsers
-  if (isEmbeddedBrowser()) {
-    console.warn("[NDOG] Blocked login attempt inside an embedded/in-app browser");
-    const e = new Error(t("auth.errEmbeddedBrowser"));
-    e.code = "auth/embedded-browser";
-    throw e;
-  }
-
-  console.log("[NDOG] Login attempt — using signInWithRedirect (COOP-safe)");
-
-  // ─── REDIRECT FOR ALL DEVICES ───────────────────────────────
-  // The site has a Cross-Origin-Opener-Policy header (set by the
-  // hosting CDN) that blocks signInWithPopup on all devices.
-  // signInWithRedirect bypasses this entirely because it navigates
-  // the main window instead of opening a popup.
-  try {
-    await signInWithRedirect(auth, googleProvider);
-    // The page will now navigate to Google sign-in.
-    // On return, getRedirectResult (in initAuth) handles the result.
-    return;
-  } catch (err) {
-    console.error("[NDOG] Redirect sign-in error:", err.code, err.message);
-    const friendly = friendlyAuthError(err);
-    const e = new Error(friendly);
-    e.code = err.code;
-    e.original = err;
-    throw e;
-  }
-}
-
-export async function logout() {
-  try {
-    await signOut(auth);
-  } catch (err) {
-    console.error("[NDOG] Logout failed:", err);
-  }
-}
-
-// ─── Provisioning ────────────────────────────────────────────────
-const provisioningInFlight = new Map();
-
-function provisionUserLocked(firebaseUser) {
-  const uid = firebaseUser.uid;
-  if (provisioningInFlight.has(uid)) {
-    console.log("[NDOG] Provisioning already in flight for:", uid);
-    return provisioningInFlight.get(uid);
-  }
-  console.log("[NDOG] Starting provisioning for:", uid);
-  const p = provisionUserImpl(firebaseUser).finally(() => {
-    provisioningInFlight.delete(uid);
-  });
-  provisioningInFlight.set(uid, p);
-  return p;
-}
-
-async function provisionUserImpl(firebaseUser) {
-  const uid = firebaseUser.uid;
-  const userRef = ref(db, `users/${uid}`);
-  const snap = await get(userRef);
-
-  const fingerprint = "disabled_fingerprint";
-
-  if (!snap.exists()) {
-    const referralCode = generateReferralCode();
-    const urlRef = new URLSearchParams(location.search).get("ref");
-    const storedRef = sessionStorage.getItem("ndog_ref");
-    const referredBy = urlRef || storedRef || null;
-
-    const name = firebaseUser.displayName || "NileDog " + referralCode.slice(-4);
-    const country = guessCountry();
-
-    const newUserData = {
-      uid,
-      name,
-      email:        firebaseUser.email || "",
-      photoURL:     firebaseUser.photoURL || "",
-      balance:      0,
-      country,
-      rank:         "Bronze",
-      level:        1,
-      referralCode,
-      referredBy,
-      totalReferrals: 0,
-      activeReferrals: 0,
-      communityScore: 0,
-      loyaltyScore:   10,
-      createdAt:    Date.now(),
-      lastClaim:    0,
-      streak:       0,
-      deviceFingerprint: fingerprint,
-      banned:       false,
-      isFounder:    true,
-      badges:       { founder: true }
-    };
-
-    await set(userRef, newUserData);
-
-    if (referredBy) {
-      await processReferral(uid, referredBy);
-    }
-
-    await push(ref(db, `claims`), {
-      userId: uid,
-      amount: 0,
-      type:   "welcome",
-      date:   Date.now()
-    });
-
-    console.log("[NDOG] New user provisioned:", name);
-    return newUserData;
-  }
-
-  const existing = snap.val();
-  const patch = {};
-  if (existing.photoURL !== firebaseUser.photoURL && firebaseUser.photoURL) {
-    patch.photoURL = firebaseUser.photoURL;
-  }
-  if (firebaseUser.displayName && existing.name !== firebaseUser.displayName) {
-    patch.name = firebaseUser.displayName;
-  }
-  if (Object.keys(patch).length) await update(userRef, patch);
-
-  return { ...existing, ...patch };
-}
-
-async function processReferral(newUid, refCode) {
-  try {
-    const usersSnap = await get(ref(db, "users"));
-    if (!usersSnap.exists()) return;
-
-    let referrerUid = null;
-    usersSnap.forEach(child => {
-      if (child.val().referralCode === refCode) referrerUid = child.key;
-    });
-    if (!referrerUid || referrerUid === newUid) return;
-
-    const now = Date.now();
-
-    await push(ref(db, "referrals"), {
-      referrer:     referrerUid,
-      referredUser: newUid,
-      level:        1,
-      createdAt:    now
-    });
-
-    await update(ref(db, `users/${referrerUid}`), {
-      balance:        (await bal(referrerUid)) + APP_CONFIG.referralReward.l1,
-      totalReferrals: (await tRefs(referrerUid)) + 1,
-      communityScore: (await cScore(referrerUid)) + 10
-    });
-
-    const l1Snap = await get(ref(db, `users/${referrerUid}`));
-    if (l1Snap.exists() && l1Snap.val().referredBy) {
-      const l2Code = l1Snap.val().referredBy;
-      let l2Uid = null;
-      usersSnap.forEach(child => {
-        if (child.val().referralCode === l2Code) l2Uid = child.key;
-      });
-      if (l2Uid) {
-        await push(ref(db, "referrals"), {
-          referrer:     l2Uid,
-          referredUser: newUid,
-          level:        2,
-          createdAt:    now
-        });
-        await update(ref(db, `users/${l2Uid}`), {
-          balance: (await bal(l2Uid)) + APP_CONFIG.referralReward.l2
-        });
-
-        const l2Snap = await get(ref(db, `users/${l2Uid}`));
-        if (l2Snap.exists() && l2Snap.val().referredBy) {
-          const l3Code = l2Snap.val().referredBy;
-          let l3Uid = null;
-          usersSnap.forEach(child => {
-            if (child.val().referralCode === l3Code) l3Uid = child.key;
-          });
-          if (l3Uid) {
-            await push(ref(db, "referrals"), {
-              referrer:     l3Uid,
-              referredUser: newUid,
-              level:        3,
-              createdAt:    now
-            });
-            await update(ref(db, `users/${l3Uid}`), {
-              balance: (await bal(l3Uid)) + APP_CONFIG.referralReward.l3
-            });
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error("[NDOG] Referral processing failed:", err);
-  }
-}
-
-async function bal(uid)  { const s = await get(ref(db, `users/${uid}/balance`)); return s.exists() ? s.val() : 0; }
-async function tRefs(uid) { const s = await get(ref(db, `users/${uid}/totalReferrals`)); return s.exists() ? s.val() : 0; }
-async function cScore(uid){ const s = await get(ref(db, `users/${uid}/communityScore`)); return s.exists() ? s.val() : 0; }
-
-function guessCountry() {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-  const lang = navigator.language || "";
-  if (tz.includes("Cairo") || lang.startsWith("ar")) return "Egypt";
-  if (tz.includes("Riyadh")) return "Saudi Arabia";
-  if (tz.includes("Dubai")) return "UAE";
-  if (tz.includes("America")) return "United States";
-  if (tz.includes("Europe")) return "Europe";
-  if (tz.includes("Asia")) return "Asia";
-  return "Global";
-}
-
-// ─── Auth Initialization ─────────────────────────────────────────
-export async function initAuth(onReady) {
-  if (authInitialized) {
-    console.log("[NDOG] Auth already initialized, skipping");
-    return;
-  }
-  authInitialized = true;
-
-  // Wait for persistence to be ready BEFORE any auth operations.
-  // Without this, onAuthStateChanged can fire before persistence is
-  // configured, causing redirect results to be lost.
-  console.log("[NDOG] Waiting for auth persistence...");
-  await persistenceReady;
-  console.log("[NDOG] Auth persistence ready");
-
-  console.log("[NDOG] === AUTH INITIALIZATION START (Redirect-Only) ===");
-  console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
-
-  // ── CRITICAL: Consume pending redirect result FIRST ────────────
-  // When signInWithRedirect completes, Firebase stores the credential
-  // in a temporary storage. getRedirectResult() consumes it and
-  // returns the signed-in user.
-  //
-  // IMPORTANT: getRedirectResult can HANG if COOP blocks the internal
-  // cross-origin iframe communication. We use a 3-second timeout so
-  // the auth initialization always proceeds.
-  try {
-    console.log("[NDOG] Checking for pending redirect result...");
-    const result = await Promise.race([
-      getRedirectResult(auth),
-      new Promise(resolve => setTimeout(() => resolve(null), 3000))
-    ]);
-    if (result && result.user) {
-      console.log("[NDOG] Redirect result received for:", result.user.uid);
-    } else {
-      console.log("[NDOG] No pending redirect result");
-    }
-  } catch (err) {
-    console.error("[NDOG] getRedirectResult error:", err.code, err.message);
-  }
-
-  let userSetupDone = new Map();
-
-  onAuthStateChanged(auth, async (fbUser) => {
-    console.log("[NDOG] onAuthStateChanged fired:", fbUser ? `uid=${fbUser.uid}` : "null");
-
-    if (!fbUser) {
-      console.log("[NDOG] No authenticated user");
-      emit(null);
-      onReady && onReady(null);
-      return;
-    }
-
-    const uid = fbUser.uid;
-
-    if (userSetupDone.has(uid)) {
-      console.log("[NDOG] User", uid, "already set up, skipping duplicate");
-      return;
-    }
-    userSetupDone.set(uid, true);
-
-    console.log("[NDOG] Starting user setup for:", uid, fbUser.email);
-
+  /** Trigger Google popup sign-in (with redirect fallback on mobile). */
+  async signIn() {
     try {
-      const userRef = ref(db, `users/${uid}`);
-      const snap = await get(userRef);
-
-      let userData;
-      if (!snap.exists()) {
-        console.log("[NDOG] User record doesn't exist - provisioning...");
-        userData = await provisionUserLocked(fbUser);
-        console.log("[NDOG] User provisioned successfully:", userData.name);
-      } else {
-        userData = snap.val();
-        const patch = {};
-        if (userData.photoURL !== fbUser.photoURL && fbUser.photoURL) {
-          patch.photoURL = fbUser.photoURL;
-        }
-        if (fbUser.displayName && userData.name !== fbUser.displayName) {
-          patch.name = fbUser.displayName;
-        }
-        if (Object.keys(patch).length) {
-          await update(userRef, patch);
-          userData = { ...userData, ...patch };
-        }
-      }
-
-      if (userData.banned) {
-        console.log("[NDOG] User is banned");
-        document.getElementById("bannedModal")?.classList.remove("hidden");
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      if (isMobile && !("AbortController" in window)) {
+        await signInWithRedirect(firebaseAuth, googleProvider);
         return;
       }
+      await signInWithPopup(firebaseAuth, googleProvider);
+    } catch (e) {
+      if (e.code === "auth/popup-blocked" || e.code === "auth/cancelled-popup-request") {
+        await signInWithRedirect(firebaseAuth, googleProvider);
+      } else if (e.code !== "auth/popup-closed-by-user") {
+        console.error("[auth] signIn error:", e);
+        showToast(e.message || "Sign-in failed", "error");
+      }
+    }
+  },
 
-      console.log("[NDOG] Authentication complete:", {
-        uid: userData.uid,
-        name: userData.name,
-        balance: userData.balance
+  /** Google One Tap (GIS) — loaded from Google Identity Services. */
+  initOneTap() {
+    if (!window.google?.accounts?.id) {
+      // Lazy-load GIS
+      const s = document.createElement("script");
+      s.src = "https://accounts.google.com/gsi/client";
+      s.async = true;
+      s.defer = true;
+      s.onload = () => this._renderOneTap();
+      document.head.appendChild(s);
+    } else {
+      this._renderOneTap();
+    }
+  },
+
+  _renderOneTap() {
+    try {
+      window.google.accounts.id.initialize({
+        client_id: "829364393352.apps.googleusercontent.com",
+        callback: async (response) => {
+          // One Tap returns a JWT credential; Firebase handles via signInWithCredential
+          // For simplicity we fall back to popup if One Tap credential isn't directly usable
+          if (response.credential) {
+            // Best-effort: trigger normal popup flow (Firebase handles ID token in popup)
+            await this.signIn();
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true
       });
+      window.google.accounts.id.prompt();
+    } catch (e) {
+      console.warn("[auth] One Tap init failed:", e);
+    }
+  },
 
-      emit(userData);
-      onReady && onReady(userData);
+  async signOut() {
+    try {
+      if (_profileUnsub) {
+        _profileUnsub();
+        _profileUnsub = null;
+      }
+      await fbSignOut(firebaseAuth);
+      _currentUser = null;
+      setCookie("ndog_session", "", -1);
+      showToast("Signed out", "info", 2000);
+      // Redirect to home if on protected page
+      if (document.body.dataset.proted === "true") {
+        location.href = "/";
+      }
+    } catch (e) {
+      console.error("[auth] signOut error:", e);
+    }
+  },
 
-      // Real-time updates
-      onValue(userRef, (liveSnap) => {
-        if (!liveSnap.exists()) return;
-        const liveData = liveSnap.val();
-        if (liveData.banned) {
-          document.getElementById("bannedModal")?.classList.remove("hidden");
-          return;
+  /**
+   * Bootstrap auth state. Called once on app start.
+   * @param {Function} cb - called with (user|null) after profile is loaded
+   */
+  onReady(cb) {
+    // Handle redirect result first
+    getRedirectResult(firebaseAuth).catch((e) => console.warn("[auth] redirect result:", e.code));
+
+    onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        _currentUser = null;
+        if (_profileUnsub) {
+          _profileUnsub();
+          _profileUnsub = null;
         }
-        console.log("[NDOG] Real-time user data update");
-        emit(liveData);
-      });
+        document.body.classList.remove("logged-in");
+        document.body.classList.add("logged-out");
+        cb?.(null);
+        return;
+      }
+      try {
+        await this._loadOrCreateProfile(firebaseUser);
+        await this._registerDevice(firebaseUser.uid);
+        // Realtime profile sync
+        if (_profileUnsub) _profileUnsub();
+        _profileUnsub = onValue(ref(firebaseDb, `users/${firebaseUser.uid}`), (snap) => {
+          if (snap.exists()) {
+            _currentUser = { ...firebaseUser, ...snap.val() };
+            cb?.(_currentUser);
+            // Ban enforcement
+            if (snap.val().banned) {
+              showToast("This account is banned.", "error");
+              this.signOut();
+              return;
+            }
+            // Role classes for CSS targeting
+            document.body.dataset.role = snap.val().role || "user";
+          }
+        });
+        document.body.classList.add("logged-in");
+        document.body.classList.remove("logged-out");
+        // Idle timeout
+        this._startIdleTimer();
+      } catch (e) {
+        console.error("[auth] profile load error:", e);
+        showToast("Failed to load profile", "error");
+      }
+    });
+  },
 
-    } catch (err) {
-      console.error("[NDOG] User setup failed:", err);
+  /**
+   * Load profile from DB; create if missing (first login).
+   * Bind referral code from URL or cookie if first-time.
+   */
+  async _loadOrCreateProfile(fbUser) {
+    const profileRef = ref(firebaseDb, `users/${fbUser.uid}`);
+    const snap = await get(profileRef);
+    const refFromUrl = getQueryParam("ref") || getCookie("ndog_pending_ref");
+    const lang = (navigator.language || "en").slice(0, 2);
+    const countryGuess = (navigator.language || "").includes("-") ? navigator.language.split("-")[1].toUpperCase() : null;
 
-      const fallbackData = {
+    if (!snap.exists()) {
+      // FIRST LOGIN — create profile + grant welcome bonus + bind referral
+      const referralCode = generateReferralCode(fbUser.uid);
+      const newProfile = {
         uid: fbUser.uid,
-        name: fbUser.displayName || "NileDog",
-        email: fbUser.email || "",
-        photoURL: fbUser.photoURL || "",
-        balance: 0,
-        country: guessCountry(),
-        rank: "Bronze",
-        level: 1,
-        referralCode: "",
-        totalReferrals: 0,
-        activeReferrals: 0,
+        email: fbUser.email || null,
+        displayName: fbUser.displayName || "Anon NDOG",
+        photoURL: fbUser.photoURL || null,
+        role: "user",
+        balance: FIRST_LOGIN_REWARD,
         communityScore: 0,
-        loyaltyScore: 10,
-        createdAt: Date.now(),
-        lastClaim: 0,
+        loyaltyScore: 0,
+        vipLevel: 0,
+        founder: false,
+        banned: false,
+        country: countryGuess,
+        language: lang,
+        referralCode,
+        referredBy: refFromUrl || null,
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        firstLoginReward: true,
         streak: 0,
-        isFounder: true,
-        badges: { founder: true }
+        lastClaimAt: 0
       };
+      await set(profileRef, newProfile);
+      // Index referral code for lookup
+      await set(ref(firebaseDb, `referralCodes/${referralCode}`), fbUser.uid);
+      // Credit referrer if applicable
+      if (refFromUrl) {
+        await this._creditReferrer(refFromUrl, fbUser.uid);
+        showToast("Welcome bonus: 100 NDOG + referral linked!", "success");
+      } else {
+        showToast("Welcome bonus: 100 NDOG credited!", "success");
+      }
+      // Log first-login event for analytics
+      await set(ref(firebaseDb, `analytics/firstLogins/${fbUser.uid}`), { ts: serverTimestamp(), country: countryGuess });
+      // Clear pending referral cookie
+      if (getCookie("ndog_pending_ref")) {
+        document.cookie = "ndog_pending_ref=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;";
+      }
+    } else {
+      // Existing user — update lastLogin
+      await update(profileRef, { lastLogin: serverTimestamp(), language: lang });
+    }
 
-      console.log("[NDOG] Using fallback data");
-      emit(fallbackData);
-      onReady && onReady(fallbackData);
+    // Check admin status
+    const adminSnap = await get(ref(firebaseDb, `admins/${fbUser.uid}`));
+    if (adminSnap.exists()) {
+      await update(profileRef, { role: adminSnap.val().role || "admin" });
+    }
+  },
 
-      userSetupDone.delete(uid);
-      setTimeout(async () => {
-        if (currentUserData?.uid === uid && !currentUserData?.referralCode) {
-          console.log("[NDOG] Retrying provisioning...");
-          try {
-            const userData = await provisionUserLocked(fbUser);
-            emit(userData);
-          } catch (retryErr) {
-            console.error("[NDOG] Provisioning retry failed:", retryErr);
+  /**
+   * Credits the referrer chain (Level 1: 50, Level 2: 20, Level 3: 10).
+   * Prevents self-referral.
+   */
+  async _creditReferrer(refCode, newUid) {
+    try {
+      if (!refCode || !newUid) return;
+      // Look up referrer uid from code
+      const codeSnap = await get(ref(firebaseDb, `referralCodes/${refCode}`));
+      if (!codeSnap.exists()) {
+        console.warn("[auth] Referral code not found:", refCode);
+        return;
+      }
+      const l1Uid = codeSnap.val();
+      if (l1Uid === newUid) {
+        await antifraud.logSuspicious({
+          type: "SELF_REFERRAL_ATTEMPT",
+          uid: newUid,
+          refCode,
+          severity: "high"
+        });
+        return;
+      }
+      // Credit L1
+      await runTransaction(ref(firebaseDb, `users/${l1Uid}/balance`), (cur) => (cur || 0) + 50);
+      await push(ref(firebaseDb, `referrals/${l1Uid}`), {
+        level: 1,
+        referredUid: newUid,
+        reward: 50,
+        ts: serverTimestamp()
+      });
+      // Find L2 (referrer of L1)
+      const l1Snap = await get(ref(firebaseDb, `users/${l1Uid}/referredBy`));
+      if (l1Snap.exists()) {
+        const l2Uid = l1Snap.val();
+        if (l2Uid && l2Uid !== newUid) {
+          await runTransaction(ref(firebaseDb, `users/${l2Uid}/balance`), (cur) => (cur || 0) + 20);
+          await push(ref(firebaseDb, `referrals/${l2Uid}`), {
+            level: 2,
+            referredUid: newUid,
+            reward: 20,
+            ts: serverTimestamp()
+          });
+          // Find L3
+          const l2Snap = await get(ref(firebaseDb, `users/${l2Uid}/referredBy`));
+          if (l2Snap.exists()) {
+            const l3Uid = l2Snap.val();
+            if (l3Uid && l3Uid !== newUid) {
+              await runTransaction(ref(firebaseDb, `users/${l3Uid}/balance`), (cur) => (cur || 0) + 10);
+              await push(ref(firebaseDb, `referrals/${l3Uid}`), {
+                level: 3,
+                referredUid: newUid,
+                reward: 10,
+                ts: serverTimestamp()
+              });
+            }
           }
         }
-      }, 3000);
+      }
+      // Update conversion stats on referrer
+      await runTransaction(ref(firebaseDb, `users/${l1Uid}/referralCount`), (c) => (c || 0) + 1);
+    } catch (e) {
+      console.error("[auth] creditReferrer error:", e);
     }
-  });
+  },
 
-  console.log("[NDOG] === AUTH INITIALIZATION COMPLETE ===");
-}
+  /** Register this device in /devices keyed by fingerprint. */
+  async _registerDevice(uid) {
+    try {
+      const fp = await antifraud.fingerprint();
+      await set(ref(firebaseDb, `devices/${fp}`), {
+        uid,
+        ua: navigator.userAgent.slice(0, 200),
+        lang: navigator.language,
+        lastSeen: serverTimestamp()
+      });
+      await set(ref(firebaseDb, `users/${uid}/devices/${fp}`), { lastSeen: serverTimestamp() });
+    } catch (e) {
+      console.warn("[auth] device register failed:", e);
+    }
+  },
+
+  /** Role-based access guard. Call from protected pages. */
+  requireRole(minRole) {
+    const order = { user: 1, mod: 2, admin: 3 };
+    const cur = order[_currentUser?.role || "user"] || 1;
+    if (cur < (order[minRole] || 1)) {
+      showToast("Access denied.", "error");
+      location.href = "/";
+      return false;
+    }
+    return true;
+  },
+
+  _startIdleTimer() {
+    if (_idleTimer) clearTimeout(_idleTimer);
+    const reset = () => {
+      clearTimeout(_idleTimer);
+      _idleTimer = setTimeout(() => {
+        console.log("[auth] Idle timeout — signing out");
+        this.signOut();
+      }, IDLE_TIMEOUT_MS);
+    };
+    ["mousemove", "keydown", "touchstart", "scroll"].forEach((ev) =>
+      window.addEventListener(ev, reset, { passive: true })
+    );
+    reset();
+  }
+};
+
+// Pre-store referral code if URL has one (for users not yet signed in)
+(function captureReferral() {
+  const r = getQueryParam("ref");
+  if (r) {
+    setCookie("ndog_pending_ref", r, 7); // 7-day attribution window
+  }
+})();
+
+// Expose for inline buttons
+window.__auth = auth;

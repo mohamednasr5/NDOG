@@ -1,0 +1,112 @@
+/**
+ * FILE NAME: css/staking.css
+ * PURPOSE: Staking page styles — plan cards, contract list, APR display.
+ * DEPENDENCIES: styles.css
+ */
+
+.stake-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.stake-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.stake-plan {
+  background: var(--bg-elev);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  text-align: center;
+  transition: all var(--t);
+  position: relative;
+  overflow: hidden;
+}
+.stake-plan::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--ndog-gold) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity var(--t);
+  pointer-events: none;
+}
+.stake-plan:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-gold);
+}
+.stake-plan:hover::before { opacity: 0.05; }
+
+.stake-plan__days {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+.stake-plan__apr {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  background: linear-gradient(135deg, var(--ndog-gold), var(--ndog-gold-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--space-3);
+}
+.stake-plan__apr::after { content: ' APR'; font-size: 0.9rem; color: var(--text-muted); -webkit-text-fill-color: var(--text-muted); }
+.stake-plan__input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+  text-align: center;
+  font-family: var(--font-mono);
+}
+.stake-plan__input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Contracts */
+.stake-contracts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.contract {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  transition: all var(--t);
+}
+.contract.active { border-left: 4px solid var(--ndog-gold); }
+.contract.claimed { border-left: 4px solid var(--success); opacity: 0.7; }
+.contract:hover { background: var(--bg-card-hover); }
+
+.contract__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  font-size: 0.9rem;
+}
+.contract__row:last-child { margin-bottom: 0; }
+.contract__amount {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ndog-gold);
+}
+.contract__apr {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}

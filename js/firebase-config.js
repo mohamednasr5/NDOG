@@ -5,16 +5,17 @@
  * your own Firebase project (Project Settings → General → SDK setup).
  * Then enable the following in the Firebase Console:
  *
- *   1. Authentication → Sign-in method → Google (Enabled)
- *   2. Realtime Database  → Create database (production mode)
- *   3. Hosting            → (optional) deploy rules separately
- *   4. Project Settings → Authorized domains → add:
- *        - ndogcoin.com
- *        - www.ndogcoin.com
- *        - localhost
+ * 1. Authentication → Sign-in method → Google (Enabled)
+ * 2. Realtime Database  → Create database (production mode)
+ * 3. Hosting            → (optional) deploy rules separately
+ * 4. Project Settings → Authorized domains → add:
+ * - ndogcoin.com
+ * - www.ndogcoin.com
+ * - localhost
  *
  * The Firebase SDK is loaded via ES module CDN imports (no bundler).
  * ------------------------------------------------------------------
+ *
  */
 
 import { initializeApp } from
@@ -27,6 +28,7 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  signInWithCredential, // تم إصلاحها: إضافتها داخل القائمة مع الفاصلة الصحيحة
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -115,7 +117,7 @@ export {
   query, orderByChild, orderByValue,
   limitToLast, limitToFirst, equalTo,
   serverTimestamp, onDisconnect,
-  signInWithPopup, signInWithRedirect, getRedirectResult,
+  signInWithPopup, signInWithRedirect, getRedirectResult, signInWithCredential, // تم إصلاحها: إضافة الفاصلة المفقودة هنا
   signOut, onAuthStateChanged
 };
 

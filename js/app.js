@@ -1,6 +1,6 @@
 /* ============================================================
    NileDogs (NDOG) — Crypto Rewards Platform
-   Vanilla JS · Firebase v8 Compat SDK
+   Vanilla JS · Firebase v8 Compat SDK · Professional Edition
    ============================================================ */
 
 // ─── 1. State ────────────────────────────────────────────────
@@ -10,6 +10,7 @@ let currentLang = localStorage.getItem('ndog_lang') || 'ar';
 let selectedPlan = '7_days';
 let isSpinning = false;
 let cooldownInterval = null;
+let wheelRotation = 0;
 
 // ─── 2. Constants ────────────────────────────────────────────
 const VIP_TIERS = {
@@ -45,29 +46,40 @@ function toggleLang() {
   document.querySelectorAll('[data-ar]').forEach(el => {
     el.textContent = el.getAttribute('data-' + currentLang);
   });
-  if (userData) renderDashboard();
+  // Update input placeholders
+  document.querySelectorAll('input[data-placeholder-ar]').forEach(el => {
+    el.placeholder = el.getAttribute('data-placeholder-' + currentLang);
+  });
+  if (userData) {
+    renderDashboard();
+    loadNews();
+    loadFaq();
+    loadMissions();
+  }
 }
 
 function showToast(message, type = 'info') {
   const colors = { info: '#3b82f6', success: '#22c55e', error: '#ef4444', warning: '#f59e0b' };
+  const icons = { info: 'ℹ️', success: '✅', error: '❌', warning: '⚠️' };
   const toast = document.createElement('div');
   toast.className = 'toast-notification';
   toast.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10000;
-    padding:12px 24px;border-radius:12px;color:#fff;font-size:14px;font-weight:600;
-    background:${colors[type] || colors.info};box-shadow:0 4px 20px rgba(0,0,0,.3);
-    opacity:0;transition:opacity .3s;max-width:90%;text-align:center;`;
-  toast.textContent = message;
+    padding:14px 24px;border-radius:14px;color:#fff;font-size:14px;font-weight:600;
+    background:${colors[type] || colors.info};box-shadow:0 4px 24px rgba(0,0,0,.4);
+    opacity:0;transition:opacity .3s,transform .3s;max-width:90%;text-align:center;
+    display:flex;align-items:center;gap:8px;backdrop-filter:blur(10px);`;
+  toast.innerHTML = `<span>${icons[type] || icons.info}</span><span>${message}</span>`;
   document.body.appendChild(toast);
-  requestAnimationFrame(() => toast.style.opacity = '1');
-  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+  requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(-50%) translateY(0)'; });
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(-20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
 function showLoading() {
   if (document.getElementById('global-loading')) return;
   const ov = document.createElement('div');
   ov.id = 'global-loading';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);';
-  ov.innerHTML = '<div style="width:48px;height:48px;border:4px solid #fff3;border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite;"></div>';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(5,11,26,.7);backdrop-filter:blur(4px);';
+  ov.innerHTML = '<div style="width:48px;height:48px;border:4px solid rgba(244,196,48,.2);border-top-color:#f4c430;border-radius:50%;animation:spin .8s linear infinite;"></div><span style="color:#b8cce0;font-size:14px;">' + t('جاري التحميل...', 'Loading...') + '</span>';
   document.body.appendChild(ov);
 }
 
@@ -97,6 +109,30 @@ function getStreakMultiplier(streak) {
   return mult;
 }
 
+function setEl(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function copyToClipboard(text, msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg, 'success')).catch(() => fallbackCopy(text, msg));
+  } else {
+    fallbackCopy(text, msg);
+  }
+}
+
+function fallbackCopy(text, msg) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast(msg, 'success'); } catch(e) { showToast(t('فشل النسخ', 'Copy failed'), 'error'); }
+  ta.remove();
+}
+
 // ─── 4. Authentication ───────────────────────────────────────
 
 function loginGoogle() {
@@ -106,8 +142,10 @@ function loginGoogle() {
       hideLoading();
       if (err.code === 'auth/popup-blocked') {
         showToast(t('يرجى السماح بالنوافذ المنبثقة للمتصفح', 'Please allow popups in your browser'), 'warning');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        showToast(t('المجال غير مصرح به في Firebase', 'Domain not authorized in Firebase'), 'error');
       } else {
-        showToast(t('فشل تسجيل الدخول', 'Login failed'), 'error');
+        showToast(t('فشل تسجيل الدخول: ' + err.message, 'Login failed: ' + err.message), 'error');
       }
     });
 }
@@ -130,6 +168,7 @@ auth.onAuthStateChanged(user => {
     const login = document.getElementById('loginScreen');
     if (app) app.style.display = 'none';
     if (login) login.style.display = 'flex';
+    hideLoading();
     if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
   }
 });
@@ -198,8 +237,11 @@ function showApp() {
   hideLoading();
   const app = document.getElementById('mainApp');
   const login = document.getElementById('loginScreen');
+  const loading = document.getElementById('loadingOverlay');
   if (login) login.style.display = 'none';
   if (app) app.style.display = 'block';
+  if (loading) loading.classList.add('hidden');
+
   switchTab('Dashboard');
   renderDashboard();
   updateClaimCooldown();
@@ -208,6 +250,8 @@ function showApp() {
   loadAirdropInfo();
   loadStakingContracts();
   loadReferralCount();
+  buildWheel();
+
   // Real-time listener for balance changes
   db.ref('users/' + currentUser.uid).on('value', snap => {
     if (snap.exists()) {
@@ -226,24 +270,57 @@ function renderDashboard() {
   const vip = getVipTier(bal);
   const vipLabel = currentLang === 'ar' ? vip.label_ar : vip.label_en;
 
-  setEl('dashBalance', formatNumber(bal));
+  setEl('dashBalance', formatNumber(bal) + ' NDOG');
   setEl('dashStreak', streak);
   setEl('dashTotalClaimed', formatNumber(userData.totalClaimed || 0));
-  setEl('dashVip', vip.emoji + ' ' + vipLabel);
-  setEl('dashFounder', userData.founder ? t('🚀 مؤسس', '🚀 Founder') : '');
   setEl('headerName', userData.displayName || (currentUser ? currentUser.displayName : ''));
   setEl('headerBalance', formatNumber(bal) + ' NDOG');
 
+  // VIP badge
+  const vipEl = document.getElementById('dashVip');
+  if (vipEl) { vipEl.style.display = 'inline-flex'; vipEl.textContent = vip.emoji + ' ' + vipLabel; }
+
+  // Founder badge
+  const founderEl = document.getElementById('dashFounder');
+  if (founderEl) { founderEl.style.display = userData.founder ? 'inline-flex' : 'none'; founderEl.textContent = t('🚀 مؤسس', '🚀 Founder'); }
+
+  // Multiplier
   const mult = getStreakMultiplier(streak) * vip.mult * (userData.founder ? 1.1 : 1);
-  setEl('dash-multiplier', 'x' + mult.toFixed(2));
+  const multEl = document.getElementById('dashMultiplier');
+  if (multEl) multEl.textContent = 'x' + mult.toFixed(2);
+  else {
+    // Set in stats grid
+    const statCards = document.querySelectorAll('.card--stat .stat-value');
+    if (statCards[2]) statCards[2].textContent = 'x' + mult.toFixed(2);
+  }
 
-  const avail = Number(userData.balance) || 0;
-  setEl('stakingAvail', formatNumber(avail));
-}
+  // Streak info
+  setEl('streakCount', streak);
+  const streakBar = document.getElementById('streakBar');
+  if (streakBar) {
+    const nextThresholds = [2, 3, 5, 7, 14, 30];
+    let nextStreak = 2;
+    for (const th of nextThresholds) {
+      if (streak < th) { nextStreak = th; break; }
+      nextStreak = 30;
+    }
+    const pct = Math.min(100, (streak / nextStreak) * 100);
+    streakBar.style.width = pct + '%';
+  }
 
-function setEl(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
+  // Referral code
+  setEl('referralCodeDisplay', userData.referralCode || '---');
+  setEl('quickReferralCode', userData.referralCode || '---');
+  const refLink = window.location.origin + window.location.pathname + '?ref=' + (userData.referralCode || '');
+  setEl('referralLinkDisplay', refLink);
+  setEl('quickReferralLink', refLink);
+
+  // Early adopter banner
+  const earlyBanner = document.getElementById('earlyAdopterBanner');
+  if (earlyBanner) earlyBanner.style.display = userData.founder ? 'block' : 'none';
+
+  // Staking available balance
+  setEl('stakingAvail', formatNumber(bal) + ' NDOG');
 }
 
 // ─── 7. Daily Claim ──────────────────────────────────────────
@@ -263,7 +340,6 @@ function claimDaily() {
 
   showLoading();
   const vip = getVipTier(userData.balance);
-  // Check streak gap
   let streak = userData.streak || 0;
   if (last > 0 && diff > 2 * COOLDOWN) streak = 0;
   streak++;
@@ -293,7 +369,7 @@ function claimDaily() {
       db.ref().update(updates);
       userData.lastClaimAt = Date.now();
       updateClaimCooldown();
-      showToast(t(`تم المطالبة بـ ${reward} NDOG!`, `Claimed ${reward} NDOG!`), 'success');
+      showToast(t(`🎉 تم المطالبة بـ ${reward} NDOG!`, `🎉 Claimed ${reward} NDOG!`), 'success');
     } else {
       showToast(t('فشل المطالبة، حاول مجدداً', 'Claim failed, try again'), 'error');
     }
@@ -342,43 +418,68 @@ function buildWheel() {
   const ctx = canvas.getContext('2d');
   const size = canvas.width;
   const center = size / 2;
-  const radius = center - 4;
+  const radius = center - 6;
   const segAngle = (2 * Math.PI) / WHEEL_PRIZES.length;
 
   ctx.clearRect(0, 0, size, size);
+
+  // Draw outer ring
+  ctx.beginPath();
+  ctx.arc(center, center, radius + 4, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(244, 196, 48, 0.4)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
   WHEEL_PRIZES.forEach((prize, i) => {
     const start = i * segAngle - Math.PI / 2;
     const end = start + segAngle;
+
+    // Segment
     ctx.beginPath();
     ctx.moveTo(center, center);
     ctx.arc(center, center, radius, start, end);
     ctx.closePath();
-    ctx.fillStyle = WHEEL_COLORS[i];
+
+    // Gradient fill
+    const grad = ctx.createRadialGradient(center, center, 0, center, center, radius);
+    grad.addColorStop(0, WHEEL_COLORS[i] + '33');
+    grad.addColorStop(1, WHEEL_COLORS[i]);
+    ctx.fillStyle = grad;
     ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
     // Prize text
     ctx.save();
     ctx.translate(center, center);
     ctx.rotate(start + segAngle / 2);
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'center';
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText(prize + ' NDOG', radius - 12, 5);
+    ctx.font = 'bold 13px Tajawal, sans-serif';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 3;
+    ctx.fillText(prize, radius * 0.65, 4);
     ctx.restore();
   });
+
   // Center circle
   ctx.beginPath();
-  ctx.arc(center, center, 22, 0, 2 * Math.PI);
-  ctx.fillStyle = '#1e293b';
+  ctx.arc(center, center, 26, 0, 2 * Math.PI);
+  const centerGrad = ctx.createRadialGradient(center, center, 0, center, center, 26);
+  centerGrad.addColorStop(0, '#1e90ff');
+  centerGrad.addColorStop(1, '#0a1f44');
+  ctx.fillStyle = centerGrad;
   ctx.fill();
-  ctx.strokeStyle = '#fff';
+  ctx.strokeStyle = '#f4c430';
   ctx.lineWidth = 3;
   ctx.stroke();
+
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 12px sans-serif';
+  ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('NDOG', center, center + 4);
 }
@@ -392,14 +493,23 @@ function spinWheel() {
     return;
   }
   isSpinning = true;
+  const btn = document.getElementById('spinBtn');
+  if (btn) btn.disabled = true;
+
   const prizeIndex = Math.floor(Math.random() * WHEEL_PRIZES.length);
   const prize = WHEEL_PRIZES[prizeIndex];
   const segAngle = 360 / WHEEL_PRIZES.length;
   const targetAngle = 360 - (prizeIndex * segAngle + segAngle / 2);
-  const totalRotation = 1440 + targetAngle;
+  const totalRotation = wheelRotation + 1440 + targetAngle;
 
-  const wheel = document.getElementById('spinWheel');
-  if (wheel) wheel.style.transform = `rotate(${totalRotation}deg)`;
+  // Animate via canvas redraw
+  const canvas = document.getElementById('wheel-canvas');
+  if (canvas) {
+    canvas.style.transition = 'transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+    canvas.style.transform = `rotate(${totalRotation}deg)`;
+  }
+
+  wheelRotation = totalRotation;
 
   setTimeout(() => {
     addBalance(prize, 'wheel_spin').then(() => {
@@ -412,10 +522,19 @@ function spinWheel() {
       db.ref('wheelSpins/' + spinId).set({
         uid: currentUser.uid, prize: prize, ts: firebase.database.ServerValue.TIMESTAMP
       });
-      showToast(t(`فزت بـ ${prize} NDOG!`, `You won ${prize} NDOG!`), 'success');
+      const resultEl = document.getElementById('spinResult');
+      if (resultEl) {
+        resultEl.style.display = 'block';
+        resultEl.textContent = t(`🎉 فزت بـ ${prize} NDOG!`, `🎉 You won ${prize} NDOG!`);
+        setTimeout(() => { resultEl.style.display = 'none'; }, 4000);
+      }
+      showToast(t(`🎰 فزت بـ ${prize} NDOG!`, `🎰 You won ${prize} NDOG!`), 'success');
+    }).catch(() => {
+      showToast(t('حدث خطأ', 'An error occurred'), 'error');
     });
     isSpinning = false;
-  }, 4500);
+    if (btn) btn.disabled = false;
+  }, 4800);
 }
 
 // ─── 9. Mini Games ───────────────────────────────────────────
@@ -426,7 +545,7 @@ function playLuckyBox() {
   showLoading();
   addBalance(prize, 'lucky_box').then(() => {
     hideLoading();
-    showToast(t(`حصلت على ${prize} NDOG من الصندوق!`, `Got ${prize} NDOG from the box!`), 'success');
+    showToast(t(`📦 حصلت على ${prize} NDOG من الصندوق!`, `📦 Got ${prize} NDOG from the box!`), 'success');
   }).catch(() => hideLoading());
 }
 
@@ -436,7 +555,7 @@ function playScratchCard() {
   showLoading();
   addBalance(prize, 'scratch_card').then(() => {
     hideLoading();
-    showToast(t(`كشط بطاقة: ${prize} NDOG!`, `Scratch card: ${prize} NDOG!`), 'success');
+    showToast(t(`🃏 كشط بطاقة: ${prize} NDOG!`, `🃏 Scratch card: ${prize} NDOG!`), 'success');
   }).catch(() => hideLoading());
 }
 
@@ -461,10 +580,9 @@ function addBalance(amount, type) {
 function loadMissions() {
   db.ref('missions').once('value').then(snap => {
     const data = snap.val() || {};
-    const containers = { daily: 'dailyMissionsList', weekly: 'weeklyMissionsList', monthly: 'monthlyMissionsList' };
-    for (const type in containers) {
-      renderMissions(containers[type], data[type] || {});
-    }
+    renderMissions('dailyMissionsList', data.daily || {});
+    renderMissions('weeklyMissionsList', data.weekly || {});
+    renderMissions('monthlyMissionsList', data.monthly || {});
   });
 }
 
@@ -472,32 +590,38 @@ function renderMissions(containerId, missions) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
-  for (const id in missions) {
+  const keys = Object.keys(missions);
+  if (keys.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#6e8ba8;padding:20px;font-size:13px;">' + t('لا توجد مهام حالياً', 'No missions available') + '</div>';
+    return;
+  }
+  keys.forEach(id => {
     const m = missions[id];
     const item = document.createElement('div');
     item.className = 'mission-item';
-    item.style.cssText = 'padding:12px;margin:8px 0;border-radius:10px;background:rgba(255,255,255,.06);';
+    item.style.cssText = 'padding:14px;margin:8px 0;border-radius:12px;background:rgba(30,144,255,0.06);border:1px solid rgba(30,144,255,0.12);transition:background .2s;';
     const title = currentLang === 'ar' ? (m.title_ar || m.title) : (m.title_en || m.title);
     const desc = currentLang === 'ar' ? (m.desc_ar || m.desc || '') : (m.desc_en || m.desc || '');
     item.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-weight:600;color:#fff;">${title}</div>
-          <div style="font-size:12px;color:#94a3b8;margin-top:4px;">${desc}</div>
-          <div style="font-size:13px;color:#f59e0b;margin-top:4px;">${m.reward} NDOG</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:#eef6ff;font-size:14px;">${title}</div>
+          <div style="font-size:12px;color:#b8cce0;margin-top:4px;line-height:1.5;">${desc}</div>
+          <div style="font-size:13px;color:#f4c430;margin-top:6px;font-weight:600;">${m.reward} NDOG</div>
         </div>
-        <button class="mission-claim-btn" data-mission="${id}" data-reward="${m.reward}" data-type="${containerId}"
-          style="padding:8px 16px;border:none;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;cursor:pointer;">
+        <button class="mission-claim-btn" data-mission="${id}" data-reward="${m.reward}"
+          style="flex-shrink:0;padding:8px 16px;border:none;border-radius:10px;background:linear-gradient(135deg,#1e90ff,#4dd0e1);color:#fff;font-weight:600;cursor:pointer;font-size:13px;transition:transform .2s,box-shadow .2s;">
           ${t('مطالبة', 'Claim')}
         </button>
       </div>`;
     container.appendChild(item);
-  }
-  // Attach click handlers
+  });
   container.querySelectorAll('.mission-claim-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      completeMission(btn.dataset.mission, Number(btn.dataset.reward));
+    btn.addEventListener('click', function() {
+      completeMission(this.dataset.mission, Number(this.dataset.reward));
     });
+    btn.addEventListener('touchstart', function() { this.style.transform = 'scale(0.95)'; });
+    btn.addEventListener('touchend', function() { this.style.transform = 'scale(1)'; });
   });
 }
 
@@ -514,7 +638,7 @@ function completeMission(missionId, reward) {
       .then(() => addBalance(reward, 'mission_' + missionId))
       .then(() => {
         hideLoading();
-        showToast(t(`تم إكمال المهمة! +${reward} NDOG`, `Mission done! +${reward} NDOG`), 'success');
+        showToast(t(`✅ تم إكمال المهمة! +${reward} NDOG`, `✅ Mission done! +${reward} NDOG`), 'success');
         loadMissions();
       })
       .catch(err => { hideLoading(); showToast(t('فشل إكمال المهمة', 'Mission failed'), 'error'); });
@@ -523,11 +647,17 @@ function completeMission(missionId, reward) {
 
 // ─── 11. Staking ─────────────────────────────────────────────
 
-function selectPlan(btn, planId) {
+function selectStakingPlan(planId) {
   selectedPlan = planId;
-  document.querySelectorAll('.staking-plan-btn').forEach(b => {
-    b.style.borderColor = b === btn ? '#3b82f6' : 'transparent';
-    b.style.background = b === btn ? 'rgba(59,130,246,.15)' : 'rgba(255,255,255,.05)';
+  document.querySelectorAll('.plan-option input').forEach(radio => {
+    const label = radio.closest('.plan-option') || radio.parentElement;
+    if (radio.value === planId.replace('_days', '')) {
+      label.style.borderColor = 'rgba(244, 196, 48, 0.5)';
+      label.style.background = 'rgba(244, 196, 48, 0.08)';
+    } else {
+      label.style.borderColor = 'rgba(30, 144, 255, 0.15)';
+      label.style.background = 'rgba(30, 144, 255, 0.04)';
+    }
   });
 }
 
@@ -555,10 +685,9 @@ function stakeTokens() {
   const earnedRewards = Math.round(amount * plan.apr * 100) / 100;
   const contractId = db.ref().child('stakingContracts').push().key;
 
-  // Deduct balance via transaction
   db.ref('users/' + currentUser.uid).transaction(data => {
     if (!data) return data;
-    if ((Number(data.balance) || 0) < amount) return; // Abort
+    if ((Number(data.balance) || 0) < amount) return;
     data.balance = (Number(data.balance) || 0) - amount;
     return data;
   }).then(result => {
@@ -573,7 +702,7 @@ function stakeTokens() {
   }).then(() => {
     hideLoading();
     if (input) input.value = '';
-    showToast(t(`تم الستيك بنجاح!`, `Staked successfully!`), 'success');
+    showToast(t(`📈 تم الستيك بنجاح!`, `📈 Staked successfully!`), 'success');
     loadStakingContracts();
   }).catch(err => {
     hideLoading();
@@ -598,27 +727,33 @@ function loadStakingContracts() {
       const isMature = daysLeft <= 0;
       const item = document.createElement('div');
       item.className = 'staking-contract-item';
-      item.style.cssText = 'padding:12px;margin:8px 0;border-radius:10px;background:rgba(255,255,255,.06);';
+      item.style.cssText = 'padding:14px;margin:8px 0;border-radius:12px;background:rgba(30,144,255,0.06);border:1px solid rgba(30,144,255,0.12);';
       item.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div>
-            <div style="color:#fff;font-weight:600;">${formatNumber(c.amount)} NDOG — ${c.plan}</div>
-            <div style="color:#94a3b8;font-size:12px;margin-top:4px;">
+            <div style="color:#eef6ff;font-weight:600;">${formatNumber(c.amount)} NDOG — ${c.plan}</div>
+            <div style="color:#b8cce0;font-size:12px;margin-top:6px;">
               ${isMature ? t('✅ ناضج - يمكن الفك', '✅ Mature - Ready to unstake') :
                 t(`⏳ متبقي ${daysLeft} يوم | مكافأة: ${c.earnedRewards} NDOG`,
                   `⏳ ${daysLeft} days left | Reward: ${c.earnedRewards} NDOG`)}
             </div>
           </div>
-          ${isMature ? `<button onclick="unstake(${c.endDate},${c.amount},${c.earnedRewards},'${cid}')"
-            style="padding:8px 16px;border:none;border-radius:8px;background:#22c55e;color:#fff;font-weight:600;cursor:pointer;">
+          ${isMature ? `<button data-contract="${cid}" data-end="${c.endDate}" data-amount="${c.amount}" data-reward="${c.earnedRewards}"
+            class="unstake-btn"
+            style="padding:8px 18px;border:none;border-radius:10px;background:linear-gradient(135deg,#00e676,#22c55e);color:#fff;font-weight:600;cursor:pointer;font-size:13px;">
             ${t('فك الستيك', 'Unstake')}</button>` : ''}
         </div>`;
       container.appendChild(item);
     }
     if (!hasActive) {
-      container.innerHTML = `<div style="text-align:center;color:#64748b;padding:24px;">
-        ${t('لا توجد عقود ستيك نشطة', 'No active staking contracts')}</div>`;
+      container.innerHTML = '<div style="text-align:center;color:#6e8ba8;padding:24px;font-size:13px;">' + t('لا توجد عقود ستيك نشطة', 'No active staking contracts') + '</div>';
     }
+    // Wire unstake buttons
+    container.querySelectorAll('.unstake-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        unstake(Number(this.dataset.end), Number(this.dataset.amount), Number(this.dataset.reward), this.dataset.contract);
+      });
+    });
   });
 }
 
@@ -633,7 +768,7 @@ function unstake(endDate, amount, earnedRewards, contractId) {
     return db.ref('stakingContracts/' + contractId + '/status').set('completed');
   }).then(() => {
     hideLoading();
-    showToast(t(`تم فك الستيك! +${totalReturn} NDOG`, `Unstaked! +${totalReturn} NDOG`), 'success');
+    showToast(t(`✅ تم فك الستيك! +${totalReturn} NDOG`, `✅ Unstaked! +${totalReturn} NDOG`), 'success');
     loadStakingContracts();
   }).catch(err => {
     hideLoading();
@@ -648,6 +783,9 @@ function loadLeaderboard() {
   const balContainer = document.getElementById('topBalanceList');
   const streakContainer = document.getElementById('topStreakList');
   if (!balContainer || !streakContainer) return;
+
+  balContainer.innerHTML = '<div style="text-align:center;padding:16px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></div>';
+  streakContainer.innerHTML = '<div style="text-align:center;padding:16px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></div>';
 
   db.ref('users').orderByChild('balance').limitToLast(20).once('value').then(snap => {
     const users = [];
@@ -680,14 +818,14 @@ function renderLeaderboard(containerId, users, field) {
     const name = u.displayName || t('مستخدم', 'User');
     const isMe = currentUser && u.uid === currentUser.uid;
     const item = document.createElement('div');
-    item.style.cssText = `display:flex;justify-content:space-between;align-items:center;padding:10px 12px;
-      margin:4px 0;border-radius:8px;background:${isMe ? 'rgba(59,130,246,.15)' : 'rgba(255,255,255,.04)'};`;
+    item.style.cssText = `display:flex;justify-content:space-between;align-items:center;padding:12px 14px;
+      margin:4px 0;border-radius:10px;background:${isMe ? 'rgba(244,196,48,0.1)' : 'rgba(30,144,255,0.04)'};border:1px solid ${isMe ? 'rgba(244,196,48,0.2)' : 'transparent'};transition:background .2s;`;
     item.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:18px;min-width:30px;text-align:center;">${badge}</span>
-        <span style="color:#fff;font-weight:${isMe ? '700' : '400'};">${name}${isMe ? ' ⭐' : ''}</span>
+        <span style="font-size:18px;min-width:32px;text-align:center;">${badge}</span>
+        <span style="color:${isMe ? '#f4c430' : '#eef6ff'};font-weight:${isMe ? '700' : '400'};">${name}${isMe ? ' ⭐' : ''}</span>
       </div>
-      <span style="color:#f59e0b;font-weight:600;">${val}</span>`;
+      <span style="color:#f4c430;font-weight:600;">${val}</span>`;
     container.appendChild(item);
   });
 }
@@ -697,40 +835,19 @@ function renderLeaderboard(containerId, users, field) {
 function loadReferralCount() {
   if (!currentUser) return;
   db.ref('referrals/' + currentUser.uid).once('value').then(snap => {
-    const count = snap.numChildren();
-    setEl('referralCount', count);
+    setEl('referralCount', snap.numChildren());
   });
 }
 
 function copyReferralCode() {
   if (!userData) return;
-  const code = userData.referralCode || '';
-  copyToClipboard(code, t('تم نسخ الكود!', 'Code copied!'));
+  copyToClipboard(userData.referralCode || '', t('📋 تم نسخ الكود!', '📋 Code copied!'));
 }
 
 function copyReferralLink() {
   if (!userData) return;
   const link = window.location.origin + window.location.pathname + '?ref=' + (userData.referralCode || '');
-  copyToClipboard(link, t('تم نسخ الرابط!', 'Link copied!'));
-}
-
-function copyToClipboard(text, msg) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => showToast(msg, 'success')).catch(() => fallbackCopy(text, msg));
-  } else {
-    fallbackCopy(text, msg);
-  }
-}
-
-function fallbackCopy(text, msg) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand('copy'); showToast(msg, 'success'); } catch(e) { showToast(t('فشل النسخ', 'Copy failed'), 'error'); }
-  ta.remove();
+  copyToClipboard(link, t('🔗 تم نسخ الرابط!', '🔗 Link copied!'));
 }
 
 function shareReferral(platform) {
@@ -741,9 +858,28 @@ function shareReferral(platform) {
     whatsapp: `https://wa.me/?text=${text}%20${link}`,
     telegram: `https://t.me/share/url?url=${link}&text=${text}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${link}`,
-    x: `https://twitter.com/intent/tweet?text=${text}&url=${link}`
+    x: `https://twitter.com/intent/tweet?text=${text}&url=${link}`,
+    messenger: `https://www.facebook.com/dialog/send?link=${link}&app_id=0`,
   };
-  window.open(urls[platform], '_blank');
+  if (platform === 'qr') {
+    showToast(t('🔗 انسخ الرابط وشاركه!', '🔗 Copy the link and share it!'), 'info');
+    copyReferralLink();
+  } else if (urls[platform]) {
+    window.open(urls[platform], '_blank');
+  }
+}
+
+function applyReferralCodeFromInput() {
+  if (!currentUser) return;
+  const input = document.getElementById('referralCodeInput');
+  const code = input ? input.value.trim() : '';
+  if (!code) {
+    showToast(t('أدخل كود الإحالة', 'Enter referral code'), 'warning');
+    return;
+  }
+  applyReferralCode(code).then(() => {
+    if (input) input.value = '';
+  });
 }
 
 function applyReferralCode(code) {
@@ -754,10 +890,15 @@ function applyReferralCode(code) {
       return;
     }
     const refData = snap.val();
-    if (refData.uid === currentUser.uid) return; // Can't refer yourself
-    // Check if already has a referrer
+    if (refData.uid === currentUser.uid) {
+      showToast(t('لا يمكنك استخدام كودك الخاص', 'You cannot use your own code'), 'warning');
+      return;
+    }
     return db.ref('users/' + currentUser.uid + '/referredBy').once('value').then(rSnap => {
-      if (rSnap.exists()) return; // Already has referrer
+      if (rSnap.exists()) {
+        showToast(t('لديك بالفعل كود إحالة', 'You already have a referral code'), 'warning');
+        return;
+      }
       const now = Date.now();
       const updates = {};
       updates['users/' + currentUser.uid + '/referredBy'] = refData.uid;
@@ -766,7 +907,7 @@ function applyReferralCode(code) {
       };
       return db.ref().update(updates).then(() => {
         createReferralChain(refData.uid, currentUser.uid, now, 1);
-        showToast(t('تم تطبيق كود الإحالة! +50 NDOG', 'Referral code applied! +50 NDOG'), 'success');
+        showToast(t('✅ تم تطبيق كود الإحالة! +50 NDOG', '✅ Referral code applied! +50 NDOG'), 'success');
       });
     });
   }).catch(err => console.error('Referral error:', err));
@@ -775,7 +916,6 @@ function applyReferralCode(code) {
 function createReferralChain(referrerUid, newUserId, now, level) {
   if (level > 3 || !REFERRAL_BONUSES[level]) return;
   const bonus = REFERRAL_BONUSES[level];
-  // Add bonus to referrer
   db.ref('users/' + referrerUid).transaction(data => {
     if (!data) return data;
     data.balance = (Number(data.balance) || 0) + bonus;
@@ -789,7 +929,6 @@ function createReferralChain(referrerUid, newUserId, now, level) {
       });
     }
   });
-  // Recurse to next level
   db.ref('users/' + referrerUid + '/referredBy').once('value').then(snap => {
     if (snap.exists()) {
       createReferralChain(snap.val(), newUserId, now, level + 1);
@@ -829,7 +968,7 @@ function claimAirdrop() {
     });
   }).then(() => {
     hideLoading();
-    showToast(t('تم مطالبة الإير دروب بنجاح!', 'Airdrop claimed successfully!'), 'success');
+    showToast(t('🎁 تم مطالبة الإير دروب بنجاح!', '🎁 Airdrop claimed successfully!'), 'success');
   }).catch(err => {
     hideLoading();
     if (err) console.error(err);
@@ -841,7 +980,8 @@ function loadAirdropInfo() {
     const data = snap.val() || {};
     setEl('airdrop-amount', formatNumber(data.amount || 0));
     setEl('airdropRemaining', formatNumber(data.remaining || 0));
-    setEl('airdropStatus', data.active ? t('🟢 نشط', '🟢 Active') : t('🔴 متوقف', '🔴 Inactive'));
+    const statusEl = document.getElementById('airdropStatus');
+    if (statusEl) statusEl.textContent = data.active ? t('🟢 نشط', '🟢 Active') : t('🔴 متوقف', '🔴 Inactive');
   });
 }
 
@@ -853,11 +993,10 @@ function loadNews() {
   db.ref('news').orderByChild('date').once('value').then(snap => {
     const articles = [];
     snap.forEach(child => articles.push({ ...child.val(), id: child.key }));
-    articles.reverse(); // Newest first
+    articles.reverse();
     container.innerHTML = '';
     if (articles.length === 0) {
-      container.innerHTML = `<div style="text-align:center;color:#64748b;padding:24px;">
-        ${t('لا توجد أخبار حالياً', 'No news yet')}</div>`;
+      container.innerHTML = '<div style="text-align:center;color:#6e8ba8;padding:24px;font-size:13px;">' + t('لا توجد أخبار حالياً', 'No news yet') + '</div>';
       return;
     }
     articles.forEach(a => {
@@ -865,11 +1004,11 @@ function loadNews() {
       const content = currentLang === 'ar' ? (a.content_ar || a.content) : (a.content_en || a.content);
       const date = a.date ? new Date(a.date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
       const item = document.createElement('div');
-      item.style.cssText = 'padding:16px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.06);';
+      item.style.cssText = 'padding:16px;margin:8px 0;border-radius:12px;background:rgba(30,144,255,0.06);border:1px solid rgba(30,144,255,0.12);';
       item.innerHTML = `
-        <div style="font-weight:600;color:#fff;font-size:15px;">${title}</div>
-        ${date ? `<div style="font-size:12px;color:#64748b;margin:4px 0;">${date}</div>` : ''}
-        <div style="font-size:13px;color:#94a3b8;margin-top:8px;line-height:1.6;">${content}</div>`;
+        <div style="font-weight:600;color:#eef6ff;font-size:15px;">${title}</div>
+        ${date ? `<div style="font-size:12px;color:#6e8ba8;margin:6px 0;">${date}</div>` : ''}
+        <div style="font-size:13px;color:#b8cce0;margin-top:8px;line-height:1.7;">${content}</div>`;
       container.appendChild(item);
     });
   });
@@ -884,70 +1023,80 @@ function loadFaq() {
     const items = [];
     snap.forEach(child => items.push({ ...child.val(), id: child.key }));
     container.innerHTML = '';
+    if (items.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:#6e8ba8;padding:24px;font-size:13px;">' + t('لا توجد أسئلة حالياً', 'No FAQ items yet') + '</div>';
+      return;
+    }
     items.forEach(item => {
       const q = currentLang === 'ar' ? (item.q_ar || item.question) : (item.q_en || item.question);
       const a = currentLang === 'ar' ? (item.a_ar || item.answer) : (item.a_en || item.answer);
       const div = document.createElement('div');
       div.style.margin = '8px 0';
       div.innerHTML = `
-        <button class="faq-btn" onclick="toggleFaq(this)"
-          style="width:100%;padding:14px;border:none;border-radius:10px;background:rgba(255,255,255,.06);
-          color:#fff;font-weight:600;text-align:${currentLang === 'ar' ? 'right' : 'left'};cursor:pointer;
-          display:flex;justify-content:space-between;align-items:center;font-size:14px;">
+        <button class="faq-btn" style="width:100%;padding:14px 16px;border:none;border-radius:12px;
+          background:rgba(30,144,255,0.06);border:1px solid rgba(30,144,255,0.12);
+          color:#eef6ff;font-weight:600;text-align:${currentLang === 'ar' ? 'right' : 'left'};cursor:pointer;
+          display:flex;justify-content:space-between;align-items:center;font-size:14px;transition:background .2s;">
           <span>${q}</span>
-          <span class="faq-arrow" style="transition:transform .3s;">▼</span>
+          <span class="faq-arrow" style="transition:transform .3s;font-size:12px;color:#6e8ba8;">▼</span>
         </button>
-        <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 14px;">
-          <div style="padding:12px 0;color:#94a3b8;font-size:13px;line-height:1.7;">${a}</div>
+        <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 16px;">
+          <div style="padding:12px 0;color:#b8cce0;font-size:13px;line-height:1.8;">${a}</div>
         </div>`;
       container.appendChild(div);
+    });
+    // Wire FAQ toggle
+    container.querySelectorAll('.faq-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const answer = this.nextElementSibling;
+        const arrow = this.querySelector('.faq-arrow');
+        const isOpen = answer.style.maxHeight && answer.style.maxHeight !== '0px';
+        if (isOpen) {
+          answer.style.maxHeight = '0px';
+          if (arrow) arrow.style.transform = 'rotate(0deg)';
+          this.style.background = 'rgba(30,144,255,0.06)';
+        } else {
+          answer.style.maxHeight = answer.scrollHeight + 20 + 'px';
+          if (arrow) arrow.style.transform = 'rotate(180deg)';
+          this.style.background = 'rgba(30,144,255,0.12)';
+        }
+      });
     });
   });
 }
 
-function toggleFaq(btn) {
-  const answer = btn.nextElementSibling;
-  const arrow = btn.querySelector('.faq-arrow');
-  const isOpen = answer.style.maxHeight && answer.style.maxHeight !== '0px';
-  if (isOpen) {
-    answer.style.maxHeight = '0px';
-    if (arrow) arrow.style.transform = 'rotate(0deg)';
-  } else {
-    answer.style.maxHeight = answer.scrollHeight + 20 + 'px';
-    if (arrow) arrow.style.transform = 'rotate(180deg)';
-  }
-}
-
-// ─── 17. Navigation ──────────────────────────────────────────
+// ─── 17. Navigation ─────────────────────────────────────────
 
 function switchTab(tabName) {
-  // Hide all sections, remove active class
-  document.querySelectorAll('.tab-content').forEach(sec => {
-    sec.classList.remove('active');
-  });
-  // Show target
-  const target = document.getElementById('tab' + tabName);
+  // Normalize tab name (handle both 'Dashboard' and 'dashboard')
+  const tabMap = {
+    'dashboard': 'Dashboard', 'missions': 'Missions', 'staking': 'Staking',
+    'leaderboard': 'Leaderboard', 'referral': 'Referral', 'airdrop': 'Airdrop',
+    'news': 'News', 'faq': 'Faq'
+  };
+  const normalizedName = tabMap[tabName] || tabName;
+
+  document.querySelectorAll('.tab-content').forEach(sec => sec.classList.remove('active'));
+  const target = document.getElementById('tab' + normalizedName);
   if (target) target.classList.add('active');
 
-  // Update pills
   document.querySelectorAll('.tab-pill').forEach(pill => {
-    pill.classList.toggle('active', pill.dataset.tab === tabName);
+    pill.classList.toggle('active', pill.dataset.tab === normalizedName);
   });
 
-  // Update bottom nav
   document.querySelectorAll('.bottom-nav-item').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === tabName);
+    btn.classList.toggle('active', btn.dataset.tab === normalizedName);
   });
 
-  // Scroll to top
-  const app = document.getElementById('mainApp');
-  if (app) app.scrollTop = 0;
+  // Scroll to top of app
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Load tab-specific data
-  if (tabName === 'Missions') loadMissions();
-  if (tabName === 'Leaderboard') loadLeaderboard();
-  if (tabName === 'Staking') loadStakingContracts();
-  if (tabName === 'Referral') loadReferralCount();
+  if (normalizedName === 'Missions') loadMissions();
+  if (normalizedName === 'Leaderboard') loadLeaderboard();
+  if (normalizedName === 'Staking') loadStakingContracts();
+  if (normalizedName === 'Referral') { loadReferralCount(); if (userData) { setEl('referralCodeDisplay', userData.referralCode || '---'); setEl('referralLinkDisplay', window.location.origin + window.location.pathname + '?ref=' + (userData.referralCode || '')); } }
+  if (normalizedName === 'Airdrop') loadAirdropInfo();
 }
 
 // ─── 18. Particle Background ─────────────────────────────────
@@ -965,25 +1114,21 @@ function initParticles() {
   resize();
   window.addEventListener('resize', resize);
 
-  // Create particles
-  const count = Math.min(50, Math.floor(w * h / 20000));
+  const count = Math.min(40, Math.floor(w * h / 25000));
   for (let i = 0; i < count; i++) {
     const isGold = Math.random() > 0.6;
     particles.push({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: Math.random() * 2 + 1,
-      dx: (Math.random() - 0.5) * 0.4,
-      dy: (Math.random() - 0.5) * 0.4,
-      color: isGold ? `rgba(245,158,11,${Math.random() * 0.3 + 0.1})` : `rgba(59,130,246,${Math.random() * 0.3 + 0.1})`
+      x: Math.random() * w, y: Math.random() * h,
+      r: Math.random() * 2 + 0.5,
+      dx: (Math.random() - 0.5) * 0.3, dy: (Math.random() - 0.5) * 0.3,
+      color: isGold ? `rgba(244,196,48,${Math.random() * 0.25 + 0.08})` : `rgba(30,144,255,${Math.random() * 0.25 + 0.08})`
     });
   }
 
   function animate() {
     ctx.clearRect(0, 0, w, h);
     particles.forEach(p => {
-      p.x += p.dx;
-      p.y += p.dy;
+      p.x += p.dx; p.y += p.dy;
       if (p.x < 0 || p.x > w) p.dx *= -1;
       if (p.y < 0 || p.y > h) p.dy *= -1;
       ctx.beginPath();
@@ -1003,14 +1148,104 @@ function detectReferral() {
   const ref = params.get('ref');
   if (ref) {
     localStorage.setItem('ndog_ref', ref);
-    // Clean URL
     const url = new URL(window.location);
     url.searchParams.delete('ref');
     window.history.replaceState({}, '', url.toString());
   }
 }
 
-// ─── 20. Initialization ──────────────────────────────────────
+// ─── 20. Event Listeners ─────────────────────────────────────
+
+function wireEventListeners() {
+  // Login button
+  const loginBtn = document.getElementById('googleSignInBtn');
+  if (loginBtn) loginBtn.addEventListener('click', loginGoogle);
+
+  // Language buttons
+  const langLoginBtn = document.getElementById('langBtnLogin');
+  if (langLoginBtn) langLoginBtn.addEventListener('click', toggleLang);
+  const langAppBtn = document.getElementById('langBtnApp');
+  if (langAppBtn) langAppBtn.addEventListener('click', toggleLang);
+
+  // Logout
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+
+  // Claim button
+  const claimBtn = document.getElementById('claimBtn');
+  if (claimBtn) claimBtn.addEventListener('click', claimDaily);
+
+  // Spin button
+  const spinBtn = document.getElementById('spinBtn');
+  if (spinBtn) spinBtn.addEventListener('click', spinWheel);
+
+  // Lucky Box
+  const luckyBoxBtn = document.getElementById('luckyBoxBtn');
+  const luckyBoxCard = document.getElementById('luckyBoxCard');
+  if (luckyBoxBtn) luckyBoxBtn.addEventListener('click', (e) => { e.stopPropagation(); playLuckyBox(); });
+  if (luckyBoxCard && !luckyBoxBtn) luckyBoxCard.addEventListener('click', playLuckyBox);
+
+  // Scratch Card
+  const scratchBtn = document.getElementById('scratchBtn');
+  const scratchCard = document.getElementById('scratchCardCard');
+  if (scratchBtn) scratchBtn.addEventListener('click', (e) => { e.stopPropagation(); playScratchCard(); });
+  if (scratchCard && !scratchBtn) scratchCard.addEventListener('click', playScratchCard);
+
+  // Stake buttons
+  const stakeBtn = document.getElementById('stakeBtn');
+  if (stakeBtn) stakeBtn.addEventListener('click', stakeTokens);
+  const stakeMaxBtn = document.getElementById('stakeMaxBtn');
+  if (stakeMaxBtn) stakeMaxBtn.addEventListener('click', () => {
+    const input = document.getElementById('stakeAmount');
+    if (input && userData) input.value = userData.balance || 0;
+  });
+
+  // Staking plan radios
+  document.querySelectorAll('.plan-option input[name="stakePlan"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      selectedPlan = this.value + '_days';
+    });
+  });
+
+  // Referral copy buttons
+  document.querySelectorAll('[data-copy="referralCode"]').forEach(btn => {
+    btn.addEventListener('click', copyReferralCode);
+  });
+  document.querySelectorAll('[data-copy="referralLink"]').forEach(btn => {
+    btn.addEventListener('click', copyReferralLink);
+  });
+
+  // Apply referral code
+  const applyRefBtn = document.getElementById('applyReferralBtn');
+  if (applyRefBtn) applyRefBtn.addEventListener('click', applyReferralCodeFromInput);
+
+  // Airdrop claim
+  const airdropBtn = document.getElementById('airdropClaimBtn');
+  if (airdropBtn) airdropBtn.addEventListener('click', claimAirdrop);
+
+  // Share buttons
+  document.querySelectorAll('[data-platform]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      shareReferral(this.dataset.platform);
+    });
+  });
+
+  // Tab pills
+  document.querySelectorAll('.tab-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+      switchTab(this.dataset.tab);
+    });
+  });
+
+  // Bottom nav
+  document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    btn.addEventListener('click', function() {
+      switchTab(this.dataset.tab);
+    });
+  });
+}
+
+// ─── 21. Initialization ──────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   // Set initial language
@@ -1025,12 +1260,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start particles
   initParticles();
 
-  // Build wheel if on that tab
-  buildWheel();
-
   // Detect referral code from URL
   detectReferral();
 
-  // Start loading state
+  // Wire ALL event listeners
+  wireEventListeners();
+
+  // Show loading state
   showLoading();
 });

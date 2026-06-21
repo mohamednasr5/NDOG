@@ -170,12 +170,8 @@
           <h3>🎰 <span data-ar="عجلة الحظ" data-en="Spin the Wheel">Spin the Wheel</span></h3>
           <div class="wheel-container">
             <div class="wheel-pointer">▼</div>
-            <div id="spinWheel" class="wheel">
-              <button id="wheelCenter" class="wheel-center" type="button">
-                <span data-ar="لفّ" data-en="SPIN">SPIN</span>
-              </button>
-            </div>
-            <button id="spinBtn" class="btn btn--primary" type="button">
+            <canvas id="wheel-canvas" width="280" height="280"></canvas>
+            <button id="spinBtn" class="btn btn--primary btn--block" type="button">
               <span data-ar="لفّ العجلة" data-en="Spin Wheel">Spin Wheel</span>
             </button>
             <div id="spinResult" class="spin-result"></div>
@@ -184,7 +180,7 @@
 
         <!-- Mini Games -->
         <div class="games-grid">
-          <div class="card card--game">
+          <div class="card card--game" id="luckyBoxCard">
             <span class="game-icon">📦</span>
             <h4 data-ar="صندوق الحظ" data-en="Lucky Box">Lucky Box</h4>
             <p data-ar="5-100 NDOG" data-en="5-100 NDOG">5-100 NDOG</p>
@@ -192,7 +188,7 @@
               <span data-ar="افتح" data-en="Open">Open</span>
             </button>
           </div>
-          <div class="card card--game">
+          <div class="card card--game" id="scratchCardCard">
             <span class="game-icon">🃏</span>
             <h4 data-ar="بطاقة الخدش" data-en="Scratch Card">Scratch Card</h4>
             <p data-ar="5-200 NDOG" data-en="5-200 NDOG">5-200 NDOG</p>
@@ -429,10 +425,10 @@
 
   </div>
 
-  <!-- Firebase SDK v8 compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Firebase SDK v9 compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <!-- Custom Scripts -->
   <script src="./js/firebase-config.js?v=2.1.0"></script>

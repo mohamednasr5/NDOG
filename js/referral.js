@@ -9,6 +9,7 @@ import { db, ref, onValue, get, APP_CONFIG } from "./firebase-config.js";
 import { onUser, getCurrentUser } from "./auth.js";
 import { animateCount, toast, openModal } from "./utils.js";
 import { t, getLang, onLangChange } from "./i18n.js";
+import { shareLink, generateQR } from "./share-utils.js";
 
 // Re-export for backward compatibility (in case other modules import from referral.js)
 export { shareLink, generateQR };

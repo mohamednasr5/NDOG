@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>الأخبار | NileDogs</title>
+  <link rel="icon" href="./assets/icons/favicon.png" />
+  <link rel="stylesheet" href="./css/styles.css?v=2.0.5" />
+  <style>
+    .page-wrap { max-width: 800px; margin: 80px auto 40px; padding: 0 20px; }
+    .news-card { background: rgba(10,31,68,0.7); backdrop-filter: blur(18px); border: 1px solid rgba(255,215,0,0.2); border-radius: 24px; padding: 24px; margin-bottom: 16px; }
+    .news-card .date { color: #ffd700; font-size: 14px; }
+    .news-card h3 { color: #fff; margin: 8px 0; }
+    .news-card p { color: #b0c4de; }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <h1 style="color:#ffd700;">📰 آخر الأخبار</h1>
+    <div id="newsContainer"></div>
+    <p style="margin-top:20px;"><a href="./" class="btn btn--ghost">← العودة للتطبيق</a></p>
+  </div>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+    const firebaseConfig = {
+      apiKey: "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
+      authDomain: "ndog-a3265.firebaseapp.com",
+      databaseURL: "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "ndog-a3265",
+      storageBucket: "ndog-a3265.firebasestorage.app",
+      messagingSenderId: "829364393352",
+      appId: "1:829364393352:web:82d0d0a99a3b3f2200163d"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const container = document.getElementById('newsContainer');
+    onValue(ref(db, 'news'), (snap) => {
+      const news = snap.val() || {};
+      const html = Object.values(news).reverse().map(n => `
+        <div class="news-card">
+          <div class="date">${new Date(n.date).toLocaleDateString('ar-EG')}</div>
+          <h3>${n.title}</h3>
+          <p>${n.body}</p>
+        </div>
+      `).join('');
+      container.innerHTML = html || '<div class="news-card">لا توجد أخبار حالياً.</div>';
+    });
+  </script>
+</body>
+</html>

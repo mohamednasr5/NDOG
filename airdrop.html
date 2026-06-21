@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>الإسقاط الجوي | NileDogs</title>
+  <link rel="icon" href="./assets/icons/favicon.png" />
+  <link rel="stylesheet" href="./css/styles.css?v=2.0.5" />
+  <style>
+    .page-wrap { max-width: 800px; margin: 80px auto 40px; padding: 0 20px; }
+    .task { background: rgba(10,31,68,0.7); backdrop-filter: blur(18px); border: 1px solid rgba(255,215,0,0.2); border-radius: 24px; padding: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .task .info { flex: 1; }
+    .task .reward { color: #ffd700; font-weight: bold; }
+    .btn-done { background: #2ecc71; border: none; color: #fff; padding: 6px 16px; border-radius: 20px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <h1 style="color:#ffd700;">🪂 الإسقاط الجوي</h1>
+    <div id="airdropList"></div>
+    <p style="margin-top:20px;"><a href="./" class="btn btn--ghost">← العودة للتطبيق</a></p>
+  </div>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    const firebaseConfig = {
+      apiKey: "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
+      authDomain: "ndog-a3265.firebaseapp.com",
+      databaseURL: "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "ndog-a3265",
+      storageBucket: "ndog-a3265.firebasestorage.app",
+      messagingSenderId: "829364393352",
+      appId: "1:829364393352:web:82d0d0a99a3b3f2200163d"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    let currentUser = null;
+    onAuthStateChanged(auth, user => { currentUser = user; });
+
+    const list = document.getElementById('airdropList');
+    onValue(ref(db, 'airdrops'), (snap) => {
+      const tasks = snap.val() || {};
+      const html = Object.entries(tasks).map(([key, task]) => `
+        <div class="task">
+          <div class="info"><strong>${task.name}</strong><br/><span style="font-size:12px;color:#b0c4de;">${task.desc}</span></div>
+          <div class="reward">+${task.reward} NDOG</div>
+          <button class="btn-done" data-key="${key}" ${task.completed ? 'disabled' : ''}>${task.completed ? '✅ تم' : 'إنجاز'}</button>
+        </div>
+      `).join('');
+      list.innerHTML = html;
+      // إضافة أحداث النقر
+      list.querySelectorAll('.btn-done:not(:disabled)').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!currentUser) { alert('يرجى تسجيل الدخول'); return; }
+          const key = btn.dataset.key;
+          const uid = currentUser.uid;
+          await update(ref(db, `airdrops/${key}`), { completed: true, completedBy: uid, completedAt: Date.now() });
+          // إضافة المكافأة للمستخدم
+          const taskSnap = await get(ref(db, `airdrops/${key}`));
+          const task = taskSnap.val();
+          const userRef = ref(db, `users/${uid}`);
+          const userSnap = await get(userRef);
+          const user = userSnap.val() || {};
+          const newBalance = (user.balance || 0) + task.reward;
+          await update(userRef, { balance: newBalance });
+          alert(`تم إضافة ${task.reward} NDOG إلى رصيدك!`);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

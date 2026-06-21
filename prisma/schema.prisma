@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  displayName  String?
+  photoURL     String?
+  balance      Float    @default(0)
+  role         String   @default("user")
+  referralCode String   @unique @default(cuid())
+  referredBy   String?
+  streak       Int      @default(0)
+  lastClaimAt  DateTime?
+  founder      Boolean  @default(false)
+  vipLevel     String   @default("bronze")
+  totalClaimed Float   @default(0)
+  country      String?
+  banned       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  claims          Claim[]
+  stakingContracts StakingContract[]
+  transactions    Transaction[]
+  missionProgress  MissionProgress[]
+  badges          UserBadge[]
+  notifications   Notification[]
+  wheelSpins      WheelSpin[]
+  referrals_made  Referral[] @relation("Referrer")
+  referrals_got   Referral[] @relation("Referred")
+}
+
+model Claim {
+  id     String   @id @default(cuid())
+  userId String
+  amount Float
+  ts     DateTime @default(now())
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Referral {
+  id         String   @id @default(cuid())
+  referrerId String
+  referredId String   @unique
+  level      Int      @default(1)
+  bonus      Float    @default(0)
+  ts         DateTime @default(now())
+  referrer   User     @relation("Referrer", fields: [referrerId], references: [id])
+  referred   User     @relation("Referred", fields: [referredId], references: [id])
+}
+
+model MissionProgress {
+  id         String    @id @default(cuid())
+  userId     String
+  missionId  String
+  completed  Boolean   @default(false)
+  completedAt DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StakingContract {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Float
+  planId      String
+  startDate   DateTime @default(now())
+  endDate     DateTime
+  apr         Float
+  earnedRewards Float  @default(0)
+  status      String   @default("active")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  amount      Float
+  ts          DateTime @default(now())
+  description String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model News {
+  id         String   @id @default(cuid())
+  newsId     String   @unique
+  titleAr    String
+  titleEn    String
+  contentAr  String
+  contentEn  String
+  author     String?
+  category   String?
+  featured   Boolean  @default(false)
+  publishedAt DateTime
+  updatedAt  DateTime?
+}
+
+model Faq {
+  id        String  @id @default(cuid())
+  faqId     String  @unique
+  questionAr String
+  questionEn String
+  answerAr   String
+  answerEn   String
+  active     Boolean @default(true)
+  order      Int     @default(0)
+}
+
+model UserBadge {
+  id      String   @id @default(cuid())
+  userId  String
+  badgeId String
+  earnedAt DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  ts        DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WheelSpin {
+  id     String   @id @default(cuid())
+  userId String
+  prize  Float
+  ts     DateTime @default(now())
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SiteConfig {
+  key   String @id
+  value String
+}

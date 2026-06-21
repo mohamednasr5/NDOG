@@ -1,5 +1,5 @@
 /**
- * NileDogs (NDOG) — Service Worker  v2.0.2
+ * NileDogs (NDOG) — Service Worker  v2.0.1
  * ------------------------------------------------------------------
  * CRITICAL FIX: Previous version used cache-first for JS files, which
  * caused the browser to serve stale cached auth.js after deployment.

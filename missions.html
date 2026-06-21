@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0e14" />
+  <title>Missions & Mini-Games — NileDogs (NDOG)</title>
+  <meta name="description" content="Daily, weekly, monthly missions plus Lucky Wheel, Lucky Box, Scratch Card, Treasure Hunt mini-games. Complete tasks to earn free NDOG tokens." />
+  <link rel="canonical" href="https://ndogcoin.com/missions.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Missions & Mini-Games — NileDogs" />
+  <meta property="og:description" content="Daily, weekly, monthly missions plus Lucky Wheel, Lucky Box, Scratch Card, Treasure Hunt mini-games." />
+  <meta property="og:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="NileDogs Missions & Mini-Games" />
+  <meta name="twitter:description" content="Complete missions and play mini-games to earn NDOG." />
+  <meta name="twitter:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
+  <link rel="icon" href="https://ndogcoin.com/assets/icons/favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="https://ndogcoin.com/assets/icons/apple-touch-icon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/animations.css" />
+  <link rel="stylesheet" href="/css/responsive.css" />
+  <link rel="stylesheet" href="/css/darkmode.css" />
+  <link rel="stylesheet" href="/css/missions.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container">
+      <a href="/" class="nav__brand">
+        <img src="https://ndogcoin.com/assets/icons/icon-512.png" alt="NDOG" />
+        <span>Nile<span class="ticker">Dogs</span></span>
+      </a>
+      <nav class="nav__links" data-nav>
+        <a href="/">Home</a>
+        <a href="/airdrop.html">Airdrop</a>
+        <a href="/staking.html">Staking</a>
+        <a href="/leaderboard.html">Leaderboard</a>
+        <a href="/explorer.html">Explorer</a>
+        <a href="/news.html">News</a>
+        <a href="/roadmap.html">Roadmap</a>
+        <a href="/tokenomics.html">Tokenomics</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/missions.html" class="active">Missions</a>
+        <a href="/admin.html" data-admin-only style="display:none">Admin</a>
+      </nav>
+      <div class="nav__auth">
+        <button class="btn btn--ghost btn--sm" data-theme-toggle>🌙</button>
+        <button class="btn btn--ghost btn--sm" data-lang-btn="en">EN</button>
+        <button class="btn btn--ghost btn--sm" data-lang-btn="ar">ع</button>
+        <div data-auth-slot></div>
+        <button class="nav__menu-toggle" data-menu-toggle aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <h1>🎯 Missions & Mini-Games</h1>
+      <p class="muted">Complete daily, weekly, and monthly missions. Try your luck with our mini-games.</p>
+
+      <div class="missions-hero">
+        <div class="card mini-game-card">
+          <div class="mini-game-icon">🎡</div>
+          <h3>Lucky Wheel</h3>
+          <p>Spin once every 24h. Win up to 1,000 NDOG.</p>
+        </div>
+        <div class="card mini-game-card">
+          <div class="mini-game-icon">🎁</div>
+          <h3>Lucky Box</h3>
+          <p>Open a mystery box daily for surprise rewards.</p>
+        </div>
+        <div class="card mini-game-card">
+          <div class="mini-game-icon">🎟️</div>
+          <h3>Scratch Card</h3>
+          <p>Scratch to reveal hidden NDOG amounts.</p>
+        </div>
+        <div class="card mini-game-card">
+          <div class="mini-game-icon">🗺️</div>
+          <h3>Treasure Hunt</h3>
+          <p>Weekly hunt across the platform for big prizes.</p>
+        </div>
+      </div>
+
+      <div id="missions-root"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <div class="nav__brand"><img src="https://ndogcoin.com/assets/icons/icon-512.png" alt="NDOG"/><span>Nile<span class="ticker">Dogs</span></span></div>
+          <p>The Nile's most loyal pack. Community-driven, fairly distributed.</p>
+        </div>
+        <div class="footer__col"><h4>Platform</h4><a href="/airdrop.html">Airdrop</a><a href="/staking.html">Staking</a><a href="/leaderboard.html">Leaderboard</a><a href="/explorer.html">Explorer</a></div>
+        <div class="footer__col"><h4>Resources</h4><a href="/tokenomics.html">Tokenomics</a><a href="/roadmap.html">Roadmap</a><a href="/news.html">News</a><a href="/faq.html">FAQ</a></div>
+        <div class="footer__col"><h4>Company</h4><a href="/team.html">Team</a><a href="/partners.html">Partners</a><a href="/contact.html">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div>
+      </div>
+      <div class="footer__bottom"><span>© 2026 NileDogs. All rights reserved.</span><span>NDOG is a community token. Not financial advice.</span></div>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module">
+    import { missions } from "/js/missions.js";
+    missions.init();
+  </script>
+</body>
+</html>

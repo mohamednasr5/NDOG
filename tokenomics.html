@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0e14" />
+  <title>Tokenomics — NileDogs (NDOG)</title>
+  <meta name="description" content="NDOG token distribution, supply, and utility. 100 billion total supply. 40% mining, 20% staking, 15% airdrop, 10% team, 8% liquidity, 4% marketing, 3% reserve." />
+  <link rel="canonical" href="https://ndogcoin.com/tokenomics.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="NileDogs Tokenomics" />
+  <meta property="og:description" content="100B NDOG supply. Mining 40%, staking 20%, airdrop 15%, team 10%, liquidity 8%, marketing 4%, reserve 3%." />
+  <meta property="og:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="NileDogs Tokenomics" />
+  <meta name="twitter:description" content="100B NDOG supply. Mining 40%, staking 20%, airdrop 15%, team 10%, liquidity 8%, marketing 4%, reserve 3%." />
+  <meta name="twitter:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
+  <link rel="icon" href="https://ndogcoin.com/assets/icons/favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="https://ndogcoin.com/assets/icons/apple-touch-icon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=Cairo:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/animations.css" />
+  <link rel="stylesheet" href="/css/responsive.css" />
+  <link rel="stylesheet" href="/css/darkmode.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container">
+      <a href="/" class="nav__brand">
+        <img src="https://ndogcoin.com/assets/icons/icon-512.png" alt="NDOG" />
+        <span>Nile<span class="ticker">Dogs</span></span>
+      </a>
+      <nav class="nav__links" data-nav>
+        <a href="/">Home</a>
+        <a href="/airdrop.html">Airdrop</a>
+        <a href="/staking.html">Staking</a>
+        <a href="/leaderboard.html">Leaderboard</a>
+        <a href="/explorer.html">Explorer</a>
+        <a href="/news.html">News</a>
+        <a href="/roadmap.html">Roadmap</a>
+        <a href="/tokenomics.html" class="active">Tokenomics</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/admin.html" data-admin-only style="display:none">Admin</a>
+      </nav>
+      <div class="nav__auth">
+        <button class="btn btn--ghost btn--sm" data-theme-toggle>🌙</button>
+        <button class="btn btn--ghost btn--sm" data-lang-btn="en">EN</button>
+        <button class="btn btn--ghost btn--sm" data-lang-btn="ar">ع</button>
+        <div data-auth-slot></div>
+        <button class="nav__menu-toggle" data-menu-toggle aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <h1>💎 Tokenomics</h1>
+      <p class="muted">A fair, community-first token distribution designed for long-term sustainability.</p>
+
+      <div class="tokenomics-hero">
+        <div class="card hero-stat-card">
+          <div class="hero-stat-label">Total Supply</div>
+          <div class="hero-stat-value">100,000,000,000</div>
+          <div class="hero-stat-sub">100 billion NDOG</div>
+        </div>
+        <div class="card hero-stat-card">
+          <div class="hero-stat-label">Ticker</div>
+          <div class="hero-stat-value">NDOG</div>
+          <div class="hero-stat-sub">NileDogs Community Token</div>
+        </div>
+        <div class="card hero-stat-card">
+          <div class="hero-stat-label">Network</div>
+          <div class="hero-stat-value">Multi-chain</div>
+          <div class="hero-stat-sub">ETH · BNB · Polygon · TON</div>
+        </div>
+        <div class="card hero-stat-card">
+          <div class="hero-stat-label">Decimals</div>
+          <div class="hero-stat-value">18</div>
+          <div class="hero-stat-sub">ERC-20 compatible</div>
+        </div>
+      </div>
+
+      <div class="tokenomics-layout">
+        <div class="card chart-card">
+          <h2>Distribution</h2>
+          <p class="muted">Visual breakdown of the 100B NDOG total supply.</p>
+          <div class="chart-wrap">
+            <canvas id="tokenomics-donut" width="360" height="360" style="width:100%;max-width:360px;height:auto;aspect-ratio:1/1"></canvas>
+          </div>
+        </div>
+
+        <div class="card breakdown-card">
+          <h2>Allocation</h2>
+          <table class="tokenomics-table">
+            <thead>
+              <tr><th>Category</th><th>Share</th><th>Tokens</th><th>Lock / Vesting</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="legend-dot" style="background:#f59e0b"></span> Mining Rewards</td>
+                <td>40%</td>
+                <td>40,000,000,000</td>
+                <td>Released over 5 years via daily claims</td>
+              </tr>
+              <tr>
+                <td><span class="legend-dot" style="background:#06b6d4"></span> Staking Pool</td>
+                <td>20%</td>
+                <td>20,000,000,000</td>
+                <td>Distributed as APR over 4 years</td>
+              </tr>
+              <tr>
+                <td><span class="legend-dot" style="background:#a855f7"></span> Airdrop</td>
+                <td>15%</td>
+                <td>15,000,000,000</td>
+                <td>Released over 18 months via social tasks</td>
+              </tr>
+              <tr>
+                <td><span class="legend-dot" style="background:#3b82f6"></span> Team</td>
+                <td>10%</td>
+                <td>10,000,000,000</td>
+                <td>12-month lock, 36-month linear vesting</td>
+              </tr>
+              <tr>
+                <td><span class="legend-dot" style="background:#10b981"></span> Liquidity</td>
+                <td>8%</td>
+                <td>8,000,000,000</td>
+                <td>Locked in DEX/CEX pools; 1-year lockup</td>
+              </tr>
+              <tr>
+                <td><span class="legend-dot" style="background:#ef4444"></span> Marketing</td>
+                <td>4%</td>
+                <td>4,000,000,000</td>
+                <td>Released quarterly per roadmap milestones</td>
+              </tr>
+              <tr>
+                <td><span class="legend-dot" style="background:#64748b"></span> Reserve</td>
+                <td>3%</td>
+                <td>3,000,000,000</td>
+                <td>Multi-sig controlled; emergency + grants</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr><th>Total</th><th>100%</th><th>100,000,000,000</th><th>—</th></tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:var(--space-5)">
+        <h2>🛠️ Token Utility</h2>
+        <p>NDOG is more than a reward token. It powers the entire NileDogs ecosystem:</p>
+        <div class="utility-grid">
+          <div class="utility-item">
+            <div class="utility-icon">⛏️</div>
+            <h3>Mining</h3>
+            <p>Daily claims, streak bonuses, mission rewards, and mini-game prizes are all paid in NDOG.</p>
+          </div>
+          <div class="utility-item">
+            <div class="utility-icon">💰</div>
+            <h3>Staking</h3>
+            <p>Lock NDOG for 30–365 days to earn up to 120% APR. Compound or claim on maturity.</p>
+          </div>
+          <div class="utility-item">
+            <div class="utility-icon">🗳️</div>
+            <h3>Governance</h3>
+            <p>Stake NDOG to vote on proposals in the NileDogs DAO. 1 staked NDOG = 1 vote.</p>
+          </div>
+          <div class="utility-item">
+            <div class="utility-icon">💸</div>
+            <h3>Fees</h3>
+            <p>Pay reduced platform fees (early unstake, premium features) by holding NDOG.</p>
+          </div>
+          <div class="utility-item">
+            <div class="utility-icon">🎨</div>
+            <h3>NFTs</h3>
+            <p>Buy Founder Pass NFTs and upcoming NileDogs Genesis collection with NDOG.</p>
+          </div>
+          <div class="utility-item">
+            <div class="utility-icon">🔗</div>
+            <h3>Referrals</h3>
+            <p>Referral bounties (50/20/10 NDOG) are paid in NDOG and stakeable immediately.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:var(--space-5)">
+        <h2>🔒 Vesting &amp; Lockups</h2>
+        <ul style="line-height:1.9;padding-inline-start:20px">
+          <li><strong>Team tokens:</strong> 12-month cliff, then 36-month linear vesting. No team tokens enter circulation before 2026.</li>
+          <li><strong>Liquidity:</strong> 50% locked for 12 months at DEX listing; 50% managed for CEX market-making.</li>
+          <li><strong>Reserve:</strong> Controlled by a 3-of-5 multi-sig wallet. Quarterly transparency reports published.</li>
+          <li><strong>Mining &amp; staking:</strong> Time-released via smart contracts; cannot be accelerated.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <div class="nav__brand"><img src="https://ndogcoin.com/assets/icons/icon-512.png" alt="NDOG"/><span>Nile<span class="ticker">Dogs</span></span></div>
+          <p>The Nile's most loyal pack. Community-driven, fairly distributed.</p>
+        </div>
+        <div class="footer__col"><h4>Platform</h4><a href="/airdrop.html">Airdrop</a><a href="/staking.html">Staking</a><a href="/leaderboard.html">Leaderboard</a><a href="/explorer.html">Explorer</a></div>
+        <div class="footer__col"><h4>Resources</h4><a href="/tokenomics.html">Tokenomics</a><a href="/roadmap.html">Roadmap</a><a href="/news.html">News</a><a href="/faq.html">FAQ</a></div>
+        <div class="footer__col"><h4>Company</h4><a href="/team.html">Team</a><a href="/partners.html">Partners</a><a href="/contact.html">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div>
+      </div>
+      <div class="footer__bottom"><span>© 2026 NileDogs. All rights reserved.</span><span>NDOG is a community token. Not financial advice.</span></div>
+    </div>
+  </footer>
+
+  <style>
+    .tokenomics-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--space-3);margin:var(--space-5) 0}
+    .hero-stat-card{text-align:center;padding:var(--space-4)}
+    .hero-stat-label{font-size:.78rem;color:var(--text-muted,#9ca3af);text-transform:uppercase;letter-spacing:.06em}
+    .hero-stat-value{font-size:1.6rem;font-weight:800;color:#f59e0b;margin-top:6px;font-family:'JetBrains Mono',monospace;word-break:break-word}
+    .hero-stat-sub{font-size:.82rem;color:var(--text-muted,#9ca3af);margin-top:4px}
+    .tokenomics-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:var(--space-4)}
+    .chart-card{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+    .chart-wrap{margin-top:var(--space-3)}
+    .tokenomics-table{width:100%;border-collapse:collapse;font-size:.9rem}
+    .tokenomics-table th,.tokenomics-table td{padding:10px 12px;text-align:start;border-bottom:1px solid var(--border,rgba(255,255,255,.08))}
+    .tokenomics-table th{font-weight:600;color:var(--text-muted,#9ca3af);background:rgba(255,255,255,.03)}
+    .tokenomics-table tfoot th{color:#f59e0b;font-weight:700}
+    .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:8px;vertical-align:middle}
+    .utility-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-3);margin-top:var(--space-3)}
+    .utility-item{padding:var(--space-3);border:1px solid var(--border,rgba(255,255,255,.08));border-radius:12px;text-align:center}
+    .utility-icon{font-size:2rem;margin-bottom:8px}
+    .utility-item h3{margin:0 0 6px;font-size:1rem}
+    .utility-item p{font-size:.85rem;color:var(--text-muted,#9ca3af);line-height:1.5;margin:0}
+    @media (max-width:860px){.tokenomics-layout{grid-template-columns:1fr}}
+  </style>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module">
+    import { charts } from "/js/charts.js";
+
+    const segments = [40, 20, 15, 10, 8, 4, 3];
+    const colors = ["#f59e0b", "#06b6d4", "#a855f7", "#3b82f6", "#10b981", "#ef4444", "#64748b"];
+
+    function drawDonut() {
+      const canvas = document.getElementById("tokenomics-donut");
+      if (!canvas) return;
+      charts.donut(canvas, segments, colors);
+
+      // Add labels in center
+      const ctx = canvas.getContext("2d");
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = "#f59e0b";
+      ctx.font = "700 14px 'Plus Jakarta Sans', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Total Supply", w / 2, h / 2 - 12);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "800 22px 'JetBrains Mono', monospace";
+      ctx.fillText("100B", w / 2, h / 2 + 12);
+    }
+
+    // Draw after layout settles
+    requestAnimationFrame(drawDonut);
+    window.addEventListener("resize", () => requestAnimationFrame(drawDonut));
+    document.addEventListener("ndog:ready", () => requestAnimationFrame(drawDonut));
+  </script>
+</body>
+</html>

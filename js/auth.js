@@ -1,16 +1,19 @@
 /** 
  * NileDogs (NDOG) — Authentication Module
- * v2.0.2 - DEVICE FINGERPRINT DISABLED
- * تم تعطيل التحقق من بصمة الجهاز بالكامل لحل مشكلة تسجيل الدخول.
- * لم يعد يتم قراءة أو كتابة أي بيانات في مسار deviceFingerprints.
+ * v2.0.3 - POPUP-ONLY + NO FINGERPRINT
+ * =====================================================
+ * - تم إزالة signInWithRedirect بالكامل (سبب الخطأ).
+ * - الاعتماد فقط على signInWithPopup (يعمل على جميع الأجهزة).
+ * - في حال حظر النافذة المنبثقة، يتم عرض رسالة توجيهية للمستخدم.
+ * - تم تعطيل بصمة الجهاز نهائياً (قيمة ثابتة).
+ * =====================================================
  */
 
 import {
   auth, db, googleProvider, APP_CONFIG,
   ref, get, set, update, push, onValue,
-  signInWithPopup, signInWithRedirect, getRedirectResult,
-  signOut, onAuthStateChanged,
-  generateReferralCode, getDeviceFingerprint
+  signInWithPopup, signOut, onAuthStateChanged,
+  generateReferralCode
 } from "./firebase-config.js";
 import { t } from "./i18n.js";
 
@@ -41,28 +44,28 @@ function isEmbeddedBrowser() {
   return /Telegram|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|Twitter|TikTok|Snapchat|; ?wv\)/i.test(ua);
 }
 
-function isStandalone() {
-  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-         window.navigator.standalone === true;
-}
-
 function friendlyAuthError(err) {
   const code = err?.code || "";
   const msg  = err?.message || "";
   switch (code) {
-    case "auth/unauthorized-domain": return t("auth.errUnauthorizedDomain");
     case "auth/popup-closed-by-user":
-    case "auth/cancelled-popup-request": return t("auth.errPopupClosed");
-    case "auth/popup-blocked": return t("auth.errPopupBlocked");
-    case "auth/operation-not-allowed": return t("auth.errNotEnabled");
-    case "auth/network-request-failed": return t("auth.errNetwork");
-    case "auth/redirect-operation-pending": return t("auth.errRedirectPending");
-    case "auth/operation-not-supported-in-this-environment": return t("auth.errEnv");
-    default: return msg || t("auth.errGeneric");
+    case "auth/cancelled-popup-request":
+      return t("auth.errPopupClosed");
+    case "auth/popup-blocked":
+      return t("auth.errPopupBlocked");
+    case "auth/operation-not-allowed":
+      return t("auth.errNotEnabled");
+    case "auth/network-request-failed":
+      return t("auth.errNetwork");
+    case "auth/operation-not-supported-in-this-environment":
+      return t("auth.errEnv");
+    default:
+      return msg || t("auth.errGeneric");
   }
 }
 
 export async function googleLogin() {
+  // منع تسجيل الدخول من المتصفحات المدمجة (تطبيقات مثل تيليجرام، فيسبوك)
   if (isEmbeddedBrowser()) {
     console.warn("[NDOG] Blocked login attempt inside an embedded/in-app browser");
     const e = new Error(t("auth.errEmbeddedBrowser"));
@@ -70,40 +73,19 @@ export async function googleLogin() {
     throw e;
   }
 
-  if (isStandalone() && isMobile()) {
-    console.log("[NDOG] Standalone PWA on mobile — trying popup directly");
-    sessionStorage.setItem("ndog_pwa_login_opened", "1");
-  }
-
+  console.log("[NDOG] Attempting signInWithPopup...");
   try {
-    console.log("[NDOG] Attempting signInWithPopup (preferred on all devices)");
     await signInWithPopup(auth, googleProvider);
-    sessionStorage.removeItem("ndog_pwa_login_opened");
-    return;
+    console.log("[NDOG] Popup sign-in successful.");
   } catch (err) {
-    const fallbackToRedirect = [
-      "auth/popup-blocked",
-      "auth/operation-not-supported-in-this-environment",
-      "auth/cancelled-popup-request"
-    ].includes(err?.code);
-
-    if (!fallbackToRedirect) {
-      sessionStorage.removeItem("ndog_pwa_login_opened");
-      console.error("[NDOG] Google login failed:", err.code, err.message);
-      const friendly = friendlyAuthError(err);
-      const e = new Error(friendly);
-      e.original = err;
+    console.error("[NDOG] Popup sign-in error:", err.code, err.message);
+    // إذا تم حظر النافذة المنبثقة، نرمي خطأ واضحاً للمستخدم
+    if (err.code === "auth/popup-blocked") {
+      const e = new Error(t("auth.errPopupBlocked"));
+      e.code = err.code;
       throw e;
     }
-    console.log("[NDOG] Popup unavailable (", err.code, ") — falling back to signInWithRedirect");
-  }
-
-  try {
-    sessionStorage.setItem("ndog_redirect_pending", "1");
-    await signInWithRedirect(auth, googleProvider);
-  } catch (err) {
-    sessionStorage.removeItem("ndog_redirect_pending");
-    console.error("[NDOG] Google login failed:", err.code, err.message);
+    // أخطاء أخرى نمررها كما هي
     const friendly = friendlyAuthError(err);
     const e = new Error(friendly);
     e.original = err;
@@ -120,6 +102,7 @@ export async function logout() {
   }
 }
 
+// ─── Provisioning ────────────────────────────────────────────────
 const provisioningInFlight = new Map();
 
 function provisionUserLocked(firebaseUser) {
@@ -141,27 +124,8 @@ async function provisionUserImpl(firebaseUser) {
   const userRef = ref(db, `users/${uid}`);
   const snap = await get(userRef);
 
-  // ================================================================
-  // ⚠️ تم تعطيل بصمة الجهاز نهائياً لحل مشكلة تسجيل الدخول
-  // لم نعد نقرأ أو نكتب أي شيء في مسار deviceFingerprints
-  // ================================================================
-  // const fingerprint = await getDeviceFingerprint();
-  const fingerprint = "disabled_fingerprint"; // قيمة ثابتة لتجنب الأخطاء
-
-  // تم إلغاء تفعيل الكود التالي بالكامل:
-  /*
-  const fpRef = ref(db, `deviceFingerprints/${fingerprint}`);
-  const fpSnap = await get(fpRef);
-  if (fpSnap.exists() && fpSnap.val() !== uid) {
-    await set(ref(db, `flaggedAccounts/${uid}`), {
-      reason: "duplicate_device_fingerprint",
-      otherUid: fpSnap.val(),
-      at: Date.now()
-    });
-  }
-  await set(fpRef, uid);
-  */
-  // ================================================================
+  // بصمة الجهاز معطلة – قيمة ثابتة
+  const fingerprint = "disabled_fingerprint";
 
   if (!snap.exists()) {
     const referralCode = generateReferralCode();
@@ -190,7 +154,7 @@ async function provisionUserImpl(firebaseUser) {
       createdAt:    Date.now(),
       lastClaim:    0,
       streak:       0,
-      deviceFingerprint: fingerprint, // سيتم تخزين القيمة الثابتة
+      deviceFingerprint: fingerprint,
       banned:       false,
       isFounder:    true,
       badges:       { founder: true }
@@ -312,6 +276,7 @@ function guessCountry() {
   return "Global";
 }
 
+// ─── تهيئة المصادقة ─────────────────────────────────────────────
 export async function initAuth(onReady) {
   if (authInitialized) {
     console.log("[NDOG] Auth already initialized, skipping");
@@ -319,9 +284,8 @@ export async function initAuth(onReady) {
   }
   authInitialized = true;
 
-  console.log("[NDOG] === AUTH INITIALIZATION START ===");
+  console.log("[NDOG] === AUTH INITIALIZATION START (Popup-Only) ===");
   console.log("[NDOG] Device type:", isMobile() ? "MOBILE" : "DESKTOP");
-  console.log("[NDOG] Standalone PWA:", isStandalone());
 
   let userSetupDone = new Map();
 
@@ -384,6 +348,7 @@ export async function initAuth(onReady) {
       emit(userData);
       onReady && onReady(userData);
 
+      // مراقبة التحديثات اللحظية
       onValue(userRef, (liveSnap) => {
         if (!liveSnap.exists()) return;
         const liveData = liveSnap.val();
@@ -398,6 +363,7 @@ export async function initAuth(onReady) {
     } catch (err) {
       console.error("[NDOG] User setup failed:", err);
 
+      // بيانات احتياطية لإبقاء المستخدم داخل التطبيق
       const fallbackData = {
         uid: fbUser.uid,
         name: fbUser.displayName || "NileDog",
@@ -423,6 +389,7 @@ export async function initAuth(onReady) {
       emit(fallbackData);
       onReady && onReady(fallbackData);
 
+      // إعادة المحاولة بعد فترة
       userSetupDone.delete(uid);
       setTimeout(async () => {
         if (currentUserData?.uid === uid && !currentUserData?.referralCode) {
@@ -438,61 +405,5 @@ export async function initAuth(onReady) {
     }
   });
 
-  // ─── معالجة نتيجة إعادة التوجيه ───
-  try {
-    console.log("[NDOG] Checking for redirect result...");
-    const redirectResult = await getRedirectResult(auth);
-
-    const wasPending = sessionStorage.getItem("ndog_redirect_pending") === "1";
-    sessionStorage.removeItem("ndog_redirect_pending");
-
-    if (redirectResult?.user) {
-      console.log("[NDOG] Redirect result received for:", redirectResult.user.uid);
-    } else if (wasPending) {
-      console.warn("[NDOG] Expected a redirect result but got none");
-      if (!auth.currentUser) {
-        console.log("[NDOG] No user detected after redirect. Forcing reload to re-initialize auth.");
-        location.reload();
-        return;
-      }
-      document.dispatchEvent(new CustomEvent("ndog:authError", {
-        detail: { message: t("auth.errRedirectIncomplete") }
-      }));
-    } else {
-      console.log("[NDOG] No redirect result (normal for first visit or popup flow)");
-    }
-  } catch (err) {
-    sessionStorage.removeItem("ndog_redirect_pending");
-    console.error("[NDOG] getRedirectResult error:", err.code, err.message);
-    setTimeout(() => {
-      if (!currentUserData) {
-        document.dispatchEvent(new CustomEvent("ndog:authError", {
-          detail: { message: friendlyAuthError(err) }
-        }));
-      }
-    }, 2000);
-  }
-
-  // مهلة أمان إضافية
-  if (sessionStorage.getItem("ndog_redirect_pending") === "1") {
-    setTimeout(() => {
-      if (!auth.currentUser) {
-        console.warn("[NDOG] Redirect recovery timeout — forcing reload.");
-        sessionStorage.removeItem("ndog_redirect_pending");
-        location.reload();
-      }
-    }, 2500);
-  }
-
   console.log("[NDOG] === AUTH INITIALIZATION COMPLETE ===");
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState !== "visible") return;
-    if (sessionStorage.getItem("ndog_pwa_login_opened") !== "1") return;
-    sessionStorage.removeItem("ndog_pwa_login_opened");
-    if (!currentUserData) {
-      console.log("[NDOG] Back from sign-in, still logged out — reloading");
-      location.reload();
-    }
-  });
 }

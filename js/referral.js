@@ -5,11 +5,11 @@
  * They are re-exported so any other module that imports them from referral.js still works.
  */
 
-import { db, ref, get, APP_CONFIG } from "./firebase-config.js";
-import { onUser, getCurrentUser } from "./auth.js";
-import { animateCount, openModal } from "./utils.js";
-import { t, getLang, onLangChange } from "./i18n.js";
-import { shareLink, generateQR } from "./share-utils.js";
+import { db, ref, get, APP_CONFIG } from "./firebase-config.js?v=2.0.5";
+import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
+import { animateCount, openModal } from "./utils.js?v=2.0.5";
+import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
+import { shareLink, generateQR } from "./share-utils.js?v=2.0.5";
 
 export { shareLink, generateQR };
 

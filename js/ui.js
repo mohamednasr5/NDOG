@@ -386,13 +386,13 @@
       var qrTrigger = document.getElementById('qrTrigger');
       if (qrTrigger) {
         qrTrigger.addEventListener('click', function () {
-          self.openModal('qrModal');
+          self.openModal('modalQR');
         });
       }
       var qrTrigger2 = document.getElementById('qrTrigger2');
       if (qrTrigger2) {
         qrTrigger2.addEventListener('click', function () {
-          self.openModal('qrModal');
+          self.openModal('modalQR');
         });
       }
     },
@@ -598,9 +598,9 @@
       // Avatar
       var dashAvatar = document.getElementById('dashAvatar');
       var sideAvatar = document.getElementById('sideAvatar');
-      if (profile.avatar && profile.avatar.length > 0) {
-        if (dashAvatar) dashAvatar.src = profile.avatar;
-        if (sideAvatar) sideAvatar.src = profile.avatar;
+      if (profile.photoURL && profile.photoURL.length > 0) {
+        if (dashAvatar) dashAvatar.src = profile.photoURL;
+        if (sideAvatar) sideAvatar.src = profile.photoURL;
       } else {
         var defaultAvatar = this._generateAvatar(profile.displayName || 'U');
         if (dashAvatar) dashAvatar.src = defaultAvatar;
@@ -630,7 +630,7 @@
       }
 
       // Referral code
-      var refCode = profile.refCode || 'NDOG\u2014';
+      var refCode = profile.referralCode || 'NDOG\u2014';
       var refLink = 'https://ndogcoin.com/?ref=' + refCode;
 
       var dashRefCode = document.getElementById('dashRefCode');
@@ -647,7 +647,7 @@
 
       // Stat counters with animation
       var balance = profile.balance || 0;
-      var community = profile.communityScore || 0;
+      var community = profile.scores || 0;
       var loyalty = profile.loyaltyScore || 0;
       var refs = profile.referralCount || 0;
 
@@ -669,7 +669,7 @@
       // Founder/early adopter banner
       var banner = document.getElementById('earlyAdopterBanner');
       if (banner) {
-        if (profile.isEarlyAdopter || profile.isFounder) {
+        if (profile.isFounder) {
           banner.classList.remove('hidden');
         } else {
           banner.classList.add('hidden');
@@ -853,7 +853,7 @@
       var openSpin = document.getElementById('openSpin');
       if (openSpin) {
         openSpin.addEventListener('click', function () {
-          self.openModal('spinModal');
+          self.openModal('modalSpin');
           self.initSpinWheel();
         });
       }
@@ -862,7 +862,7 @@
       var openLucky = document.getElementById('openLucky');
       if (openLucky) {
         openLucky.addEventListener('click', function () {
-          self.openModal('luckyModal');
+          self.openModal('modalLuckyBox');
           self.initLuckyBox();
         });
       }
@@ -897,7 +897,7 @@
       var spinning = false;
 
       // Spin button handler
-      var spinBtn = document.getElementById('spinNowBtn');
+      var spinBtn = document.getElementById('btnSpin');
       if (spinBtn) {
         spinBtn.onclick = function () {
           if (spinning) return;
@@ -1025,7 +1025,7 @@
     initLuckyBox: function () {
       var self = this;
       var box = document.getElementById('luckyBox');
-      var openBtn = document.getElementById('luckyOpenBtn');
+      var openBtn = document.getElementById('btnOpenBox');
 
       if (!box || !openBtn) return;
 

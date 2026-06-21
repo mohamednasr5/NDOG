@@ -4,10 +4,10 @@
  * follow the user's chosen language.
  */
 
-import { db, ref, get, set, update, push, onValue, APP_CONFIG } from "./firebase-config.js";
-import { onUser, getCurrentUser } from "./auth.js";
-import { toast, openModal, closeModal, animateCount } from "./utils.js";
-import { t, onLangChange } from "./i18n.js";
+import { db, ref, get, set, update, push, onValue, APP_CONFIG } from "./firebase-config.js?v=2.0.5";
+import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
+import { toast, openModal, closeModal, animateCount } from "./utils.js?v=2.0.5";
+import { t, onLangChange } from "./i18n.js?v=2.0.5";
 
 const MISSIONS = {
   daily: [

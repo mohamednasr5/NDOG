@@ -62,6 +62,8 @@ function renderDashboard(user) {
   setText("dashName", user.name || "User");
   setText("dashJoined", t("dash.memberSince", { date: formatDate(user.createdAt) }));
   setText("dashCountry", user.country || t("lb.globalLabel"));
+  setText("dashRefCode", user.referralCode || "NDOG—");
+  setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
 
   animateCount(document.getElementById("statBalance"), user.balance || 0);
   animateCount(document.getElementById("statCommunity"), user.communityScore || 0);
@@ -71,10 +73,7 @@ function renderDashboard(user) {
 
   const level = computeLevel(user.balance || 0);
   const levelName = t(level.nameKey || level.name);
-
   setText("dashRankName", levelName);
-  setText("dashRefCode", user.referralCode || "NDOG—");
-  setText("dashRefLink", `${APP_CONFIG.domain}?ref=${user.referralCode || ""}`);
 
   const rankChip = document.getElementById("dashRankChip");
   if (rankChip) rankChip.textContent = levelName;
@@ -115,24 +114,22 @@ function renderLevelProgress(balance) {
   }
 
   if (wrap) {
-    wrap.innerHTML = levels
-      .map((l) => {
-        const unlocked = balance >= l.min;
-        const name = t(l.nameKey || l.name);
-        return `
-          <span class="level-badge ${unlocked ? "is-unlocked" : ""}">
-            <span class="level-badge__icon">${l.icon || "•"}</span>
-            <span class="level-badge__label">${name}</span>
-          </span>
-        `;
-      })
-      .join("");
+    wrap.innerHTML = levels.map((l) => {
+      const unlocked = balance >= l.min;
+      const levelName = t(l.nameKey || l.name);
+      return `
+        <span class="level-badge ${unlocked ? "is-unlocked" : ""}">
+          <span class="level-badge__icon">${l.icon || "•"}</span>
+          <span class="level-badge__label">${levelName}</span>
+        </span>
+      `;
+    }).join("");
   }
 }
 
 function computeLevel(balance) {
   const levels = [...(APP_CONFIG.rewardLevels || [])].sort((a, b) => a.min - b.min);
-  let current = levels[0] || { name: "Bronze", nameKey: "dash.level.bronze", min: 0 };
+  let current = levels[0] || { min: 0, name: "Bronze", nameKey: "dash.level.bronze" };
 
   for (const level of levels) {
     if (balance >= level.min) current = level;

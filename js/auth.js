@@ -190,6 +190,26 @@
       var self = this;
       this.checkReferralParam();
 
+      // Bind the Google login button
+      var loginBtn = document.getElementById('btnGoogleLogin');
+      if (loginBtn) {
+        loginBtn.addEventListener('click', function () {
+          loginBtn.disabled = true;
+          loginBtn.querySelector('span') && (loginBtn.querySelector('span').textContent = '...');
+          self.loginWithGoogle().finally(function () {
+            loginBtn.disabled = false;
+          });
+        });
+      }
+
+      // Bind logout buttons
+      var logoutBtns = document.querySelectorAll('[data-logout]');
+      for (var i = 0; i < logoutBtns.length; i++) {
+        logoutBtns[i].addEventListener('click', function () {
+          self.logout();
+        });
+      }
+
       window.NDOG.auth.onAuthStateChanged(function (user) {
         if (user) {
           window.NDOG.currentUser = user;
@@ -560,9 +580,19 @@
       var appEl = document.getElementById('appShell');
       var preloader = document.getElementById('preloader');
 
-      if (loginEl) loginEl.classList.remove('hidden');
-      if (appEl) appEl.classList.add('hidden');
-      if (preloader) preloader.classList.add('done');
+      if (loginEl) {
+        loginEl.classList.remove('hidden');
+        loginEl.style.display = '';
+      }
+      if (appEl) {
+        appEl.classList.add('hidden');
+      }
+      if (preloader) {
+        preloader.classList.add('done');
+        setTimeout(function () {
+          if (preloader.parentNode) preloader.style.display = 'none';
+        }, 600);
+      }
 
       // Start particles on the login screen
       if (window.NDOG.Particles) window.NDOG.Particles.init();
@@ -577,8 +607,16 @@
       var preloader = document.getElementById('preloader');
 
       if (loginEl) loginEl.classList.add('hidden');
-      if (appEl) appEl.classList.remove('hidden');
-      if (preloader) preloader.classList.add('done');
+      if (appEl) {
+        appEl.classList.remove('hidden');
+        appEl.style.display = '';
+      }
+      if (preloader) {
+        preloader.classList.add('done');
+        setTimeout(function () {
+          if (preloader.parentNode) preloader.style.display = 'none';
+        }, 600);
+      }
     },
 
     /* ---------------------------------------------------------------- */

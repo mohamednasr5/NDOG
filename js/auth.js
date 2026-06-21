@@ -15,8 +15,8 @@ import {
   ref, get, set, update, push, onValue,
   signInWithPopup, signOut, onAuthStateChanged,
   generateReferralCode
-} from "./firebase-config.js";
-import { t } from "./i18n.js";
+} from "./firebase-config.js?v=2.0.5";
+import { t } from "./i18n.js?v=2.0.5";
 
 let currentUserData = null;
 let listeners = [];

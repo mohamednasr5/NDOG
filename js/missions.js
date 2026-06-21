@@ -6,7 +6,7 @@
 
 import { db, ref, get, set, update, push, onValue, APP_CONFIG } from "./firebase-config.js";
 import { onUser, getCurrentUser } from "./auth.js";
-import { toast, openModal, closeModal, animateCount } from "./app.js";
+import { toast, openModal, closeModal, animateCount } from "./utils.js";
 import { t, onLangChange } from "./i18n.js";
 
 const MISSIONS = {

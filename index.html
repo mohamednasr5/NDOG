@@ -1,418 +1,442 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>NileDogs (NDOG) - اكسب توكنات يومياً</title>
-  <meta name="description" content="NileDogs - منصة مكافآت مجتمعية. اكسب توكنات NDOG يومياً عبر المطالبة اليومية والإحالات والألعاب والتخزين.">
-  <meta name="theme-color" content="#0a0e27">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1f44">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="NileDogs">
-  <meta name="format-detection" content="telephone=no, email=no, address=no">
-  <link rel="manifest" href="manifest.json">
+  <meta name="description" content="NileDogs NDOG - Community Crypto Rewards Platform">
+  <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐕</text></svg>">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐕</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/styles.css?v=2.1.0">
+  <title>NileDogs - NDOG v2.0</title>
 </head>
 <body>
 
-  <!-- ========== LOGIN SCREEN ========== -->
-  <div id="loginScreen" class="login-screen">
-    <div class="login-container">
-      <div class="login-logo">
-        <span class="logo-emoji">🐕</span>
-        <h1 class="logo-title">NileDogs</h1>
-        <p class="logo-sub">NDOG - منصة المكافآت المجتمعية</p>
-      </div>
-
-      <div class="lang-toggle-login">
-        <button onclick="toggleLang()" id="langBtnLogin">
-          <span>🌐</span> <span id="langTextLogin">English</span>
-        </button>
-      </div>
-
-      <div class="login-card">
-        <!-- Google Login -->
-        <button class="btn-google" onclick="loginGoogle()">
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          <span data-ar="تسجيل الدخول بـ Google" data-en="Sign in with Google">تسجيل الدخول بـ Google</span>
-        </button>
-
-        <div class="login-divider">
-          <span>أو OR</span>
-        </div>
-
-        <!-- Demo Login Info -->
-        <div class="demo-info">
-          <p data-ar="💡 سجل بحساب Google وابدأ في الكسب فوراً!" data-en="💡 Sign in with Google and start earning instantly!">💡 سجل بحساب Google وابدأ في الكسب فوراً!</p>
-        </div>
-      </div>
-
-      <!-- Tokenomics Preview -->
-      <div class="tokenomics-preview">
-        <div class="tokenomics-row">
-          <span data-ar="الإمداد الكلي" data-en="Total Supply">الإمداد الكلي</span>
-          <span class="tokenomics-value">1,000,000,000 NDOG</span>
-        </div>
-        <div class="tokenomics-bars">
-          <div class="t-bar t-amber" style="width:60%" title="Community 60%"><span>60%</span></div>
-          <div class="t-bar t-purple" style="width:15%" title="Team 15%"><span>15%</span></div>
-          <div class="t-bar t-blue" style="width:10%" title="Liquidity 10%"><span>10%</span></div>
-          <div class="t-bar t-green" style="width:10%" title="Partnerships 10%"><span>10%</span></div>
-          <div class="t-bar t-gray" style="width:5%" title="Reserve 5%"><span>5%</span></div>
-        </div>
-      </div>
-    </div>
+  <!-- ═══════ Background Effects ═══════ -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb--1"></span>
+    <span class="orb orb--2"></span>
   </div>
 
-  <!-- ========== MAIN APP ========== -->
-  <div id="mainApp" class="main-app" style="display:none">
-    <!-- Toast Notification -->
+  <!-- ═══════ Login Screen ═══════ -->
+  <section id="loginScreen" class="screen screen--login">
+    <div class="login-card">
+      <div class="login-logo">🐕</div>
+      <h1 class="login-title">NileDogs</h1>
+      <p class="login-subtitle" data-ar="NDOG v2.0 - منصة مكافآت المجتمع" data-en="NDOG v2.0 - Community Rewards Platform">NDOG v2.0 - Community Rewards Platform</p>
+
+      <button id="langBtnLogin" class="btn btn--lang" type="button">
+        <span class="lang-icon">🌐</span>
+        <span id="langTextLogin" data-ar="English" data-en="العربية">العربية</span>
+      </button>
+
+      <button id="googleSignInBtn" class="btn btn--google" type="button">
+        <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <span data-ar="تسجيل الدخول بـ Google" data-en="Sign in with Google">Sign in with Google</span>
+      </button>
+
+      <div class="tokenomics-card">
+        <h3 data-ar="التوزيع الكلي للرموز" data-en="Total Token Distribution">Total Token Distribution</h3>
+        <div class="token-bar">
+          <span class="token-segment token-segment--60"></span>
+          <span class="token-segment token-segment--15"></span>
+          <span class="token-segment token-segment--10"></span>
+          <span class="token-segment token-segment--10"></span>
+          <span class="token-segment token-segment--5"></span>
+        </div>
+        <ul class="token-legend">
+          <li><span>60%</span> <span data-ar="مكافآت المجتمع" data-en="Community Rewards">Community Rewards</span></li>
+          <li><span>15%</span> <span data-ar="الستيكينغ" data-en="Staking">Staking</span></li>
+          <li><span>10%</span> <span data-ar="الفريق" data-en="Team">Team</span></li>
+          <li><span>10%</span> <span data-ar="الإسقاط الجوي" data-en="Airdrop">Airdrop</span></li>
+          <li><span>5%</span> <span data-ar="السيولة" data-en="Liquidity">Liquidity</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ Main App ═══════ -->
+  <div id="mainApp" class="app" style="display:none;">
+
+    <!-- Toast -->
     <div id="toast" class="toast"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <span data-ar="جاري التحميل..." data-en="Loading...">Loading...</span>
+    </div>
 
     <!-- Header -->
     <header class="app-header">
-      <div class="header-content">
-        <div class="header-left">
-          <span class="header-logo">🐕</span>
-          <div class="header-brand">
-            <h1 class="header-title">NileDogs</h1>
-            <span class="header-version">NDOG v2.0</span>
-          </div>
+      <div class="header-left">
+        <span class="header-logo">🐕</span>
+        <div class="header-title">
+          <strong>NileDogs</strong>
+          <small>NDOG v2.0</small>
         </div>
-        <div class="header-right">
-          <button class="btn-icon" onclick="toggleLang()" title="Language">
-            🌐
-          </button>
-          <div class="header-user">
-            <span class="user-name" id="headerName">User</span>
-            <span class="user-balance" id="headerBalance">0 NDOG</span>
-          </div>
-          <button class="btn-icon btn-logout" onclick="logout()" title="Logout">
-            🚪
-          </button>
-        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn--lang btn--sm" type="button" id="langBtnApp">
+          <span>🌐</span>
+        </button>
+        <span id="headerName" class="header-user"></span>
+        <span id="headerBalance" class="header-balance"></span>
+        <button id="logoutBtn" class="btn btn--logout" type="button" title="Logout">🚪</button>
       </div>
     </header>
 
     <!-- Tab Pills -->
-    <div class="tab-pills-wrapper">
-      <div class="tab-pills" id="tabPills">
-        <button class="tab-pill active" data-tab="dashboard" onclick="switchTab('dashboard')">
-          <span>💰</span> <span data-ar="لوحة التحكم" data-en="Dashboard">لوحة التحكم</span>
-        </button>
-        <button class="tab-pill" data-tab="missions" onclick="switchTab('missions')">
-          <span>🎯</span> <span data-ar="المهام" data-en="Missions">المهام</span>
-        </button>
-        <button class="tab-pill" data-tab="staking" onclick="switchTab('staking')">
-          <span>📈</span> <span data-ar="التخزين" data-en="Staking">التخزين</span>
-        </button>
-        <button class="tab-pill" data-tab="leaderboard" onclick="switchTab('leaderboard')">
-          <span>🏆</span> <span data-ar="المتصدرين" data-en="Leaderboard">المتصدرين</span>
-        </button>
-        <button class="tab-pill" data-tab="referral" onclick="switchTab('referral')">
-          <span>👥</span> <span data-ar="الإحالة" data-en="Referral">الإحالة</span>
-        </button>
-        <button class="tab-pill" data-tab="airdrop" onclick="switchTab('airdrop')">
-          <span>🎁</span> <span data-ar="الأيردروب" data-en="Airdrop">الأيردروب</span>
-        </button>
-        <button class="tab-pill" data-tab="news" onclick="switchTab('news')">
-          <span>📰</span> <span data-ar="الأخبار" data-en="News">الأخبار</span>
-        </button>
-        <button class="tab-pill" data-tab="faq" onclick="switchTab('faq')">
-          <span>❓</span> <span data-ar="الأسئلة" data-en="FAQ">الأسئلة</span>
-        </button>
-      </div>
-    </div>
+    <nav class="tab-pills">
+      <button class="tab-pill active" data-tab="Dashboard">💰 <span data-ar="لوحة التحكم" data-en="Dashboard">Dashboard</span></button>
+      <button class="tab-pill" data-tab="Missions">🎯 <span data-ar="المهام" data-en="Missions">Missions</span></button>
+      <button class="tab-pill" data-tab="Staking">📈 <span data-ar="الستيكينغ" data-en="Staking">Staking</span></button>
+      <button class="tab-pill" data-tab="Leaderboard">🏆 <span data-ar="لوحة المتصدرين" data-en="Leaderboard">Leaderboard</span></button>
+      <button class="tab-pill" data-tab="Referral">👥 <span data-ar="الإحالة" data-en="Referral">Referral</span></button>
+      <button class="tab-pill" data-tab="Airdrop">🎁 <span data-ar="الإسقاط الجوي" data-en="Airdrop">Airdrop</span></button>
+      <button class="tab-pill" data-tab="News">📰 <span data-ar="الأخبار" data-en="News">News</span></button>
+      <button class="tab-pill" data-tab="Faq">❓ <span data-ar="الأسئلة الشائعة" data-en="FAQ">FAQ</span></button>
+    </nav>
 
-    <!-- Content Sections -->
-    <main class="app-content">
+    <!-- Content Tabs -->
+    <main class="app-main">
 
-      <!-- ===== DASHBOARD ===== -->
-      <section id="tabDashboard" class="tab-section active">
+      <!-- ─── Dashboard ─── -->
+      <section id="tabDashboard" class="tab-content active">
         <!-- Balance Card -->
-        <div class="balance-card">
-          <div class="balance-info">
-            <p class="balance-label" data-ar="الرصيد" data-en="Balance">الرصيد</p>
-            <p class="balance-amount"><span id="dashBalance">0</span> <span class="balance-currency">NDOG</span></p>
-            <div class="balance-badges">
-              <span class="badge-vip" id="dashVip">🥉 برونزي</span>
-              <span class="badge-founder" id="dashFounder" style="display:none">⭐ عضو مؤسس</span>
-            </div>
+        <div class="card card--balance">
+          <div id="dashBalance" class="balance-amount">0 NDOG</div>
+          <div class="balance-badges">
+            <span id="dashVip" class="badge badge--vip" data-ar="VIP" data-en="VIP" style="display:none;">VIP</span>
+            <span id="dashFounder" class="badge badge--founder" data-ar="المؤسس" data-en="Founder" style="display:none;">Founder</span>
           </div>
-          <div class="balance-dog">🐕</div>
         </div>
 
-        <!-- Stats -->
-        <div class="stats-row">
-          <div class="stat-card">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="card card--stat">
             <span class="stat-icon">🔥</span>
-            <span class="stat-value" id="dashStreak">0</span>
-            <span class="stat-label" data-ar="السلسلة (يوم)" data-en="Streak (days)">السلسلة (يوم)</span>
+            <div class="stat-value" id="dashStreak">0</div>
+            <div class="stat-label" data-ar="السلسلة" data-en="Streak">Streak</div>
           </div>
-          <div class="stat-card">
+          <div class="card card--stat">
             <span class="stat-icon">💰</span>
-            <span class="stat-value" id="dashTotalClaimed">0</span>
-            <span class="stat-label" data-ar="إجمالي المكاسب" data-en="Total Claimed">إجمالي المكاسب</span>
+            <div class="stat-value" id="dashTotalClaimed">0</div>
+            <div class="stat-label" data-ar="إجمالي المكتسب" data-en="Total Claimed">Total Claimed</div>
           </div>
-          <div class="stat-card">
+          <div class="card card--stat">
             <span class="stat-icon">⚡</span>
-            <span class="stat-value">1.5x</span>
-            <span class="stat-label" data-ar="المضاعف" data-en="Multiplier">المضاعف</span>
+            <div class="stat-value">x1.0</div>
+            <div class="stat-label" data-ar="المضاعف" data-en="Multiplier">Multiplier</div>
           </div>
         </div>
 
         <!-- Daily Claim -->
-        <div class="claim-card">
-          <div class="claim-header">
-            <div class="claim-info">
-              <div class="claim-icon">🎁</div>
-              <div>
-                <h3 data-ar="المكافأة اليومية" data-en="Daily Claim">المكافأة اليومية</h3>
-                <p data-ar="10 NDOG + مكافآت إضافية" data-en="10 NDOG + bonus rewards">10 NDOG + مكافآت إضافية</p>
-              </div>
-            </div>
-            <button class="btn-primary" id="claimBtn" onclick="claimDaily()">
-              <span data-ar="اطلب الآن" data-en="Claim Now">اطلب الآن</span>
-            </button>
-          </div>
-          <div id="claimMessage" class="claim-message" style="display:none"></div>
-          <div id="claimCooldown" class="claim-cooldown" style="display:none">
-            <span data-ar="المطالبة التالية:" data-en="Next claim:">المطالبة التالية:</span>
-            <span id="claimTimer" class="cooldown-time">0h 0m</span>
+        <div class="card card--claim">
+          <h3>🎁 <span data-ar="المكافأة اليومية" data-en="Daily Claim">Daily Claim</span></h3>
+          <button id="claimBtn" class="btn btn--primary btn--block" type="button">
+            <span data-ar="اجمع الآن" data-en="Claim Now">Claim Now</span>
+          </button>
+          <div id="claimMessage" class="claim-message"></div>
+          <div id="claimCooldown" class="claim-cooldown">
+            <span data-ar="المكافأة التالية في" data-en="Next claim in">Next claim in</span>
+            <span id="claimTimer">--:--:--</span>
           </div>
           <div class="streak-progress">
             <div class="streak-info">
-              <span data-ar="السلسلة:" data-en="Streak:">السلسلة:</span> <span id="streakCount">0</span> <span data-ar="يوم" data-en="days">يوم</span>
-              <span class="streak-next" data-ar="البونص التالي: 7 أيام (2x)" data-en="Next bonus: 7 days (2x)">البونص التالي: 7 أيام (2x)</span>
+              <span data-ar="سلسلة اليوميات" data-en="Daily Streak">Daily Streak</span>
+              <span id="streakCount">0/7</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" id="streakBar" style="width:0%"></div>
+              <div id="streakBar" class="progress-fill" style="width:0%"></div>
             </div>
           </div>
         </div>
 
         <!-- Spin Wheel -->
-        <div class="wheel-card">
-          <div class="wheel-header">
-            <span class="wheel-icon">🎡</span>
-            <h3 data-ar="عجلة الحظ" data-en="Lucky Wheel">عجلة الحظ</h3>
-          </div>
+        <div class="card card--wheel">
+          <h3>🎰 <span data-ar="عجلة الحظ" data-en="Spin the Wheel">Spin the Wheel</span></h3>
           <div class="wheel-container">
             <div class="wheel-pointer">▼</div>
-            <div class="wheel" id="spinWheel">
-              <div class="wheel-center" id="wheelCenter">🪙</div>
+            <div id="spinWheel" class="wheel">
+              <button id="wheelCenter" class="wheel-center" type="button">
+                <span data-ar="لفّ" data-en="SPIN">SPIN</span>
+              </button>
             </div>
+            <button id="spinBtn" class="btn btn--primary" type="button">
+              <span data-ar="لفّ العجلة" data-en="Spin Wheel">Spin Wheel</span>
+            </button>
+            <div id="spinResult" class="spin-result"></div>
           </div>
-          <button class="btn-spin" id="spinBtn" onclick="spinWheel()">
-            <span data-ar="IL عب!" data-en="Spin!">العب!</span>
-          </button>
-          <div id="spinResult" class="spin-result" style="display:none"></div>
         </div>
 
         <!-- Mini Games -->
-        <div class="mini-games">
-          <div class="mini-game-card" onclick="playLuckyBox()">
-            <span class="mini-game-icon">📦</span>
-            <h4 data-ar="الصندوق المحظوظ" data-en="Lucky Box">الصندوق المحظوظ</h4>
-            <p data-ar="5 - 100 NDOG" data-en="5 - 100 NDOG">5 - 100 NDOG</p>
-            <button class="btn-game" id="luckyBoxBtn" data-ar="العب" data-en="Play">العب</button>
+        <div class="games-grid">
+          <div class="card card--game">
+            <span class="game-icon">📦</span>
+            <h4 data-ar="صندوق الحظ" data-en="Lucky Box">Lucky Box</h4>
+            <p data-ar="5-100 NDOG" data-en="5-100 NDOG">5-100 NDOG</p>
+            <button id="luckyBoxBtn" class="btn btn--primary btn--sm" type="button">
+              <span data-ar="افتح" data-en="Open">Open</span>
+            </button>
           </div>
-          <div class="mini-game-card" onclick="playScratchCard()">
-            <span class="mini-game-icon">🎫</span>
-            <h4 data-ar="بطاقة الخدش" data-en="Scratch Card">بطاقة الخدش</h4>
-            <p data-ar="5 - 200 NDOG" data-en="5 - 200 NDOG">5 - 200 NDOG</p>
-            <button class="btn-game" id="scratchBtn" data-ar="العب" data-en="Play">العب</button>
+          <div class="card card--game">
+            <span class="game-icon">🃏</span>
+            <h4 data-ar="بطاقة الخدش" data-en="Scratch Card">Scratch Card</h4>
+            <p data-ar="5-200 NDOG" data-en="5-200 NDOG">5-200 NDOG</p>
+            <button id="scratchBtn" class="btn btn--primary btn--sm" type="button">
+              <span data-ar="اخدش" data-en="Scratch">Scratch</span>
+            </button>
           </div>
+        </div>
+
+        <!-- Level Badges -->
+        <div class="card card--levels">
+          <h3 data-ar="مستوياتك" data-en="Your Levels">Your Levels</h3>
+          <div class="badges-row">
+            <div class="level-badge" data-ar="برونزي" data-en="Bronze">🥉 Bronze</div>
+            <div class="level-badge" data-ar="فضي" data-en="Silver">🥈 Silver</div>
+            <div class="level-badge" data-ar="ذهبي" data-en="Gold">🥇 Gold</div>
+            <div class="level-badge" data-ar="بلاتيني" data-en="Platinum">💎 Platinum</div>
+            <div class="level-badge" data-ar="ألماسي" data-en="Diamond">💠 Diamond</div>
+          </div>
+        </div>
+
+        <!-- Quick Referral -->
+        <div class="card card--referral-quick">
+          <h3 data-ar="دعوة أصدقائك" data-en="Invite Friends">Invite Friends</h3>
+          <div class="referral-quick-code" id="quickReferralCode"></div>
+          <div class="referral-quick-link" id="quickReferralLink"></div>
+          <div class="share-row">
+            <button class="btn btn--share" data-platform="whatsapp" type="button">WhatsApp</button>
+            <button class="btn btn--share" data-platform="telegram" type="button">Telegram</button>
+            <button class="btn btn--share" data-platform="x" type="button">X</button>
+            <button class="btn btn--share" data-platform="facebook" type="button">Facebook</button>
+          </div>
+        </div>
+
+        <!-- Early Adopter Banner -->
+        <div class="card card--early-adopter" id="earlyAdopterBanner" style="display:none;">
+          <span>🌟</span>
+          <p data-ar="أنت من أوائل المؤسسين! مكافآت حصرية متاحة لك." data-en="You're an Early Founder! Exclusive rewards available for you.">You're an Early Founder! Exclusive rewards available for you.</p>
         </div>
       </section>
 
-      <!-- ===== MISSIONS ===== -->
-      <section id="tabMissions" class="tab-section">
-        <div class="section-card" id="dailyMissions">
-          <h3 class="section-title">🕐 <span data-ar="مهام يومية" data-en="Daily Missions">مهام يومية</span></h3>
-          <div id="dailyMissionsList" class="missions-list"></div>
+      <!-- ─── Missions ─── -->
+      <section id="tabMissions" class="tab-content">
+        <div class="card">
+          <h3 data-ar="المهام اليومية" data-en="Daily Missions">Daily Missions</h3>
+          <ul id="dailyMissionsList" class="mission-list"></ul>
         </div>
-        <div class="section-card" id="weeklyMissions">
-          <h3 class="section-title">📅 <span data-ar="مهام أسبوعية" data-en="Weekly Missions">مهام أسبوعية</span></h3>
-          <div id="weeklyMissionsList" class="missions-list"></div>
+        <div class="card">
+          <h3 data-ar="المهام الأسبوعية" data-en="Weekly Missions">Weekly Missions</h3>
+          <ul id="weeklyMissionsList" class="mission-list"></ul>
         </div>
-        <div class="section-card" id="monthlyMissions">
-          <h3 class="section-title">⭐ <span data-ar="مهام شهرية" data-en="Monthly Missions">مهام شهرية</span></h3>
-          <div id="monthlyMissionsList" class="missions-list"></div>
+        <div class="card">
+          <h3 data-ar="المهام الشهرية" data-en="Monthly Missions">Monthly Missions</h3>
+          <ul id="monthlyMissionsList" class="mission-list"></ul>
         </div>
       </section>
 
-      <!-- ===== STAKING ===== -->
-      <section id="tabStaking" class="tab-section">
-        <div class="staking-balance">
-          <span data-ar="رصيدك المتاح:" data-en="Available balance:">رصيدك المتاح:</span>
-          <span class="staking-avail" id="stakingAvail">0 NDOG</span>
+      <!-- ─── Staking ─── -->
+      <section id="tabStaking" class="tab-content">
+        <div class="card card--staking-avail">
+          <span data-ar="الرصيد المتاح" data-en="Available Balance">Available Balance</span>
+          <strong id="stakingAvail">0 NDOG</strong>
         </div>
-        <div class="staking-plans">
-          <button class="staking-plan" data-plan="7_days" onclick="selectPlan(this, '7_days')">
-            <p class="plan-days">7 <span data-ar="يوم" data-en="days">يوم</span></p>
-            <p class="plan-apr">5% APR</p>
-            <p class="plan-min" data-ar="حد أدنى: 100" data-en="Min: 100">حد أدنى: 100</p>
+        <div class="card card--plans">
+          <h3 data-ar="اختر خطة الستيكينغ" data-en="Select Staking Plan">Select Staking Plan</h3>
+          <div class="plan-options">
+            <label class="plan-option">
+              <input type="radio" name="stakePlan" value="7" checked>
+              <span data-ar="7 أيام" data-en="7 Days">7 Days</span> — 5%
+            </label>
+            <label class="plan-option">
+              <input type="radio" name="stakePlan" value="30">
+              <span data-ar="30 يوم" data-en="30 Days">30 Days</span> — 10%
+            </label>
+            <label class="plan-option">
+              <input type="radio" name="stakePlan" value="90">
+              <span data-ar="90 يوم" data-en="90 Days">90 Days</span> — 18%
+            </label>
+            <label class="plan-option">
+              <input type="radio" name="stakePlan" value="180">
+              <span data-ar="180 يوم" data-en="180 Days">180 Days</span> — 25%
+            </label>
+          </div>
+        </div>
+        <div class="card card--stake-input">
+          <label data-ar="الكمية" data-en="Amount">Amount</label>
+          <div class="input-group">
+            <input type="number" id="stakeAmount" min="1" placeholder="0">
+            <button class="btn btn--sm" type="button" data-ar="الحد الأقصى" data-en="Max" id="stakeMaxBtn">Max</button>
+          </div>
+          <button id="stakeBtn" class="btn btn--primary btn--block" type="button">
+            <span data-ar="إيداع" data-en="Stake">Stake</span>
           </button>
-          <button class="staking-plan" data-plan="30_days" onclick="selectPlan(this, '30_days')">
-            <p class="plan-days">30 <span data-ar="يوم" data-en="days">يوم</span></p>
-            <p class="plan-apr">10% APR</p>
-            <p class="plan-min" data-ar="حد أدنى: 500" data-en="Min: 500">حد أدنى: 500</p>
+        </div>
+        <div class="card">
+          <h3 data-ar="العقود النشطة" data-en="Active Contracts">Active Contracts</h3>
+          <div id="contractsList" class="contracts-list"></div>
+        </div>
+      </section>
+
+      <!-- ─── Leaderboard ─── -->
+      <section id="tabLeaderboard" class="tab-content">
+        <div class="card">
+          <h3>🏆 <span data-ar="أعلى رصيد" data-en="Top Balance">Top Balance</span></h3>
+          <div class="podium"></div>
+          <ul id="topBalanceList" class="leader-list"></ul>
+        </div>
+        <div class="card">
+          <h3>🔥 <span data-ar="أطول سلسلة" data-en="Top Streak">Top Streak</span></h3>
+          <ul id="topStreakList" class="leader-list"></ul>
+        </div>
+      </section>
+
+      <!-- ─── Referral ─── -->
+      <section id="tabReferral" class="tab-content">
+        <div class="card card--referral-code">
+          <label data-ar="كود الإحالة" data-en="Referral Code">Referral Code</label>
+          <div class="referral-display">
+            <code id="referralCodeDisplay" class="referral-code mono"></code>
+            <button class="btn btn--sm btn--copy" type="button" data-copy="referralCode">
+              <span data-ar="نسخ" data-en="Copy">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="card card--referral-link">
+          <label data-ar="رابط الإحالة" data-en="Referral Link">Referral Link</label>
+          <div class="referral-display">
+            <code id="referralLinkDisplay" class="referral-link"></code>
+            <button class="btn btn--sm btn--copy" type="button" data-copy="referralLink">
+              <span data-ar="نسخ" data-en="Copy">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="card card--share">
+          <label data-ar="مشاركة" data-en="Share">Share</label>
+          <div class="share-row share-row--full">
+            <button class="btn btn--share" data-platform="whatsapp" type="button">WhatsApp</button>
+            <button class="btn btn--share" data-platform="telegram" type="button">Telegram</button>
+            <button class="btn btn--share" data-platform="facebook" type="button">Facebook</button>
+            <button class="btn btn--share" data-platform="x" type="button">X</button>
+            <button class="btn btn--share" data-platform="messenger" type="button">Messenger</button>
+            <button class="btn btn--share" data-platform="qr" type="button">QR</button>
+          </div>
+        </div>
+        <div class="card card--referral-stats">
+          <div class="referral-stat">
+            <strong data-ar="عدد الإحالات" data-en="Referral Count">Referral Count</strong>
+            <span id="referralCount" class="referral-count">0</span>
+          </div>
+        </div>
+        <div class="card card--apply-code">
+          <label data-ar="أدخل كود إحالة" data-en="Enter Referral Code">Enter Referral Code</label>
+          <div class="input-group">
+            <input type="text" id="referralCodeInput" maxlength="10" placeholder="XXXXX">
+            <button class="btn btn--primary btn--sm" type="button" id="applyReferralBtn">
+              <span data-ar="تطبيق" data-en="Apply">Apply</span>
+            </button>
+          </div>
+        </div>
+        <div class="card card--referral-tiers">
+          <h3 data-ar="مستويات الإحالة" data-en="Referral Tiers">Referral Tiers</h3>
+          <div class="tier">
+            <span class="tier-level">L1</span>
+            <span data-ar="مباشر" data-en="Direct">Direct</span>
+            <strong>+50 NDOG</strong>
+          </div>
+          <div class="tier">
+            <span class="tier-level">L2</span>
+            <span data-ar="غير مباشر" data-en="Indirect">Indirect</span>
+            <strong>+20 NDOG</strong>
+          </div>
+          <div class="tier">
+            <span class="tier-level">L3</span>
+            <span data-ar="المستوى الثالث" data-en="Level 3">Level 3</span>
+            <strong>+10 NDOG</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Airdrop ─── -->
+      <section id="tabAirdrop" class="tab-content">
+        <div class="card card--airdrop">
+          <div class="airdrop-icon">🎁</div>
+          <h3 data-ar="الإسقاط الجوي" data-en="Airdrop">Airdrop</h3>
+          <p data-ar="انضم مبكراً واحصل على مكافآت إسقاط جوي حصرية" data-en="Join early and get exclusive airdrop rewards">Join early and get exclusive airdrop rewards</p>
+          <button id="airdropClaimBtn" class="btn btn--primary btn--block" type="button">
+            <span data-ar="اجمع الإسقاط الجوي" data-en="Claim Airdrop">Claim Airdrop</span>
           </button>
-          <button class="staking-plan" data-plan="90_days" onclick="selectPlan(this, '90_days')">
-            <p class="plan-days">90 <span data-ar="يوم" data-en="days">يوم</span></p>
-            <p class="plan-apr">18% APR</p>
-            <p class="plan-min" data-ar="حد أدنى: 1000" data-en="Min: 1000">حد أدنى: 1000</p>
-          </button>
-          <button class="staking-plan" data-plan="180_days" onclick="selectPlan(this, '180_days')">
-            <p class="plan-days">180 <span data-ar="يوم" data-en="days">يوم</span></p>
-            <p class="plan-apr">25% APR</p>
-            <p class="plan-min" data-ar="حد أدنى: 2000" data-en="Min: 2000">حد أدنى: 2000</p>
-          </button>
-        </div>
-        <div class="staking-input">
-          <input type="number" id="stakeAmount" placeholder="أدخل الكمية..." data-placeholder-en="Enter amount...">
-          <button class="btn-primary" onclick="stakeTokens()" data-ar="تخزين" data-en="Stake">تخزين</button>
-        </div>
-        <div class="section-card" id="activeContracts">
-          <h3 class="section-title" data-ar="العقود النشطة" data-en="Active Contracts">العقود النشطة</h3>
-          <div id="contractsList" class="contracts-list">
-            <p class="empty-state" data-ar="لا توجد عقود نشطة" data-en="No active contracts">لا توجد عقود نشطة</p>
-          </div>
+          <div id="airdropStatus" class="airdrop-status"></div>
         </div>
       </section>
 
-      <!-- ===== LEADERBOARD ===== -->
-      <section id="tabLeaderboard" class="tab-section">
-        <div class="section-card">
-          <h3 class="section-title">💰 <span data-ar="أعلى رصيد" data-en="Top Balance">أعلى رصيد</span></h3>
-          <div id="topBalanceList" class="leaderboard-list"></div>
-        </div>
-        <div class="section-card">
-          <h3 class="section-title">🔥 <span data-ar="أطول سلسلة" data-en="Top Streak">أطول سلسلة</span></h3>
-          <div id="topStreakList" class="leaderboard-list"></div>
-        </div>
-        <div class="section-card">
-          <h3 class="section-title">👥 <span data-ar="أكثر إحالة" data-en="Top Referrals">أكثر إحالة</span></h3>
-          <div id="topReferralsList" class="leaderboard-list"></div>
+      <!-- ─── News ─── -->
+      <section id="tabNews" class="tab-content">
+        <div class="card">
+          <h3>📰 <span data-ar="آخر الأخبار" data-en="Latest News">Latest News</span></h3>
+          <div id="newsList" class="news-list"></div>
         </div>
       </section>
 
-      <!-- ===== REFERRAL ===== -->
-      <section id="tabReferral" class="tab-section">
-        <div class="referral-card">
-          <div class="referral-header">
-            <span>👥</span>
-            <h3 data-ar="نظام الإحالة" data-en="Referral System">نظام الإحالة</h3>
-          </div>
-          <div class="referral-code-display">
-            <p class="ref-label" data-ar="كود الإحالة الخاص بك" data-en="Your Referral Code">كود الإحالة الخاص بك</p>
-            <div class="ref-code-row">
-              <code id="referralCodeDisplay" class="ref-code">---</code>
-              <button class="btn-copy" onclick="copyReferralCode()">📋</button>
-            </div>
-          </div>
-          <div class="referral-tiers">
-            <div class="ref-tier"><span>L1</span><span>+50 NDOG</span></div>
-            <div class="ref-tier"><span>L2</span><span>+20 NDOG</span></div>
-            <div class="ref-tier"><span>L3</span><span>+10 NDOG</span></div>
-          </div>
-          <div class="referral-stats">
-            <span data-ar="عدد الإحالات" data-en="Referrals Count">عدد الإحالات</span>
-            <span class="ref-count" id="referralCount">0</span>
-          </div>
+      <!-- ─── FAQ ─── -->
+      <section id="tabFaq" class="tab-content">
+        <div class="card">
+          <h3>❓ <span data-ar="الأسئلة الشائعة" data-en="FAQ">FAQ</span></h3>
+          <div id="faqList" class="faq-list"></div>
         </div>
-        <div class="section-card">
-          <h4 data-ar="أدخل كود إحالة" data-en="Enter Referral Code">أدخل كود إحالة</h4>
-          <div class="referral-input">
-            <input type="text" id="referralCodeInput" placeholder="CODE" maxlength="12">
-            <button class="btn-primary" onclick="applyReferralCode()" data-ar="تطبيق" data-en="Apply">تطبيق</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ===== AIRDROP ===== -->
-      <section id="tabAirdrop" class="tab-section">
-        <div class="airdrop-card">
-          <div class="airdrop-header">
-            <span class="airdrop-emoji">🎉</span>
-            <h2 data-ar="أيردروب المؤسسين" data-en="Early Adopter Airdrop">أيردروب المؤسسين</h2>
-          </div>
-          <div class="airdrop-details">
-            <div class="airdrop-row">
-              <span data-ar="إجمالي الجائزة" data-en="Total Pool">إجمالي الجائزة</span>
-              <span class="airdrop-value">1,000,000 NDOG</span>
-            </div>
-            <div class="airdrop-divider"></div>
-            <div class="airdrop-row">
-              <span data-ar="حد أدنى للرصيد" data-en="Min Balance">حد أدنى للرصيد</span>
-              <span>100 NDOG</span>
-            </div>
-            <div class="airdrop-row">
-              <span data-ar="حد أدنى للمطالبات" data-en="Min Claims">حد أدنى للمطالبات</span>
-              <span>30</span>
-            </div>
-          </div>
-          <p class="airdrop-note" data-ar="استمر في المطالبة اليومية واربح لتأهيلك للأيردروب!" data-en="Keep claiming daily and earning to qualify for the airdrop!">استمر في المطالبة اليومية واربح لتأهيلك للأيردروب!</p>
-        </div>
-      </section>
-
-      <!-- ===== NEWS ===== -->
-      <section id="tabNews" class="tab-section">
-        <div id="newsList" class="news-list"></div>
-      </section>
-
-      <!-- ===== FAQ ===== -->
-      <section id="tabFaq" class="tab-section">
-        <div id="faqList" class="faq-list"></div>
       </section>
 
     </main>
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-      <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
-        <span class="nav-icon">💰</span>
-        <span class="nav-label" data-ar="التحكم" data-en="Home">التحكم</span>
+      <button class="bottom-nav-item active" data-tab="Dashboard" type="button">
+        <span class="bottom-nav-icon">🏠</span>
+        <span class="bottom-nav-label" data-ar="الرئيسية" data-en="Home">Home</span>
       </button>
-      <button class="nav-item" data-tab="missions" onclick="switchTab('missions')">
-        <span class="nav-icon">🎯</span>
-        <span class="nav-label" data-ar="المهام" data-en="Tasks">المهام</span>
+      <button class="bottom-nav-item" data-tab="Missions" type="button">
+        <span class="bottom-nav-icon">🎯</span>
+        <span class="bottom-nav-label" data-ar="المهام" data-en="Missions">Missions</span>
       </button>
-      <button class="nav-item" data-tab="staking" onclick="switchTab('staking')">
-        <span class="nav-icon">📈</span>
-        <span class="nav-label" data-ar="تخزين" data-en="Stake">تخزين</span>
+      <button class="bottom-nav-item" data-tab="Dashboard" type="button">
+        <span class="bottom-nav-icon">🎮</span>
+        <span class="bottom-nav-label" data-ar="الألعاب" data-en="Games">Games</span>
       </button>
-      <button class="nav-item" data-tab="leaderboard" onclick="switchTab('leaderboard')">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-label" data-ar="المتصدرين" data-en="Ranks">المتصدرين</span>
+      <button class="bottom-nav-item" data-tab="Leaderboard" type="button">
+        <span class="bottom-nav-icon">🏆</span>
+        <span class="bottom-nav-label" data-ar="المتصدرين" data-en="Leader">Leader</span>
       </button>
-      <button class="nav-item" data-tab="referral" onclick="switchTab('referral')">
-        <span class="nav-icon">👥</span>
-        <span class="nav-label" data-ar="إحالة" data-en="Refer">إحالة</span>
+      <button class="bottom-nav-item" data-tab="Faq" type="button">
+        <span class="bottom-nav-icon">👤</span>
+        <span class="bottom-nav-label" data-ar="الملف الشخصي" data-en="Profile">Profile</span>
       </button>
     </nav>
+
   </div>
 
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay" class="loading-overlay" style="display:none">
-    <div class="loading-spinner"></div>
-  </div>
+  <!-- Firebase SDK v8 compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- Firebase SDK (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script src="js/firebase-config.js"></script>
-  <script src="js/app.js"></script>
+  <!-- Custom Scripts -->
+  <script src="./js/firebase-config.js?v=2.1.0"></script>
+  <script src="./js/app.js?v=2.1.0"></script>
+
 </body>
 </html>

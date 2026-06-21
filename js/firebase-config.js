@@ -1,5 +1,5 @@
 // ========== FIREBASE CONFIGURATION ==========
-// Replace these with your actual Firebase project credentials if needed
+// NileDogs (NDOG) - Firebase Realtime Database
 
 const firebaseConfig = {
   apiKey: "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
@@ -23,6 +23,3 @@ const db = firebase.database();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
-
-// Analytics (optional - uncomment if needed)
-// const analytics = firebase.analytics();

@@ -5,56 +5,15 @@
 import {
   db, ref, get, update, push, onValue,
   APP_CONFIG, serverTimestamp
-} from "./firebase-config.js?v=2.0.5";
-import { onUser, getCurrentUser } from "./auth.js?v=2.0.5";
-import { animateCount, toast } from "./utils.js?v=2.0.5";
-import { computeLevel } from "./dashboard.js?v=2.0.5";
-import { t, getLang, onLangChange } from "./i18n.js?v=2.0.5";
+} from "./firebase-config.js";
+import { onUser, getCurrentUser } from "./auth.js";
+import { animateCount, toast } from "./app.js";
+import { computeLevel } from "./dashboard.js";
+import { t, getLang, onLangChange } from "./i18n.js";
 
 let claimTimer = null;
 let currentUser = null;
 let viewBound = false;
-
-// ───────────────────────────────────────────────────────────────────
-// BOOST MINING — Random ad delivery
-// ───────────────────────────────────────────────────────────────────
-const BOOST_AD_OPTIONS = [
-  {
-    type: "url",
-    url: "https://www.effectivecpmnetwork.com/i6pwi8zq?key=0fe53613ffa1192520bdc1c7a7029407"
-  },
-  {
-    type: "script",
-    src: "https://pl29822341.effectivecpmnetwork.com/e9/23/c2/e923c23960923f40920a0e6dbcf0222f.js"
-  },
-  {
-    type: "script",
-    src: "https://pl29822342.effectivecpmnetwork.com/b0/8b/04/b08b04a4569092e013acea2ac1e3f682.js"
-  }
-];
-
-function triggerBoostAd() {
-  const chosen = BOOST_AD_OPTIONS[Math.floor(Math.random() * BOOST_AD_OPTIONS.length)];
-
-  if (chosen.type === "url") {
-    window.open(chosen.url, "_blank", "noopener,noreferrer");
-  } else if (chosen.type === "script") {
-    const s = document.createElement("script");
-    s.src = chosen.src;
-    s.async = true;
-    document.body.appendChild(s);
-    // Auto-cleanup after 30s to avoid memory leaks
-    setTimeout(() => { if (s.parentNode) s.parentNode.removeChild(s); }, 30000);
-  }
-}
-
-function initBoostMining() {
-  const btn = document.getElementById("boostMiningBtn");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    triggerBoostAd();
-  });
-}
 
 export function initClaim() {
   onUser((u) => {
@@ -63,9 +22,6 @@ export function initClaim() {
   });
 
   document.getElementById("claimBtn")?.addEventListener("click", doClaim);
-
-  // Initialize boost mining button
-  initBoostMining();
 
   if (!viewBound) {
     viewBound = true;

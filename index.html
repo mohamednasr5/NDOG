@@ -1,115 +1,28 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0a1f44" />
-  
-  <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- ✅ سياسة أمان المحتوى (CSP) المُصحَّحة - إضافة apis.google.com -->
-  <!-- ═══════════════════════════════════════════════════════════════ -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self' https://www.gstatic.com https://apis.google.com;
-    script-src 'self' https://www.gstatic.com https://apis.google.com 'unsafe-eval' 'unsafe-inline';
-    style-src 'self' https://www.gstatic.com 'unsafe-inline';
-    connect-src 'self' https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebasedatabase.app https://*.firebasedatabase.app https://apis.google.com https://*.firebaseio.com;
-    img-src 'self' data: https:;
-    font-src 'self' https://www.gstatic.com data:;
-  ">
-
-  <meta name="description" content="NileDogs (NDOG) — منصة مكافآت مجتمعية: اطلب نقاطك اليومية، ادعُ أصدقاءك، وتسلّق لوحة المتصدرين فى برنامج المؤسسين المبكر قبل الإطلاق الرسمي فى 1 يناير 2028. الانضمام مجاني بالكامل." />
-  <meta name="robots" content="index, follow, max-image-preview:large" />
-  <meta name="googlebot" content="index, follow" />
-  <meta name="bingbot" content="index, follow" />
-  <link rel="canonical" href="https://ndogcoin.com/" />
-  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+  <meta name="description" content="NileDogs (NDOG) — community-driven rewards ecosystem. Earn, refer, and climb the leaderboard before the official launch on January 1, 2028." />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NileDogs" />
 
   <!-- Open Graph -->
-  <meta property="og:site_name" content="NileDogs (NDOG)" />
+  <meta property="og:title" content="NileDogs (NDOG) — Rewards Ecosystem" />
+  <meta property="og:description" content="Earn NDOG tokens, invite friends, and climb the leaderboard. Launch: January 1, 2028." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://ndogcoin.com/" />
-  <meta property="og:locale" content="ar_EG" />
-  <meta property="og:locale:alternate" content="en_US" />
-  <meta property="og:title" content="NileDogs (NDOG) — انضم لبرنامج المؤسسين المبكر واكسب مكافآت يومية" />
-  <meta property="og:description" content="اطلب مكافآتك اليومية، ادعُ أصدقاءك، وتسلّق لوحة المتصدرين قبل الإطلاق الرسمي فى 1 يناير 2028 — الانضمام مجاني بالكامل." />
-  <meta property="og:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
-  <meta property="og:image:alt" content="NileDogs (NDOG) — Community Rewards" />
-
-  <!-- Twitter / X Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="NileDogs (NDOG) — انضم لبرنامج المؤسسين المبكر واكسب مكافآت يومية" />
-  <meta name="twitter:description" content="اطلب مكافآتك اليومية، ادعُ أصدقاءك، وتسلّق لوحة المتصدرين قبل الإطلاق الرسمي فى 1 يناير 2028 — الانضمام مجاني بالكامل." />
-  <meta name="twitter:image" content="https://ndogcoin.com/assets/icons/icon-512.png" />
-  <meta name="twitter:image:alt" content="NileDogs (NDOG) — Community Rewards" />
+  <meta property="og:url" content="https://mohamednasr5.github.io/NDOG/" />
+  <meta property="og:image" content="https://mohamednasr5.github.io/NDOG/assets/icons/icon-512.png" />
 
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg" />
   <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="64x64" href="./assets/icons/favicon.png" />
-  <link rel="stylesheet" href="./css/styles.css?v=2.0.5" />
+  <link rel="stylesheet" href="./css/styles.css?v=1.1.0" />
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://apis.google.com" crossorigin />
 
-  <title>NileDogs (NDOG) — منصة مكافآت مجتمعية | برنامج المؤسسين المبكر</title>
-
-  <!-- Structured Data -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "https://ndogcoin.com/#organization",
-        "name": "NileDogs",
-        "alternateName": "NDOG",
-        "url": "https://ndogcoin.com/",
-        "logo": "https://ndogcoin.com/assets/icons/icon-512.png"
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://ndogcoin.com/#website",
-        "url": "https://ndogcoin.com/",
-        "name": "NileDogs (NDOG)",
-        "description": "Pre-launch community rewards program: daily claims, referrals, missions and a leaderboard, ahead of a planned January 1, 2028 launch.",
-        "inLanguage": ["ar", "en"],
-        "publisher": { "@id": "https://ndogcoin.com/#organization" }
-      },
-      {
-        "@type": "FAQPage",
-        "@id": "https://ndogcoin.com/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "ما هي NileDogs (NDOG)؟",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "NileDogs هي منصة مكافآت مجتمعية: يقوم المستخدمون بطلب مكافآت يومية، دعوة الأصدقاء، وإكمال مهام لتجميع نقاط NDOG قبل إطلاق رسمي مخطط له فى 1 يناير 2028."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "هل الانضمام إلى NileDogs مجاني؟",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "نعم، الانضمام والمشاركة مجانيان بالكامل عبر تسجيل الدخول بحساب Google. لا توجد رسوم أو مدفوعات مطلوبة."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "هل عملة NDOG مُدرجة حالياً فى أي منصة تداول؟",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "لا. NDOG حالياً نظام نقاط مجتمعي مُدار مركزياً فى مرحلة ما قبل الإطلاق، ولم يتم إدراجه فى أي منصة تداول أو بورصة بعد."
-            }
-          }
-        ]
-      }
-    ]
-  }
-  </script>
+  <title>NileDogs (NDOG) — Rewards Ecosystem</title>
 </head>
 <body>
 
@@ -310,7 +223,7 @@
               <button class="btn btn--ghost btn--sm" id="copyRefBtn" data-i18n="common.copy">Copy</button>
             </div>
             <div class="ref-card__code" id="dashRefCode">NDOG—</div>
-            <div class="ref-card__link" id="dashRefLink">https://ndogcoin.com/?ref=NDOG—</div>
+            <div class="ref-card__link" id="dashRefLink">https://mohamednasr5.github.io/NDOG/?ref=NDOG—</div>
             <div class="ref-card__share">
               <a class="share-btn share--wa"  data-share="whatsapp" title="WhatsApp" aria-label="WhatsApp">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.74.46 3.43 1.32 4.93L2.05 22l5.3-1.39a9.9 9.9 0 0 0 4.69 1.19h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.13-2.9-7-1.87-1.88-4.35-2.9-7.01-2.89zm0 18.13h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.14.82.84-3.06-.2-.32a8.18 8.18 0 0 1-1.26-4.36c0-4.54 3.7-8.24 8.26-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.55-3.7 8.23-8.25 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.24-.64.81-.78.97-.14.17-.29.18-.53.06-.25-.12-1.05-.39-2-1.23a7.5 7.5 0 0 1-1.38-1.72c-.15-.24-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.24-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.24-.87.85-.87 2.08 0 1.22.89 2.4 1.02 2.57.12.17 1.75 2.67 4.24 3.75.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.16-.48-.28z"/></svg>
@@ -378,12 +291,6 @@
               <span class="claim__mult" id="claimMult">×1.0</span>
             </div>
             <div class="claim__countdown" id="claimCountdown"></div>
-
-            <!-- Boost Mining Button -->
-            <button id="boostMiningBtn" class="btn btn--boost btn--lg" data-i18n="claim.boostMining" style="margin-top:16px;width:100%;max-width:320px;background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;border:none;padding:14px 28px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(26,115,232,.35);">
-              ⛏️ Boost Mining
-            </button>
-            <p id="boostMiningDesc" data-i18n="claim.boostMiningDesc" style="margin-top:8px;font-size:.82rem;opacity:.7;text-align:center;"></p>
           </div>
 
           <div class="claim__levels">
@@ -594,56 +501,32 @@
   <!-- ────────────────────────────── SCRIPTS ────────────────────────────── -->
   <script>
     // Inline safety net — runs IMMEDIATELY before ES modules load.
+    // If app.js fails to load (e.g., opened via file://), this still hides
+    // the preloader after a timeout and ensures only the dashboard view is visible.
     (function() {
-      var FAILSAFE_MS = 8000;
-      var _done = false;
-      function showReloadButton() {
-        if (_done) return;
-        _done = true;
+      var FAILSAFE_MS = 4000;
+      setTimeout(function() {
         var preloader = document.getElementById('preloader');
         if (preloader && !preloader.classList.contains('done')) {
           console.warn('[NDOG] Failsafe: forcing preloader hide');
           preloader.classList.add('done');
           setTimeout(function() { preloader.remove(); }, 600);
         }
+        // Ensure only one view is active
+        var views = document.querySelectorAll('.view');
+        if (views.length && !document.querySelector('.view--active')) {
+          views[0].classList.add('view--active');
+        }
+        // If app shell still hidden and login still hidden, show login
         var shell = document.getElementById('appShell');
         var login = document.getElementById('loginScreen');
         if (shell && shell.classList.contains('hidden') &&
             login && login.classList.contains('hidden')) {
           login.classList.remove('hidden');
         }
-        if (shell && shell.classList.contains('hidden')) {
-          var msg = document.createElement('div');
-          msg.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
-            'background:linear-gradient(135deg,#ffd700,#ffaa00);color:#0a1f44;' +
-            'padding:14px 28px;border-radius:14px;font-size:15px;font-weight:700;' +
-            'z-index:999999;cursor:pointer;box-shadow:0 6px 30px rgba(255,215,0,0.4);' +
-            'font-family:system-ui,sans-serif;text-align:center;max-width:90vw;';
-          msg.textContent = '\u26A1 \u062A\u062D\u062F\u064A\u062B \u0645\u062A\u0627\u062D \u2014 \u0627\u0636\u063A\u0637 \u0644\u0644\u062A\u062D\u062F\u064A\u062B / Update available';
-          msg.addEventListener('click', function() {
-            msg.textContent = '\u23F3 \u062C\u0627\u0631\u064A \u0627\u0644\u062A\u062D\u062F\u064A\u062B...';
-            if ('caches' in window) {
-              caches.keys().then(function(keys) {
-                return Promise.all(keys.map(function(k) { return caches.delete(k); }));
-              });
-            }
-            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-              navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-            }
-            setTimeout(function() { location.reload(); }, 500);
-          });
-          document.body.appendChild(msg);
-        }
-      }
-      setTimeout(showReloadButton, FAILSAFE_MS);
-      window.addEventListener('error', function(e) {
-        if (e.message && e.message.indexOf('does not provide an export') !== -1) {
-          console.error('[NDOG] Module export error detected — stale cache likely');
-          setTimeout(showReloadButton, 1000);
-        }
-      });
+      }, FAILSAFE_MS);
     })();
   </script>
-  <script type="module" src="./js/app.js?v=2.0.5"></script>
+  <script type="module" src="./js/app.js?v=1.1.0"></script>
 </body>
 </html>

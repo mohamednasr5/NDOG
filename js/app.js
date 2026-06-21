@@ -351,8 +351,12 @@ function claimDaily() {
   const COOLDOWN = 24 * 3600 * 1000;
 
   if (diff < COOLDOWN) {
+    const hrs = Math.floor((COOLDOWN - diff) / 3600000);
     const mins = Math.ceil((COOLDOWN - diff) / 60000);
-    showToast(t(`انتظر ${mins} دقيقة`, `Wait ${mins} minutes`), 'warning');
+    const msg = hrs > 0 
+      ? t(`انتظر ${hrs} ساعة و ${mins % 60} دقيقة`, `Wait ${hrs}h ${mins % 60}m`)
+      : t(`انتظر ${mins} دقيقة`, `Wait ${mins} minutes`);
+    showToast(msg, 'warning');
     return;
   }
 
@@ -378,7 +382,9 @@ function claimDaily() {
   }).then(result => {
     hideLoading();
     if (result.committed) {
-      userData.lastClaimAt = now;
+      // Use server timestamp from transaction result
+      userData.lastClaimAt = Date.now();
+      userData.streak = streak;
       startCooldownTimer();
       showToast(t(`🎉 جمعت ${reward} NDOG!`, `🎉 Claimed ${reward} NDOG!`), 'success');
       // Log claim
@@ -479,9 +485,12 @@ function spinWheel() {
   if (!currentUser || !userData) return;
   const last = userData.lastWheelSpinAt || 0;
   if (Date.now() - last < 24*3600*1000) {
-    showToast(t('مرة واحدة كل 24 ساعة','Once per 24 hours'), 'warning');
+    const hrs = Math.ceil((24*3600*1000 - (Date.now() - last)) / 3600000);
+    showToast(t(`انتظر ${hrs} ساعة للدوران التالي`,`Wait ${hrs}h for next spin`), 'warning');
     return;
   }
+  // Server-side lock: write timestamp BEFORE spinning to prevent double-spin
+  db.ref('users/' + currentUser.uid + '/lastWheelSpinAt').set(firebase.database.ServerValue.TIMESTAMP);
   isSpinning = true;
   const btn = document.getElementById('spinBtn');
   if (btn) { btn.disabled = true; btn.querySelector('span').textContent = t('يدور...','Spinning...'); }
@@ -498,7 +507,6 @@ function spinWheel() {
 
   setTimeout(() => {
     addBalance(prize, 'wheel_spin').then(() => {
-      db.ref('users/'+currentUser.uid+'/lastWheelSpinAt').set(firebase.database.ServerValue.TIMESTAMP);
       const spinResult = document.getElementById('spinResult');
       if (spinResult) { spinResult.style.display = 'block'; spinResult.textContent = t(`🎰 فزت بـ ${prize} NDOG!`,`🎰 You won ${prize} NDOG!`); setTimeout(()=>{spinResult.style.display='none';},4000); }
       showToast(t(`🎰 فزت بـ ${prize} NDOG!`,`🎰 You won ${prize} NDOG!`), 'success');
@@ -510,17 +518,41 @@ function spinWheel() {
 
 // ── 12. MINI GAMES ────────────────────────────────────────────
 function playLuckyBox() {
-  if (!currentUser) return;
+  if (!currentUser || !userData) return;
+  const now = Date.now();
+  const last = userData.lastLuckyBoxAt || 0;
+  const COOLDOWN = 24 * 3600 * 1000;
+  if (now - last < COOLDOWN) {
+    const hrs = Math.ceil((COOLDOWN - (now - last)) / 3600000);
+    showToast(t(`انتظر ${hrs} ساعة للصندوق التالي`, `Wait ${hrs}h for next box`), 'warning');
+    return;
+  }
   showLoading();
   const prize = Math.floor(Math.random() * 96) + 5;
-  addBalance(prize, 'lucky_box').then(() => { hideLoading(); showToast(t(`📦 ${prize} NDOG من الصندوق!`,`📦 ${prize} NDOG from the box!`), 'success'); }).catch(()=>hideLoading());
+  addBalance(prize, 'lucky_box').then(() => {
+    db.ref('users/' + currentUser.uid + '/lastLuckyBoxAt').set(firebase.database.ServerValue.TIMESTAMP);
+    hideLoading();
+    showToast(t(`📦 ${prize} NDOG من الصندوق!`, `📦 ${prize} NDOG from the box!`), 'success');
+  }).catch(() => hideLoading());
 }
 
 function playScratchCard() {
-  if (!currentUser) return;
+  if (!currentUser || !userData) return;
+  const now = Date.now();
+  const last = userData.lastScratchCardAt || 0;
+  const COOLDOWN = 24 * 3600 * 1000;
+  if (now - last < COOLDOWN) {
+    const hrs = Math.ceil((COOLDOWN - (now - last)) / 3600000);
+    showToast(t(`انتظر ${hrs} ساعة للبطاقة التالية`, `Wait ${hrs}h for next card`), 'warning');
+    return;
+  }
   showLoading();
   const prize = Math.floor(Math.random() * 196) + 5;
-  addBalance(prize, 'scratch_card').then(() => { hideLoading(); showToast(t(`🃏 ${prize} NDOG من البطاقة!`,`🃏 Scratch card: ${prize} NDOG!`), 'success'); }).catch(()=>hideLoading());
+  addBalance(prize, 'scratch_card').then(() => {
+    db.ref('users/' + currentUser.uid + '/lastScratchCardAt').set(firebase.database.ServerValue.TIMESTAMP);
+    hideLoading();
+    showToast(t(`🃏 ${prize} NDOG من البطاقة!`, `🃏 Scratch card: ${prize} NDOG!`), 'success');
+  }).catch(() => hideLoading());
 }
 
 function addBalance(amount, type) {

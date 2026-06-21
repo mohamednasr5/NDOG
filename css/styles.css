@@ -1922,6 +1922,23 @@ html[dir="rtl"] .wallet-action-btn { flex-direction: column; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
+
+/* Level threshold badges */
+.level-threshold {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  opacity: 0.7;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  letter-spacing: -0.3px;
+}
+html[dir="ltr"] .level-threshold { font-family: var(--font-mono); }
+.level-badge-item.active .level-threshold {
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(212,160,23,0.5);
+}
 /* ── 30. RESPONSIVE ─────────────────────────────────────────── */
 @media (min-width: 480px) {
   .login-inner { padding: 60px 32px; }

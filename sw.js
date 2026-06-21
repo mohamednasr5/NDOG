@@ -1,16 +1,19 @@
 // NileDogs (NDOG) - Service Worker v2.1.0
-const CACHE_NAME = 'ndog-v2.1.0';
+const CACHE_NAME = 'ndog-v3.0.0';
 const ASSETS = [
   './',
   './index.html',
   './css/styles.css',
   './js/firebase-config.js',
   './js/app.js',
+  './js/i18n.js',
   './manifest.json',
   './whitepaper-en.html',
   './whitepaper-ar.html',
   './404.html',
-  './admin.html'
+  './admin.html',
+  './robots.txt',
+  './sitemap.xml'
 ];
 
 // Install

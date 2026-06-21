@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Sitemap: https://ndogcoin.com/sitemap.xml
+
+# AI Search Crawlers
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /

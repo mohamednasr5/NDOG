@@ -1,11 +1,12 @@
 /** 
  * NileDogs (NDOG) — Authentication Module
- * v2.0.3 - POPUP-ONLY + NO FINGERPRINT
+ * v2.0.4 - POPUP-ONLY + NO REDIRECT RELOAD
  * =====================================================
- * - تم إزالة signInWithRedirect بالكامل (سبب الخطأ).
- * - الاعتماد فقط على signInWithPopup (يعمل على جميع الأجهزة).
- * - في حال حظر النافذة المنبثقة، يتم عرض رسالة توجيهية للمستخدم.
- * - تم تعطيل بصمة الجهاز نهائياً (قيمة ثابتة).
+ * - إزالة signInWithRedirect بالكامل (سبب الحلقة اللانهائية).
+ * - الاعتماد فقط على signInWithPopup.
+ * - إذا فشلت النافذة المنبثقة، نعرض رسالة للمستخدم ولا نعيد التحميل.
+ * - إزالة كل أكواد sessionStorage المؤقتة المتعلقة بالـ redirect.
+ * - تم تعطيل بصمة الجهاز نهائياً.
  * =====================================================
  */
 
@@ -65,7 +66,7 @@ function friendlyAuthError(err) {
 }
 
 export async function googleLogin() {
-  // منع تسجيل الدخول من المتصفحات المدمجة (تطبيقات مثل تيليجرام، فيسبوك)
+  // منع تسجيل الدخول من المتصفحات المدمجة
   if (isEmbeddedBrowser()) {
     console.warn("[NDOG] Blocked login attempt inside an embedded/in-app browser");
     const e = new Error(t("auth.errEmbeddedBrowser"));
@@ -79,13 +80,13 @@ export async function googleLogin() {
     console.log("[NDOG] Popup sign-in successful.");
   } catch (err) {
     console.error("[NDOG] Popup sign-in error:", err.code, err.message);
-    // إذا تم حظر النافذة المنبثقة، نرمي خطأ واضحاً للمستخدم
+    // إذا تم حظر النافذة المنبثقة، نرمي خطأ واضحاً
     if (err.code === "auth/popup-blocked") {
       const e = new Error(t("auth.errPopupBlocked"));
       e.code = err.code;
       throw e;
     }
-    // أخطاء أخرى نمررها كما هي
+    // أخطاء أخرى
     const friendly = friendlyAuthError(err);
     const e = new Error(friendly);
     e.original = err;
@@ -96,7 +97,8 @@ export async function googleLogin() {
 export async function logout() {
   try {
     await signOut(auth);
-    location.reload();
+    // لا نعيد التحميل، بل نترك onAuthStateChanged يعيد ضبط الحالة
+    // ونعرض شاشة تسجيل الدخول تلقائياً.
   } catch (err) {
     console.error("[NDOG] Logout failed:", err);
   }
@@ -124,7 +126,7 @@ async function provisionUserImpl(firebaseUser) {
   const userRef = ref(db, `users/${uid}`);
   const snap = await get(userRef);
 
-  // بصمة الجهاز معطلة – قيمة ثابتة
+  // بصمة الجهاز معطلة
   const fingerprint = "disabled_fingerprint";
 
   if (!snap.exists()) {
@@ -363,7 +365,7 @@ export async function initAuth(onReady) {
     } catch (err) {
       console.error("[NDOG] User setup failed:", err);
 
-      // بيانات احتياطية لإبقاء المستخدم داخل التطبيق
+      // بيانات احتياطية للمستخدم
       const fallbackData = {
         uid: fbUser.uid,
         name: fbUser.displayName || "NileDog",
@@ -385,11 +387,11 @@ export async function initAuth(onReady) {
         badges: { founder: true }
       };
 
-      console.log("[NDOG] Using fallback data — user will see dashboard");
+      console.log("[NDOG] Using fallback data");
       emit(fallbackData);
       onReady && onReady(fallbackData);
 
-      // إعادة المحاولة بعد فترة
+      // إعادة المحاولة
       userSetupDone.delete(uid);
       setTimeout(async () => {
         if (currentUserData?.uid === uid && !currentUserData?.referralCode) {

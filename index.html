@@ -10,8 +10,12 @@
     <meta name="description" content="NDOG Coin — Premium Crypto Mining & Rewards Platform">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="./manifest.json">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23D4A017'/><text y='.9em' font-size='60' x='20' fill='%23070B14'>🐕</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23D4A017'/><text y='.9em' font-size='60' x='20' fill='%23070B14'>🐕</text></svg>">
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16.png">
+    <link rel="shortcut icon" href="./icons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png">
+    <link rel="mask-icon" href="./icons/icon-source.svg" color="#D4A017">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -2801,16 +2805,370 @@
         .profile-complete-modal .modal-title {
             padding-bottom: 8px;
         }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PREMIUM VISUAL UPGRADE LAYER
+           Animated mesh background · refined glass · micro-interactions
+           ═══════════════════════════════════════════════════════════════ */
+
+        /* ---- Animated gradient mesh (replaces flat ambient orbs feel) ---- */
+        .mesh-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.9;
+        }
+        .mesh-bg::before,
+        .mesh-bg::after {
+            content: '';
+            position: absolute;
+            inset: -20%;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(212, 160, 23, 0.16) 0%, transparent 45%),
+                radial-gradient(circle at 80% 15%, rgba(26, 107, 219, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.10) 0%, transparent 45%);
+            animation: meshDrift 22s ease-in-out infinite alternate;
+            filter: blur(10px);
+        }
+        .mesh-bg::after {
+            background:
+                radial-gradient(circle at 70% 70%, rgba(240, 201, 58, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 30% 60%, rgba(61, 142, 240, 0.10) 0%, transparent 40%);
+            animation: meshDrift 28s ease-in-out infinite alternate-reverse;
+            mix-blend-mode: screen;
+        }
+        @keyframes meshDrift {
+            0%   { transform: translate(0%, 0%) rotate(0deg) scale(1); }
+            50%  { transform: translate(3%, -4%) rotate(8deg) scale(1.08); }
+            100% { transform: translate(-4%, 3%) rotate(-6deg) scale(1.04); }
+        }
+        .grain-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+        }
+
+        /* ---- Refined glass cards: subtle border sheen + lift on interaction ---- */
+        .glass-card {
+            position: relative;
+            isolation: isolate;
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s, box-shadow 0.35s;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(212, 160, 23, 0.22), rgba(255, 255, 255, 0.02) 40%, rgba(26, 107, 219, 0.14));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+            z-index: -1;
+        }
+        @media (hover: hover) {
+            .glass-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 14px 32px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(212, 160, 23, 0.08);
+            }
+            .glass-card:hover::before {
+                opacity: 1;
+            }
+        }
+
+        /* ---- Buttons: tactile press + gold sheen sweep ---- */
+        .btn-primary, .btn-secondary, .btn-full {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s, box-shadow 0.25s;
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -60%;
+            width: 40%; height: 100%;
+            background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.65s ease;
+            pointer-events: none;
+        }
+        .btn-primary:hover::after {
+            left: 130%;
+        }
+        .btn-primary:active, .btn-secondary:active, .btn-full:active {
+            transform: scale(0.96);
+        }
+        @media (hover: hover) {
+            .btn-primary:hover, .btn-secondary:hover {
+                filter: brightness(1.08);
+                box-shadow: 0 6px 20px -4px var(--gold-glow);
+            }
+        }
+
+        /* ---- Nav items: smoother active transitions ---- */
+        .nav-item {
+            transition: color 0.25s, transform 0.2s;
+        }
+        .nav-item:active {
+            transform: scale(0.92);
+        }
+
+        /* ---- Page entrance: tab content fades + lifts in ---- */
+        .tab-view.active {
+            animation: tabReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes tabReveal {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---- Balance card: living gold sheen ---- */
+        .balance-card-bg {
+            background-size: 200% 200%;
+            animation: balanceSheen 8s ease infinite;
+        }
+        @keyframes balanceSheen {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* ---- Scrollbar polish (desktop) ---- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--surface-3);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
+
+        /* ---- Focus visibility (accessibility) ---- */
+        button:focus-visible, a:focus-visible, input:focus-visible {
+            outline: 2px solid var(--gold-light);
+            outline-offset: 2px;
+            border-radius: 6px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PWA INSTALL BANNER
+           ═══════════════════════════════════════════════════════════════ */
+        .pwa-install-banner {
+            position: fixed;
+            left: 50%;
+            bottom: calc(var(--nav-h) + var(--home-inset) + 14px);
+            transform: translate(-50%, 140%);
+            width: min(92vw, 420px);
+            z-index: 80;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 14px 14px 16px;
+            background: linear-gradient(135deg, rgba(20, 24, 38, 0.92), rgba(13, 18, 32, 0.96));
+            border: 1px solid rgba(212, 160, 23, 0.3);
+            border-radius: var(--radius-lg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+        }
+        html[dir="rtl"] .pwa-install-banner {
+            padding: 14px 16px 14px 14px;
+        }
+        .pwa-install-banner.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+            animation: pwaBannerSettle 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes pwaBannerSettle {
+            0%   { transform: translate(-50%, 140%); }
+            70%  { transform: translate(-50%, -6px); }
+            100% { transform: translate(-50%, 0); }
+        }
+        .pwa-banner-icon {
+            position: relative;
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px -2px rgba(212, 160, 23, 0.45);
+        }
+        .pwa-banner-icon img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .pwa-banner-icon::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+        }
+        .pwa-banner-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .pwa-banner-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-1);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pwa-banner-sub {
+            font-size: 11.5px;
+            color: var(--text-2);
+            line-height: 1.4;
+        }
+        .pwa-banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .pwa-banner-install {
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            color: #1A1304;
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 9px 14px;
+            border-radius: 10px;
+            white-space: nowrap;
+            transition: transform 0.18s, filter 0.2s;
+            box-shadow: 0 4px 14px -3px var(--gold-glow);
+        }
+        .pwa-banner-install:active {
+            transform: scale(0.94);
+        }
+        @media (hover: hover) {
+            .pwa-banner-install:hover {
+                filter: brightness(1.1);
+            }
+        }
+        .pwa-banner-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-3);
+            flex-shrink: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .pwa-banner-close:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-2);
+        }
+
+        /* Profile menu link row (whitepaper, etc.) */
+        .profile-link-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 4px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .profile-link-row:hover {
+            opacity: 0.8;
+        }
+        .profile-link-row + .profile-link-row {
+            border-top: 1px solid var(--border);
+        }
+        .profile-link-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--surface-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+        .profile-link-label {
+            flex: 1;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-1);
+        }
+        .profile-link-arrow {
+            color: var(--text-3);
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        html[dir="rtl"] .profile-link-arrow {
+            transform: scaleX(-1);
+        }
+        .profile-link-row:hover .profile-link-arrow {
+            transform: translateX(3px);
+        }
+        html[dir="rtl"] .profile-link-row:hover .profile-link-arrow {
+            transform: scaleX(-1) translateX(3px);
+        }
+        .profile-lang-flag {
+            font-size: 13px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mesh-bg::before, .mesh-bg::after,
+            .balance-card-bg,
+            .tab-view.active {
+                animation: none !important;
+            }
+        }
     </style>
 </head>
 <body>
 
     <!-- ========== AMBIENT BACKGROUND ========== -->
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
+    <div class="mesh-bg" aria-hidden="true"></div>
     <div class="ambient-orbs" aria-hidden="true">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
+    </div>
+    <div class="grain-overlay" aria-hidden="true"></div>
+
+    <!-- ========== PWA INSTALL BANNER ========== -->
+    <div class="pwa-install-banner" id="pwaInstallBanner" role="dialog" aria-label="Install app">
+        <div class="pwa-banner-icon">
+            <img src="./icons/icon-192.png" alt="NDOG" width="48" height="48">
+        </div>
+        <div class="pwa-banner-text">
+            <div class="pwa-banner-title" data-ar="ثبّت تطبيق NDOG" data-en="Install NDOG App">Install NDOG App</div>
+            <div class="pwa-banner-sub" data-ar="وصول أسرع، يعمل بدون نت" data-en="Faster access, works offline">Faster access, works offline</div>
+        </div>
+        <div class="pwa-banner-actions">
+            <button class="pwa-banner-install" id="pwaInstallBtn" type="button" data-ar="تثبيت" data-en="Install">Install</button>
+            <button class="pwa-banner-close" id="pwaInstallClose" type="button" aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
     </div>
 
     <!-- ========== LOADING OVERLAY ========== -->

@@ -4,6 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>NDOG Admin Panel</title>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root{
   --bg:#0a0e1a;
@@ -332,9 +334,22 @@ select.field-input{cursor:pointer}
 .bnav-item.active{color:var(--accent)}
 .bnav-item.active .bnav-icon{transform:scale(1.1)}
 
+/* Font Awesome icons in bottom nav */
+.bnav-item .bnav-icon i,
+.bmm-item .bmm-icon i {
+  font-size: 20px;
+  transition: transform 0.15s ease;
+}
+.bnav-item:active .bnav-icon i {
+  transform: scale(0.85);
+}
+.bmm-item:active .bmm-icon i {
+  transform: scale(0.85);
+}
+
 /* MORE MENU */
 .bnav-more-menu{
-  display:none;position:fixed;bottom:64px;left:8px;right:8px;
+  display:none;position:fixed;bottom:70px;left:12px;right:12px;
   background:var(--card);border:1px solid var(--border);
   border-radius:16px;padding:12px;z-index:201;
   box-shadow:0 -8px 40px rgba(0,0,0,.5);
@@ -407,7 +422,8 @@ select.field-input{cursor:pointer}
   .topbar-title{font-size:14px}
   .live-badge{font-size:10px;padding:4px 8px}
   .bnav-item{min-width:48px;font-size:9px}
-  .bnav-item .bnav-icon{font-size:18px}
+  .bnav-item .bnav-icon i { font-size:18px; }
+  .bmm-item .bmm-icon i { font-size:20px; }
 }
 </style>
 </head>
@@ -721,23 +737,56 @@ select.field-input{cursor:pointer}
   <!-- BOTTOM NAVIGATION (Mobile) -->
   <nav class="bottom-nav" id="bottomNav">
     <div class="bottom-nav-inner">
-      <button class="bnav-item active" data-bpage="overview" onclick="bnavGo('overview',this)"><span class="bnav-icon">📊</span>الرئيسية</button>
-      <button class="bnav-item" data-bpage="users" onclick="bnavGo('users',this)"><span class="bnav-icon">👥</span>المستخدمين</button>
-      <button class="bnav-item" data-bpage="notifications" onclick="bnavGo('notifications',this)"><span class="bnav-icon">🔔</span>إشعارات</button>
-      <button class="bnav-item" data-bpage="gifts" onclick="bnavGo('gifts',this)"><span class="bnav-icon">🎁</span>هدايا</button>
-      <button class="bnav-item" data-bpage="more" onclick="toggleMoreMenu()"><span class="bnav-icon">⋯</span>المزيد</button>
+      <button class="bnav-item active" data-bpage="overview" onclick="bnavGo('overview',this)">
+        <span class="bnav-icon"><i class="fas fa-home"></i></span>
+        <span>الرئيسية</span>
+      </button>
+      <button class="bnav-item" data-bpage="users" onclick="bnavGo('users',this)">
+        <span class="bnav-icon"><i class="fas fa-users"></i></span>
+        <span>المستخدمين</span>
+      </button>
+      <button class="bnav-item" data-bpage="notifications" onclick="bnavGo('notifications',this)">
+        <span class="bnav-icon"><i class="fas fa-bell"></i></span>
+        <span>إشعارات</span>
+      </button>
+      <button class="bnav-item" data-bpage="gifts" onclick="bnavGo('gifts',this)">
+        <span class="bnav-icon"><i class="fas fa-gift"></i></span>
+        <span>هدايا</span>
+      </button>
+      <button class="bnav-item" data-bpage="more" onclick="toggleMoreMenu()">
+        <span class="bnav-icon"><i class="fas fa-ellipsis-h"></i></span>
+        <span>المزيد</span>
+      </button>
     </div>
   </nav>
 
   <!-- MORE MENU (Mobile) -->
   <div class="bnav-more-menu" id="moreMenu">
     <div class="bmm-grid">
-      <button class="bmm-item" onclick="bnavGo('news',null);toggleMoreMenu()"><span class="bmm-icon">📰</span>الأخبار</button>
-      <button class="bmm-item" onclick="bnavGo('referrals',null);toggleMoreMenu()"><span class="bmm-icon">🔗</span>الإحالات</button>
-      <button class="bmm-item" onclick="bnavGo('leaderboard',null);toggleMoreMenu()"><span class="bmm-icon">🏆</span>المتصدرون</button>
-      <button class="bmm-item" onclick="bnavGo('analytics',null);toggleMoreMenu()"><span class="bmm-icon">📈</span>تحليلات</button>
-      <button class="bmm-item" onclick="bnavGo('export',null);toggleMoreMenu()"><span class="bmm-icon">💾</span>تصدير</button>
-      <button class="bmm-item" onclick="adminLogout()" style="color:var(--red)"><span class="bmm-icon">🚪</span>خروج</button>
+      <button class="bmm-item" onclick="bnavGo('news',null);toggleMoreMenu()">
+        <span class="bmm-icon"><i class="fas fa-newspaper"></i></span>
+        <span>الأخبار</span>
+      </button>
+      <button class="bmm-item" onclick="bnavGo('referrals',null);toggleMoreMenu()">
+        <span class="bmm-icon"><i class="fas fa-link"></i></span>
+        <span>الإحالات</span>
+      </button>
+      <button class="bmm-item" onclick="bnavGo('leaderboard',null);toggleMoreMenu()">
+        <span class="bmm-icon"><i class="fas fa-trophy"></i></span>
+        <span>المتصدرون</span>
+      </button>
+      <button class="bmm-item" onclick="bnavGo('analytics',null);toggleMoreMenu()">
+        <span class="bmm-icon"><i class="fas fa-chart-line"></i></span>
+        <span>تحليلات</span>
+      </button>
+      <button class="bmm-item" onclick="bnavGo('export',null);toggleMoreMenu()">
+        <span class="bmm-icon"><i class="fas fa-file-export"></i></span>
+        <span>تصدير</span>
+      </button>
+      <button class="bmm-item" onclick="adminLogout()" style="color:var(--red)">
+        <span class="bmm-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span>خروج</span>
+      </button>
     </div>
   </div>
 </div>

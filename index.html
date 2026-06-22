@@ -2782,6 +2782,50 @@
             align-items: flex-end;
             justify-content: center;
         }
+
+        /* ═══ REWARD AD OVERLAY ═══ */
+        .reward-ad-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .reward-ad-overlay.show { opacity: 1; }
+        .reward-ad-spinner {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .reward-ad-text {
+            color: var(--text-2);
+            font-size: 14px;
+            text-align: center;
+        }
+        .reward-ad-close {
+            margin-top: 16px;
+            padding: 12px 40px;
+            background: var(--gold);
+            color: #070B14;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: none;
+            font-family: inherit;
+        }
+        .reward-ad-close.show { display: block; }
+        .reward-ad-close:active { transform: scale(0.95); }
         .modal-sheet {
             width: 100%;
             max-width: 480px;
@@ -4946,6 +4990,51 @@
         let boostEndTime = 0;
         let boostTimer = null;
 
+        // ========== REWARD AD SYSTEM ==========
+        const REWARD_AD_URL = 'https://pl29822341.effectivecpmnetwork.com/e9/23/c2/e923c23960923f40920a0e6dbcf0222f.js';
+
+        function showRewardAd(callback) {
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'reward-ad-overlay';
+            overlay.innerHTML = `
+                <div class="reward-ad-spinner"></div>
+                <div class="reward-ad-text">${currentLang === 'ar' ? 'جارٍ تحميل الإعلان...' : 'Loading ad...'}</div>
+                <button class="reward-ad-close" type="button">${currentLang === 'ar' ? '✕ إغلاق ومتابعة' : '✕ Close & Continue'}</button>
+            `;
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add('show'));
+
+            // Load the ad script
+            const adScript = document.createElement('script');
+            adScript.src = REWARD_AD_URL;
+            adScript.async = true;
+            overlay.appendChild(adScript);
+
+            // Show close button after delay (ad needs time to load/show)
+            const closeBtn = overlay.querySelector('.reward-ad-close');
+            const adTimer = setTimeout(() => {
+                closeBtn.classList.add('show');
+            }, 3500);
+
+            // Failsafe: auto-close after 15 seconds
+            const failsafe = setTimeout(() => {
+                closeAd();
+            }, 15000);
+
+            function closeAd() {
+                clearTimeout(adTimer);
+                clearTimeout(failsafe);
+                overlay.classList.remove('show');
+                setTimeout(() => {
+                    overlay.remove();
+                    if (typeof callback === 'function') callback();
+                }, 300);
+            }
+
+            closeBtn.addEventListener('click', closeAd);
+        }
+
         const VIP = {
             bronze: { min: 0, mult: 1.0, labelAr: 'برونزي', labelEn: 'Bronze', emoji: '🥉' },
             silver: { min: 1000, mult: 1.2, labelAr: 'فضي', labelEn: 'Silver', emoji: '🥈' },
@@ -4966,7 +5055,8 @@
         };
         const REF_BONUSES = { 1: 50, 2: 20, 3: 10 };
         const MINING_RATE = 10;
-        const MINING_SESSION_SECS = 60;
+        const MINING_SESSION_SECS = 24 * 60 * 60; // 24 hours in seconds
+        const MINING_REWARD_PER_SESSION = 5; // Fixed 5 NDOG per 24h session
         const BOOST_DURATION_SECS = 30 * 60;
 
         const COUNTRIES = [
@@ -5327,6 +5417,36 @@
             initBgCanvas();
             updateMiningUI();
 
+            // Restore active mining session if user closed and reopened the app
+            const savedMiningStart = userData?.miningStartTime;
+            if (savedMiningStart && savedMiningStart > 0) {
+                const elapsed = (Date.now() - savedMiningStart) / 1000;
+                if (elapsed < MINING_SESSION_SECS) {
+                    // Session still in progress — resume it
+                    miningStartTime = savedMiningStart;
+                    isMining = true;
+                    const btn = document.getElementById('miningBtn');
+                    if (btn) btn.classList.add('is-mining');
+                    const stateLabel = document.getElementById('miningStateLabel');
+                    if (stateLabel) stateLabel.textContent = t('جاري التعدين...', 'Mining in progress...');
+                    const progressWrap = document.getElementById('miningProgressWrap');
+                    if (progressWrap) progressWrap.style.display = 'block';
+                    const navMineBtn = document.getElementById('navMineBtn');
+                    if (navMineBtn) navMineBtn.classList.add('active');
+                    runMiningTick();
+                    miningInterval = setInterval(runMiningTick, 1000);
+                } else {
+                    // Session expired while offline — complete it
+                    db.ref('users/' + currentUser.uid + '/miningStartTime').remove();
+                    addBalance(MINING_REWARD_PER_SESSION, 'mining_session').then(() => {
+                        const sessions = (userData?.miningSessionsTotal || 0) + 1;
+                        db.ref('users/' + currentUser.uid + '/miningSessionsTotal').set(sessions);
+                        setEl('miningSessions', sessions);
+                        showToast(t(`🏆 تعدين 24 ساعة مكتمل! +${MINING_REWARD_PER_SESSION} NDOG`, `🏆 24h mining complete! +${MINING_REWARD_PER_SESSION} NDOG`), 'success');
+                    });
+                }
+            }
+
             db.ref('users/' + currentUser.uid).on('value', snap => {
                 if (snap.exists()) {
                     userData = { ...snap.val(), uid: currentUser.uid };
@@ -5631,7 +5751,10 @@
                 showToast(t(`انتظر ${hrs} ساعة للدوران التالي`, `Wait ${hrs}h for next spin`), 'warning');
                 return;
             }
+            showRewardAd(() => _doSpinWheel());
+        }
 
+        function _doSpinWheel() {
             db.ref('users/' + currentUser.uid + '/lastWheelSpinAt').set(Date.now());
             isSpinning = true;
             const btn = document.getElementById('spinBtn');
@@ -5702,6 +5825,10 @@
                 showToast(t(`انتظر ${hrs} ساعة للصندوق التالي`, `Wait ${hrs}h for next box`), 'warning');
                 return;
             }
+            showRewardAd(() => _doLuckyBox());
+        }
+
+        function _doLuckyBox() {
             const modal = document.getElementById('luckyBoxModal');
             const chest = document.getElementById('luckyChest');
             const rewardEl = document.getElementById('luckyBoxReward');
@@ -5742,7 +5869,10 @@
                 showToast(t(`انتظر ${hrs} ساعة للبطاقة التالية`, `Wait ${hrs}h for next card`), 'warning');
                 return;
             }
+            showRewardAd(() => _doScratchCard());
+        }
 
+        function _doScratchCard() {
             const modal = document.getElementById('scratchModal');
             const canvas = document.getElementById('scratchCanvas');
             const prizeEl = document.getElementById('scratchPrize');
@@ -5834,7 +5964,7 @@
             if (isMining) {
                 stopMining();
             } else {
-                startMining();
+                showRewardAd(() => startMining());
             }
         }
 
@@ -5842,6 +5972,9 @@
             isMining = true;
             miningStartTime = Date.now();
             miningEarned = 0;
+
+            // Persist mining start time in Firebase (survives page reload)
+            db.ref('users/' + currentUser.uid + '/miningStartTime').set(miningStartTime);
 
             const btn = document.getElementById('miningBtn');
             if (btn) btn.classList.add('is-mining');
@@ -5855,32 +5988,37 @@
             const navMineBtn = document.getElementById('navMineBtn');
             if (navMineBtn) navMineBtn.classList.add('active');
 
-            miningInterval = setInterval(() => {
-                const elapsed = (Date.now() - miningStartTime) / 1000;
-                const progress = Math.min(1, elapsed / MINING_SESSION_SECS);
-                const vip = getVip(userData?.balance || 0);
-                const mult = vip.mult * (userData?.founder ? 1.1 : 1) * (boostActive ? 2 : 1);
-                miningEarned = Math.round(MINING_RATE * mult * (elapsed / 3600) * 100) / 100;
+            runMiningTick();
+            miningInterval = setInterval(runMiningTick, 1000);
 
-                const fill = document.getElementById('miningProgressFill');
-                if (fill) fill.style.width = (progress * 100) + '%';
+            showToast(t('بدأ التعدين! ⛏️ 24 ساعة', 'Mining started! ⛏️ 24 hours'), 'info');
+        }
 
-                const earnedEl = document.getElementById('miningProgressEarned');
-                if (earnedEl) earnedEl.textContent = fmt(miningEarned, 2);
+        function runMiningTick() {
+            const elapsed = (Date.now() - miningStartTime) / 1000;
+            const progress = Math.min(1, elapsed / MINING_SESSION_SECS);
 
-                setEl('miningSessionReward', fmt(miningEarned, 2) + ' NDOG');
+            // Fixed reward: 5 NDOG proportional to progress
+            miningEarned = +(MINING_REWARD_PER_SESSION * progress).toFixed(2);
 
-                const remaining = Math.max(0, MINING_SESSION_SECS - elapsed);
-                const m = Math.floor(remaining / 60);
-                const s = Math.floor(remaining % 60);
-                setEl('miningCountdownText', `${pad(m)}:${pad(s)}`);
+            const fill = document.getElementById('miningProgressFill');
+            if (fill) fill.style.width = (progress * 100) + '%';
 
-                if (Math.random() < 0.3) spawnMineParticle();
+            const earnedEl = document.getElementById('miningProgressEarned');
+            if (earnedEl) earnedEl.textContent = fmt(miningEarned, 2);
 
-                if (progress >= 1) completeMiningSession();
-            }, 500);
+            setEl('miningSessionReward', fmt(miningEarned, 2) + ' / ' + MINING_REWARD_PER_SESSION + ' NDOG');
 
-            showToast(t('بدأ التعدين! ⚡', 'Mining started! ⚡'), 'info');
+            // Countdown in HH:MM:SS format
+            const remaining = Math.max(0, MINING_SESSION_SECS - elapsed);
+            const h = Math.floor(remaining / 3600);
+            const m = Math.floor((remaining % 3600) / 60);
+            const s = Math.floor(remaining % 60);
+            setEl('miningCountdownText', `${pad(h)}:${pad(m)}:${pad(s)}`);
+
+            if (Math.random() < 0.05) spawnMineParticle();
+
+            if (progress >= 1) completeMiningSession();
         }
 
         function stopMining() {
@@ -5895,13 +6033,14 @@
             const navMineBtn = document.getElementById('navMineBtn');
             if (navMineBtn) navMineBtn.classList.remove('active');
 
-            updateMiningUI();
-
-            if (miningEarned > 0) {
-                addBalance(miningEarned, 'mining_stop').catch(() => {});
-                showToast(t(`⛏️ جمعت ${fmt(miningEarned, 2)} NDOG`, `⛏️ Earned ${fmt(miningEarned, 2)} NDOG`), 'success');
-                miningEarned = 0;
+            // Clear persisted mining start time
+            if (currentUser) {
+                db.ref('users/' + currentUser.uid + '/miningStartTime').remove();
             }
+
+            // No partial reward for 24h mining — must complete full session
+            updateMiningUI();
+            showToast(t('تم إيقاف التعدين', 'Mining stopped'), 'info');
         }
 
         function completeMiningSession() {
@@ -5909,8 +6048,13 @@
             miningInterval = null;
             isMining = false;
 
-            const reward = miningEarned;
+            const reward = MINING_REWARD_PER_SESSION;
             miningEarned = 0;
+
+            // Clear persisted mining start time
+            if (currentUser) {
+                db.ref('users/' + currentUser.uid + '/miningStartTime').remove();
+            }
 
             const btn = document.getElementById('miningBtn');
             if (btn) { btn.classList.remove('is-mining');
@@ -5923,10 +6067,11 @@
                 const sessions = (userData?.miningSessionsTotal || 0) + 1;
                 db.ref('users/' + currentUser.uid + '/miningSessionsTotal').set(sessions);
                 setEl('miningSessions', sessions);
-                showToast(t(`🏆 جلسة تعدين مكتملة! +${fmt(reward, 2)} NDOG`, `🏆 Session complete! +${fmt(reward, 2)} NDOG`),
+                showToast(t(`🏆 تعدين 24 ساعة مكتمل! +${reward} NDOG`, `🏆 24h mining complete! +${reward} NDOG`),
                     'success');
             });
 
+            // Short cooldown then ready for next session
             setTimeout(() => {
                 const btn2 = document.getElementById('miningBtn');
                 if (btn2) btn2.classList.remove('is-cooldown');
@@ -5935,16 +6080,15 @@
         }
 
         function updateMiningUI() {
-            const vip = getVip(userData?.balance || 0);
-            const mult = vip.mult * (userData?.founder ? 1.1 : 1) * (boostActive ? 2 : 1);
-            setEl('miningRate', fmt(MINING_RATE * mult, 1) + ' NDOG/hr');
+            setEl('miningRate', MINING_REWARD_PER_SESSION + ' NDOG / 24h');
             setEl('miningSessions', userData?.miningSessionsTotal || 0);
             setEl('miningStateLabel', t('اضغط للتعدين', 'Tap to Mine'));
             const fill = document.getElementById('miningProgressFill');
             if (fill) fill.style.width = '0%';
             const progressWrap = document.getElementById('miningProgressWrap');
             if (progressWrap) progressWrap.style.display = 'none';
-            setEl('miningCountdownText', '00:00');
+            setEl('miningCountdownText', '24:00:00');
+            setEl('miningSessionReward', '0 / ' + MINING_REWARD_PER_SESSION + ' NDOG');
         }
 
         function spawnMineParticle() {
@@ -5966,16 +6110,17 @@
 
         // ========== BOOST ==========
         function activateBoost() {
-            showToast(t('🎬 شاهد إعلاناً للتعزيز', '🎬 Watch an ad to boost'), 'info');
-            boostActive = true;
-            boostEndTime = Date.now() + BOOST_DURATION_SECS * 1000;
-            const wrap = document.getElementById('boostTimerWrap');
-            if (wrap) wrap.style.display = 'flex';
-            updateBoostTimer();
-            if (boostTimer) clearInterval(boostTimer);
-            boostTimer = setInterval(updateBoostTimer, 1000);
-            updateMiningUI();
-            showToast(t('⚡ التعزيز نشط! ×2', '⚡ Boost active! ×2'), 'success');
+            showRewardAd(() => {
+                boostActive = true;
+                boostEndTime = Date.now() + BOOST_DURATION_SECS * 1000;
+                const wrap = document.getElementById('boostTimerWrap');
+                if (wrap) wrap.style.display = 'flex';
+                updateBoostTimer();
+                if (boostTimer) clearInterval(boostTimer);
+                boostTimer = setInterval(updateBoostTimer, 1000);
+                updateMiningUI();
+                showToast(t('⚡ التعزيز نشط! ×2', '⚡ Boost active! ×2'), 'success');
+            });
         }
 
         function updateBoostTimer() {
@@ -6036,16 +6181,21 @@
             const ref = db.ref('missionProgress/' + currentUser.uid + '/' + missionId);
             ref.once('value').then(snap => {
                 if (snap.exists()) { showToast(t('تم إكمالها مسبقاً', 'Already completed'), 'warning'); return; }
-                showLoading();
-                ref.set({ completedAt: Date.now(), reward })
-                    .then(() => addBalance(reward, 'mission_' + missionId))
-                    .then(() => { hideLoading();
-                        showToast(t(`✅ مهمة مكتملة! +${reward} NDOG`, `✅ Mission done! +${reward} NDOG`),
-                            'success');
-                        loadMissions(); })
-                    .catch(() => { hideLoading();
-                        showToast(t('فشل', 'Failed'), 'error'); });
+                showRewardAd(() => _doCompleteMission(missionId, reward));
             });
+        }
+
+        function _doCompleteMission(missionId, reward) {
+            const ref = db.ref('missionProgress/' + currentUser.uid + '/' + missionId);
+            showLoading();
+            ref.set({ completedAt: Date.now(), reward })
+                .then(() => addBalance(reward, 'mission_' + missionId))
+                .then(() => { hideLoading();
+                    showToast(t(`✅ مهمة مكتملة! +${reward} NDOG`, `✅ Mission done! +${reward} NDOG`),
+                        'success');
+                    loadMissions(); })
+                .catch(() => { hideLoading();
+                    showToast(t('فشل', 'Failed'), 'error'); });
         }
 
         // ========== STAKING ==========
@@ -6281,22 +6431,28 @@
         // ========== AIRDROP ==========
         function claimAirdrop() {
             if (!currentUser) return;
-            showLoading();
             db.ref('airdropClaims/' + currentUser.uid).once('value').then(snap => {
-                if (snap.exists()) { hideLoading();
-                    showToast(t('تم الجمع مسبقاً', 'Already claimed'), 'warning'); return Promise.resolve(); }
-                return db.ref('config/airdrop').once('value').then(cfg => {
-                    if (!cfg.exists()) { hideLoading();
-                        showToast(t('غير متاح حالياً', 'Not available'), 'warning'); return; }
-                    const a = cfg.val();
-                    if (!a.enabled) { hideLoading();
-                        showToast(t('غير نشط', 'Inactive'), 'warning'); return; }
-                    const amount = 50;
-                    return addBalance(amount, 'airdrop').then(() =>
-                        db.ref('airdropClaims/' + currentUser.uid).set({ claimedAt: Date.now(), amount })
-                    ).then(() => { hideLoading();
-                        showToast(t('🎁 الإسقاط الجوي! ✅', '🎁 Airdrop claimed! ✅'), 'success'); });
-                });
+                if (snap.exists()) {
+                    showToast(t('تم الجمع مسبقاً', 'Already claimed'), 'warning');
+                    return;
+                }
+                showRewardAd(() => _doClaimAirdrop());
+            });
+        }
+
+        function _doClaimAirdrop() {
+            showLoading();
+            db.ref('config/airdrop').once('value').then(cfg => {
+                if (!cfg.exists()) { hideLoading();
+                    showToast(t('غير متاح حالياً', 'Not available'), 'warning'); return; }
+                const a = cfg.val();
+                if (!a.enabled) { hideLoading();
+                    showToast(t('غير نشط', 'Inactive'), 'warning'); return; }
+                const amount = 50;
+                return addBalance(amount, 'airdrop').then(() =>
+                    db.ref('airdropClaims/' + currentUser.uid).set({ claimedAt: Date.now(), amount })
+                ).then(() => { hideLoading();
+                    showToast(t('🎁 الإسقاط الجوي! ✅', '🎁 Airdrop claimed! ✅'), 'success'); });
             }).catch(() => hideLoading());
         }
 

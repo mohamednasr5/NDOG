@@ -3545,12 +3545,12 @@
             z-index: 0;
         }
 
-        /* Ticker strip at top */
+        /* Ticker strip at top — compact */
         .crypto-ticker {
             position: fixed;
             top: env(safe-area-inset-top, 0px);
             left: 0; right: 0;
-            height: 28px;
+            height: 22px;
             z-index: 60;
             overflow: hidden;
             background: rgba(7,11,20,0.85);
@@ -3562,24 +3562,26 @@
         .ticker-track {
             display: flex;
             gap: 0;
-            animation: tickerScroll 28s linear infinite;
+            animation: tickerScroll 45s linear infinite;
             white-space: nowrap;
             will-change: transform;
         }
         .ticker-item {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 0 20px;
-            font-size: 11px;
+            gap: 4px;
+            padding: 0 14px;
+            font-size: 10px;
             font-family: var(--font-mono);
             font-weight: 600;
             color: var(--text-2);
             border-right: 1px solid rgba(255,255,255,0.05);
         }
         .ticker-item .t-sym { color: var(--gold); }
+        .ticker-item .t-prc { color: var(--text-1); }
         .ticker-item .t-up  { color: var(--green); }
         .ticker-item .t-dn  { color: var(--red); }
+        .ticker-item .t-flat { color: var(--text-3); }
         @keyframes tickerScroll {
             0%   { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -3587,7 +3589,7 @@
 
         /* Status bar spacer accounts for ticker */
         .status-bar-spacer {
-            height: calc(var(--status-bar) + 28px) !important;
+            height: calc(var(--status-bar) + 22px) !important;
         }
 
         /* Hexagon pattern on auth screen */
@@ -7062,28 +7064,84 @@
     <!-- CRYPTO SCANLINES -->
     <div class="crypto-scanlines" aria-hidden="true"></div>
 
-    <!-- CRYPTO TICKER STRIP -->
+    <!-- CRYPTO TICKER STRIP (live from CoinGecko) -->
     <div class="crypto-ticker" id="cryptoTicker" aria-hidden="true">
-        <div class="ticker-track" id="tickerTrack">
-            <span class="ticker-item"><span class="t-sym">NDOG</span><span class="t-up">+8.42%</span></span>
-            <span class="ticker-item"><span class="t-sym">BTC</span><span class="t-up">+2.14%</span></span>
-            <span class="ticker-item"><span class="t-sym">ETH</span><span class="t-dn">-0.83%</span></span>
-            <span class="ticker-item"><span class="t-sym">DOGE</span><span class="t-up">+5.61%</span></span>
-            <span class="ticker-item"><span class="t-sym">SOL</span><span class="t-up">+3.27%</span></span>
-            <span class="ticker-item"><span class="t-sym">BNB</span><span class="t-dn">-1.02%</span></span>
-            <span class="ticker-item"><span class="t-sym">ADA</span><span class="t-up">+1.88%</span></span>
-            <span class="ticker-item"><span class="t-sym">MATIC</span><span class="t-up">+4.55%</span></span>
-            <!-- duplicate for seamless loop -->
-            <span class="ticker-item"><span class="t-sym">NDOG</span><span class="t-up">+8.42%</span></span>
-            <span class="ticker-item"><span class="t-sym">BTC</span><span class="t-up">+2.14%</span></span>
-            <span class="ticker-item"><span class="t-sym">ETH</span><span class="t-dn">-0.83%</span></span>
-            <span class="ticker-item"><span class="t-sym">DOGE</span><span class="t-up">+5.61%</span></span>
-            <span class="ticker-item"><span class="t-sym">SOL</span><span class="t-up">+3.27%</span></span>
-            <span class="ticker-item"><span class="t-sym">BNB</span><span class="t-dn">-1.02%</span></span>
-            <span class="ticker-item"><span class="t-sym">ADA</span><span class="t-up">+1.88%</span></span>
-            <span class="ticker-item"><span class="t-sym">MATIC</span><span class="t-up">+4.55%</span></span>
-        </div>
+        <div class="ticker-track" id="tickerTrack"></div>
     </div>
+
+    <!-- Ticker live-price fetcher -->
+    <script>
+    (function(){
+        /* CoinGecko IDs mapped to display symbols */
+        var COINS = [
+            { id:'bitcoin',           sym:'BTC'   },
+            { id:'solana',            sym:'SOL'   },
+            { id:'ethereum',          sym:'ETH'   },
+            { id:'pi-network',        sym:'PI'    },
+            { id:'katana-network-token', sym:'KAT' },
+            { id:'onefootball-club',  sym:'OFC'   },
+            { id:'based-one',         sym:'Based' },
+            { id:'chibi',             sym:'CHIB'  }
+        ];
+        var NDOG_FIXED = 0.9914;
+
+        function fmtPrice(p){
+            if(p>=1000) return '$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+            if(p>=1)    return '$'+p.toFixed(2);
+            if(p>=0.01) return '$'+p.toFixed(4);
+            return '$'+p.toFixed(6);
+        }
+        function fmtChange(c){
+            if(c===null||c===undefined) return {cls:'t-flat',txt:'--'};
+            var v=c.toFixed(2);
+            if(c>0)  return {cls:'t-up',  txt:'+'+v+'%'};
+            if(c<0)  return {cls:'t-dn',  txt:v+'%'};
+            return {cls:'t-flat',txt:v+'%'};
+        }
+        function buildItem(sym,price,change){
+            var ch=fmtChange(change);
+            return '<span class="ticker-item"><span class="t-sym">'+sym+'</span><span class="t-prc">'+fmtPrice(price)+'</span><span class="'+ch.cls+'">'+ch.txt+'</span></span>';
+        }
+        function render(data){
+            var html='';
+            /* first pass */
+            for(var i=0;i<COINS.length;i++){
+                var c=data[COINS[i].id];
+                var price=c?c.usd:null;
+                var change=c?c.usd_24h_change:null;
+                if(price!==null) html+=buildItem(COINS[i].sym,price,change);
+                else html+=buildItem(COINS[i].sym,0,null);
+            }
+            html+=buildItem('NDOG',NDOG_FIXED,0);
+            /* duplicate for seamless loop */
+            for(var i=0;i<COINS.length;i++){
+                var c=data[COINS[i].id];
+                var price=c?c.usd:null;
+                var change=c?c.usd_24h_change:null;
+                if(price!==null) html+=buildItem(COINS[i].sym,price,change);
+                else html+=buildItem(COINS[i].sym,0,null);
+            }
+            html+=buildItem('NDOG',NDOG_FIXED,0);
+            document.getElementById('tickerTrack').innerHTML=html;
+        }
+        function fetchPrices(){
+            var ids=COINS.map(function(c){return c.id}).join(',');
+            var url='https://api.coingecko.com/api/v3/simple/price?ids='+ids+'&vs_currencies=usd&include_24hr_change=true';
+            fetch(url)
+                .then(function(r){ return r.json(); })
+                .then(function(data){ render(data); })
+                .catch(function(){
+                    /* fallback static data */
+                    var fallback={};
+                    COINS.forEach(function(c){ fallback[c.id]={usd:0,usd_24h_change:null}; });
+                    render(fallback);
+                });
+        }
+        fetchPrices();
+        /* Refresh every 60 seconds */
+        setInterval(fetchPrices, 60000);
+    })();
+    </script>
 
     <!-- FLOATING CRYPTO COINS BACKGROUND -->
     <div id="cryptoCoinsBg" aria-hidden="true"></div>

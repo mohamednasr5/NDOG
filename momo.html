@@ -331,23 +331,17 @@ select.field-input{cursor:pointer}
     <div class="login-title">NDOG Admin Panel</div>
     <div class="login-sub">للوصول المصرح به فقط</div>
 
-    <!-- STEP 1: Password + Secret in one form -->
+    <!-- STEP 1: Firebase Auth Google Sign-In -->
     <div id="loginStep1" class="login-step active">
       <div id="loginError1" class="login-error"></div>
-      <div class="form-group">
-        <label class="form-label" for="adminPw">رمز الدخول</label>
-        <input type="password" id="adminPw" class="form-input" placeholder="••••••" autocomplete="off"/>
+      <div style="margin-bottom:20px">
+        <svg width="40" height="40" viewBox="0 0 48 48" style="margin-bottom:8px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="secretAnswer">رمز التحقق الإضافي</label>
-        <input type="text" id="secretAnswer" class="form-input" placeholder="أدخل الرمز المطلوب" autocomplete="off" maxlength="4" inputmode="numeric" onkeydown="if(event.key==='Enter')checkLogin()"/>
-        <div class="secret-hint">أدخل الرمز المعروض على جهازك الخاص</div>
-      </div>
-      <button class="btn-login" onclick="checkLogin()">تسجيل الدخول →</button>
-    </div>
-
-    <!-- STEP 2: unused, kept for structure -->
-    <div id="loginStep2" class="login-step">
+      <button class="btn-login" onclick="signInWithGoogle()" id="googleSignInBtn" style="background:linear-gradient(135deg,#4285F4,#34A853);display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#fff" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#fff" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#fff" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#fff" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        تسجيل الدخول بحساب Google
+      </button>
+      <p style="font-size:12px;color:var(--text3);margin-top:14px">فقط حساب المدير المصرح له يمكنه الدخول</p>
     </div>
   </div>
 </div>
@@ -690,9 +684,10 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const auth = firebase.auth();
 
 // ==================== CONSTANTS ====================
-const ADMIN_PASSWORD = "521988";
+const ADMIN_EMAILS = ["elfannanm@gmail.com", "mohamednasrofficial@gmail.com"];
 const VIP_LEVELS = {
   bronze:{min:0,emoji:"🥉",label:"Bronze"},
   silver:{min:1000,emoji:"🥈",label:"Silver"},
@@ -702,45 +697,45 @@ const VIP_LEVELS = {
 };
 
 // ==================== LOGIN LOGIC ====================
-function checkLogin(){
-  const pw = document.getElementById("adminPw").value.trim();
-  const answer = document.getElementById("secretAnswer").value.trim();
+let adminUser = null;
+
+function signInWithGoogle(){
   const err = document.getElementById("loginError1");
+  const btn = document.getElementById("googleSignInBtn");
+  btn.disabled = true;
+  btn.textContent = "جارٍ التحقق...";
+  btn.style.opacity = ".6";
 
-  if(!pw){err.textContent="الرجاء إدخال كلمة المرور";err.classList.add("show");return;}
-  if(pw !== ADMIN_PASSWORD){
-    err.textContent="كلمة المرور غير صحيحة";
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).then(result => {
+    const email = result.user.email;
+    if(!ADMIN_EMAILS.includes(email)){
+      err.textContent = "هذا الحساب غير مصرح له بالوصول كمسؤول";
+      err.classList.add("show");
+      auth.signOut();
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#fff" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#fff" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#fff" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#fff" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> تسجيل الدخول بحساب Google';
+      return;
+    }
+    adminUser = result.user;
+    err.classList.remove("show");
+    document.getElementById("loginScreen").style.display="none";
+    document.getElementById("adminApp").style.display="block";
+    document.querySelector('.admin-name').textContent = adminUser.displayName || 'المشرف';
+    initAdminApp();
+  }).catch(error => {
+    console.error('Login error:', error);
+    err.textContent = "حدث خطأ أثناء تسجيل الدخول: " + (error.message || 'حاول مرة أخرى');
     err.classList.add("show");
-    document.getElementById("adminPw").value="";
-    return;
-  }
-  if(!answer){err.textContent="الرجاء إدخال رمز التحقق";err.classList.add("show");return;}
-
-  // Check clock code ±2 minutes tolerance
-  const now = new Date();
-  const validCodes = [];
-  for(let i=-2;i<=2;i++){
-    const d = new Date(now.getTime() + i*60000);
-    let h = d.getHours() % 12;
-    if(h===0) h=12;
-    validCodes.push(String(h).padStart(2,"0") + String(d.getMinutes()).padStart(2,"0"));
-  }
-  if(!validCodes.includes(answer)){
-    err.textContent="رمز التحقق غير صحيح، حاول مرة أخرى";
-    err.classList.add("show");
-    document.getElementById("secretAnswer").value="";
-    return;
-  }
-
-  err.classList.remove("show");
-  document.getElementById("loginScreen").style.display="none";
-  document.getElementById("adminApp").style.display="block";
-  initAdminApp();
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#fff" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#fff" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#fff" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#fff" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> تسجيل الدخول بحساب Google';
+    btn.style.opacity = "1";
+  });
 }
 
 function adminLogout(){
   if(!confirm("هل تريد تسجيل الخروج؟")) return;
-  location.reload();
+  auth.signOut().then(() => location.reload());
 }
 
 // ==================== ADMIN APP INIT ====================

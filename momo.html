@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>NDOG Admin Panel</title>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --bg2:#0f1525;
+  --card:#131929;
+  --card2:#1a2235;
+  --border:#1e2d45;
+  --accent:#f59e0b;
+  --accent2:#ef4444;
+  --green:#22c55e;
+  --blue:#3b82f6;
+  --purple:#8b5cf6;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+  --text3:#64748b;
+  --red:#ef4444;
+  --radius:12px;
+  --sidebar:260px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ===== LOGIN SCREEN ===== */
+#loginScreen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+}
+.login-box{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:40px 32px;width:100%;max-width:420px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.login-logo{font-size:48px;margin-bottom:8px}
+.login-title{font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+.login-step{display:none}
+.login-step.active{display:block}
+.form-group{margin-bottom:18px;text-align:right}
+.form-label{display:block;font-size:13px;color:var(--text2);margin-bottom:7px;font-weight:500}
+.form-input{
+  width:100%;padding:13px 16px;background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:15px;outline:none;transition:.2s;
+  font-family:inherit;letter-spacing:.08em;
+}
+.form-input:focus{border-color:var(--accent);background:#0f1525}
+.form-input::placeholder{color:var(--text3);letter-spacing:0}
+.btn-login{
+  width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);
+  border:none;border-radius:10px;color:#000;font-size:16px;font-weight:700;
+  cursor:pointer;transition:.2s;letter-spacing:.5px;
+}
+.btn-login:hover{opacity:.9;transform:translateY(-1px)}
+.login-error{
+  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
+  border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);
+  margin-bottom:14px;display:none;
+}
+.login-error.show{display:block}
+.secret-hint{font-size:12px;color:var(--text3);margin-top:8px;opacity:.6}
+
+/* ===== LAYOUT ===== */
+#adminApp{display:none;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sidebar);background:var(--card);border-left:1px solid var(--border);
+  position:fixed;top:0;right:0;height:100vh;display:flex;flex-direction:column;
+  z-index:100;transition:.3s;overflow:hidden;
+}
+.sidebar-brand{
+  padding:22px 20px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.brand-logo{font-size:28px}
+.brand-name{font-size:17px;font-weight:700;color:var(--accent)}
+.brand-badge{
+  font-size:10px;background:var(--red);color:#fff;padding:2px 6px;
+  border-radius:4px;font-weight:600;margin-right:4px;
+}
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 0}
+.nav-section{padding:8px 16px 4px;font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:10px 20px;
+  font-size:14px;color:var(--text2);cursor:pointer;border-radius:8px;
+  margin:1px 8px;transition:.2s;border:none;background:none;width:calc(100% - 16px);text-align:right;
+}
+.nav-item:hover{background:var(--card2);color:var(--text)}
+.nav-item.active{background:rgba(245,158,11,.12);color:var(--accent)}
+.nav-item .nav-icon{font-size:17px;min-width:20px;text-align:center}
+.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border)}
+.admin-info{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.admin-avatar{width:36px;height:36px;background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
+.admin-name{font-size:13px;font-weight:600;color:var(--text)}
+.admin-role{font-size:11px;color:var(--text3)}
+.btn-signout{
+  width:100%;padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+  border-radius:8px;color:var(--red);font-size:13px;cursor:pointer;transition:.2s;font-family:inherit;
+}
+.btn-signout:hover{background:rgba(239,68,68,.2)}
+
+/* TOPBAR */
+.topbar{
+  position:fixed;top:0;left:0;right:var(--sidebar);height:62px;
+  background:var(--card);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;z-index:90;gap:16px;
+}
+.topbar-title{font-size:18px;font-weight:700;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer}
+.live-badge{
+  display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);
+  background:rgba(34,197,94,.1);padding:5px 10px;border-radius:6px;
+}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* MAIN CONTENT */
+.main{margin-right:var(--sidebar);margin-top:62px;padding:24px;min-height:calc(100vh - 62px)}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;transition:.2s;
+}
+.stat-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:.2s;background:linear-gradient(135deg,rgba(245,158,11,.05),transparent)}
+.stat-card:hover::before{opacity:1}
+.stat-icon{font-size:28px;margin-bottom:10px}
+.stat-value{font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px}
+.stat-label{font-size:13px;color:var(--text2)}
+.stat-change{font-size:12px;margin-top:6px}
+.stat-change.up{color:var(--green)}
+.stat-change.down{color:var(--red)}
+
+/* TABLES */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.table-title{font-size:15px;font-weight:600;color:var(--text)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th{background:var(--bg2);padding:11px 14px;text-align:right;font-size:12px;color:var(--text3);font-weight:600;white-space:nowrap}
+td{padding:11px 14px;border-top:1px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* SEARCH & FILTER */
+.search-input{
+  padding:9px 14px;background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:13px;outline:none;
+  min-width:220px;font-family:inherit;transition:.2s;
+}
+.search-input:focus{border-color:var(--accent)}
+.filter-select{
+  padding:9px 12px;background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:inherit;
+}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-active{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.badge-banned{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-founder{background:rgba(245,158,11,.15);color:var(--accent);border:1px solid rgba(245,158,11,.3)}
+
+/* ACTION BUTTONS */
+.action-btns{display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:6px 12px;border-radius:7px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}
+.btn:hover{opacity:.85;transform:translateY(-1px)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-primary{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.btn-danger:hover{background:rgba(239,68,68,.3)}
+.btn-success{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.btn-success:hover{background:rgba(34,197,94,.3)}
+.btn-info{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.btn-info:hover{background:rgba(59,130,246,.3)}
+.btn-purple{background:rgba(139,92,246,.15);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.btn-purple:hover{background:rgba(139,92,246,.3)}
+.btn-full{width:100%;padding:13px;font-size:14px;border-radius:10px}
+
+/* FORM CARDS */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.form-card-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.form-group{margin-bottom:16px}
+.form-label-sm{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.field-input{
+  width:100%;padding:11px 14px;background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:9px;color:var(--text);font-size:14px;outline:none;transition:.2s;font-family:inherit;
+}
+.field-input:focus{border-color:var(--accent)}
+.field-input::placeholder{color:var(--text3)}
+textarea.field-input{resize:vertical;min-height:90px;line-height:1.6}
+select.field-input{cursor:pointer}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
+  display:none;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex}
+.modal-box{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;
+}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.modal-close{margin-right:auto;background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
+.modal-footer{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+/* TOAST */
+#toastStack{position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;flex-direction:column-reverse;gap:8px}
+.toast{
+  background:var(--card2);border:1px solid var(--border);border-radius:10px;
+  padding:12px 16px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;
+  animation:slideUp .3s ease;min-width:260px;max-width:360px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.toast.out{animation:slideDown .3s ease forwards}
+@keyframes slideDown{to{opacity:0;transform:translateY(20px)}}
+.toast.success{border-color:rgba(34,197,94,.4)}
+.toast.error{border-color:rgba(239,68,68,.4)}
+.toast.info{border-color:rgba(59,130,246,.4)}
+
+/* LOADING */
+.loading-dots{display:flex;gap:5px;padding:40px;justify-content:center}
+.loading-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:dotBounce .8s infinite}
+.loading-dot:nth-child(2){animation-delay:.15s}
+.loading-dot:nth-child(3){animation-delay:.3s}
+@keyframes dotBounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:10px}
+
+/* USER AVATAR SMALL */
+.user-avatar-sm{
+  width:34px;height:34px;border-radius:50%;object-fit:cover;
+  background:linear-gradient(135deg,#f59e0b,#8b5cf6);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:14px;color:#fff;font-weight:600;vertical-align:middle;flex-shrink:0;
+}
+
+/* QUICK ACTIONS */
+.quick-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.qa-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;text-align:center;cursor:pointer;transition:.2s;
+}
+.qa-card:hover{border-color:var(--accent);transform:translateY(-2px);background:var(--card2)}
+.qa-icon{font-size:26px;margin-bottom:8px}
+.qa-label{font-size:12px;color:var(--text2);font-weight:500}
+
+/* SECTION DIVIDER */
+.section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;margin-top:24px;display:flex;align-items:center;gap:8px}
+.section-title:first-child{margin-top:0}
+
+/* NOTIFICATION PREVIEW */
+.notif-preview{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;
+}
+.notif-icon-box{width:38px;height:38px;border-radius:9px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-content-box .notif-title-box{font-size:14px;font-weight:600;color:var(--text)}
+.notif-content-box .notif-msg-box{font-size:12px;color:var(--text2);margin-top:3px}
+.notif-time{font-size:11px;color:var(--text3);margin-right:auto;white-space:nowrap}
+
+/* GIFT HISTORY */
+.gift-row{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:13px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;
+}
+.gift-amount-badge{
+  background:rgba(245,158,11,.15);color:var(--accent);border:1px solid rgba(245,158,11,.3);
+  border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700;white-space:nowrap;
+}
+
+/* PROGRESS BAR */
+.progress-bar-wrap{background:var(--border);border-radius:4px;height:6px;margin-top:6px}
+.progress-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,#ef4444);transition:.5s}
+
+/* TABS */
+.tab-group{display:flex;gap:4px;background:var(--bg2);border-radius:9px;padding:4px;margin-bottom:20px}
+.tab-btn{padding:8px 16px;border-radius:7px;border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:.2s;font-family:inherit}
+.tab-btn.active{background:var(--card);color:var(--accent);font-weight:600}
+
+/* OVERLAY LOADING */
+#pageLoader{position:fixed;inset:0;background:rgba(10,14,26,.85);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+#pageLoader.show{display:flex}
+#pageLoader p{color:var(--text2);font-size:14px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  :root{--sidebar:0px}
+  .sidebar{width:260px;right:-260px}
+  .sidebar.open{right:0;box-shadow:-10px 0 40px rgba(0,0,0,.5)}
+  .topbar{right:0}
+  .main{margin-right:0}
+  .hamburger{display:block}
+  .overlay-sidebar{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;display:none}
+  .overlay-sidebar.show{display:block}
+  .form-row,.form-row-3{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .main{padding:16px}
+  .topbar{padding:0 14px}
+  table{min-width:520px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🐕</div>
+    <div class="login-title">NDOG Admin Panel</div>
+    <div class="login-sub">للوصول المصرح به فقط</div>
+
+    <!-- STEP 1: Password + Secret in one form -->
+    <div id="loginStep1" class="login-step active">
+      <div id="loginError1" class="login-error"></div>
+      <div class="form-group">
+        <label class="form-label" for="adminPw">رمز الدخول</label>
+        <input type="password" id="adminPw" class="form-input" placeholder="••••••" autocomplete="off"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="secretAnswer">رمز التحقق الإضافي</label>
+        <input type="text" id="secretAnswer" class="form-input" placeholder="أدخل الرمز المطلوب" autocomplete="off" maxlength="4" inputmode="numeric" onkeydown="if(event.key==='Enter')checkLogin()"/>
+        <div class="secret-hint">أدخل الرمز المعروض على جهازك الخاص</div>
+      </div>
+      <button class="btn-login" onclick="checkLogin()">تسجيل الدخول →</button>
+    </div>
+
+    <!-- STEP 2: unused, kept for structure -->
+    <div id="loginStep2" class="login-step">
+    </div>
+  </div>
+</div>
+
+<div id="toastStack"></div>
+<div id="pageLoader"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div><p>جارٍ التحميل...</p></div>
+<div class="overlay-sidebar" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ===== ADMIN APP ===== -->
+<div id="adminApp">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">🐕</div>
+        <div>
+          <div class="brand-name">NDOG Admin</div>
+          <div style="font-size:11px;color:var(--text3)">لوحة التحكم الكاملة</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">رئيسي</div>
+        <button class="nav-item active" data-page="overview" onclick="switchPage('overview',this)"><span class="nav-icon">📊</span>نظرة عامة</button>
+        <button class="nav-item" data-page="users" onclick="switchPage('users',this)"><span class="nav-icon">👥</span>إدارة المستخدمين</button>
+        <div class="nav-section">محتوى</div>
+        <button class="nav-item" data-page="notifications" onclick="switchPage('notifications',this)"><span class="nav-icon">🔔</span>الإشعارات</button>
+        <button class="nav-item" data-page="news" onclick="switchPage('news',this)"><span class="nav-icon">📰</span>الأخبار</button>
+        <button class="nav-item" data-page="gifts" onclick="switchPage('gifts',this)"><span class="nav-icon">🎁</span>الهدايا والعملات</button>
+        <div class="nav-section">متقدم</div>
+        <button class="nav-item" data-page="referrals" onclick="switchPage('referrals',this)"><span class="nav-icon">🔗</span>الإحالات</button>
+        <button class="nav-item" data-page="leaderboard" onclick="switchPage('leaderboard',this)"><span class="nav-icon">🏆</span>المتصدرون</button>
+        <button class="nav-item" data-page="analytics" onclick="switchPage('analytics',this)"><span class="nav-icon">📈</span>التحليلات</button>
+        <button class="nav-item" data-page="export" onclick="switchPage('export',this)"><span class="nav-icon">💾</span>تصدير البيانات</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-info">
+          <div class="admin-avatar">👑</div>
+          <div>
+            <div class="admin-name">المشرف الرئيسي</div>
+            <div class="admin-role">Full Access</div>
+          </div>
+        </div>
+        <button class="btn-signout" onclick="adminLogout()">⏻ تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="pageTitle">نظرة عامة</div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-badge"><div class="live-dot"></div>مباشر</div>
+        <div style="font-size:12px;color:var(--text3)" id="adminClock"></div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- ===== OVERVIEW PAGE ===== -->
+      <div id="page-overview" class="page active">
+        <div id="statsGrid" class="stats-grid">
+          <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="statUsers">—</div><div class="stat-label">إجمالي المستخدمين</div></div>
+          <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value" id="statActive">—</div><div class="stat-label">نشطون خلال 24 ساعة</div></div>
+          <div class="stat-card"><div class="stat-icon">🪙</div><div class="stat-value" id="statSupply">—</div><div class="stat-label">إجمالي NDOG الموزع</div></div>
+          <div class="stat-card"><div class="stat-icon">🔗</div><div class="stat-value" id="statReferrals">—</div><div class="stat-label">الإحالات الكلية</div></div>
+          <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-value" id="statFounders">—</div><div class="stat-label">المؤسسون</div></div>
+          <div class="stat-card"><div class="stat-icon">🚫</div><div class="stat-value" id="statBanned">—</div><div class="stat-label">محظورون</div></div>
+        </div>
+
+        <div class="section-title">⚡ إجراءات سريعة</div>
+        <div class="quick-actions">
+          <div class="qa-card" onclick="switchPage('notifications',document.querySelector('[data-page=notifications]'))"><div class="qa-icon">🔔</div><div class="qa-label">إرسال إشعار</div></div>
+          <div class="qa-card" onclick="switchPage('gifts',document.querySelector('[data-page=gifts]'))"><div class="qa-icon">🎁</div><div class="qa-label">إرسال هدية</div></div>
+          <div class="qa-card" onclick="switchPage('news',document.querySelector('[data-page=news]'))"><div class="qa-icon">📰</div><div class="qa-label">إضافة خبر</div></div>
+          <div class="qa-card" onclick="switchPage('users',document.querySelector('[data-page=users]'))"><div class="qa-icon">👥</div><div class="qa-label">إدارة المستخدمين</div></div>
+          <div class="qa-card" onclick="switchPage('leaderboard',document.querySelector('[data-page=leaderboard]'))"><div class="qa-icon">🏆</div><div class="qa-label">المتصدرون</div></div>
+          <div class="qa-card" onclick="switchPage('export',document.querySelector('[data-page=export]'))"><div class="qa-icon">💾</div><div class="qa-label">تصدير البيانات</div></div>
+        </div>
+
+        <div class="section-title">👥 آخر المسجلين</div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>المستخدم</th><th>البريد</th><th>الدولة</th><th>الرصيد</th><th>تاريخ التسجيل</th><th>الحالة</th></tr></thead>
+              <tbody id="recentUsersBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== USERS PAGE ===== -->
+      <div id="page-users" class="page">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">👥 جميع المستخدمين</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" class="search-input" id="userSearch" placeholder="🔍 بحث بالاسم، البريد، الكود..." oninput="filterUsers()"/>
+              <select class="filter-select" id="userFilter" onchange="filterUsers()">
+                <option value="all">جميع المستخدمين</option>
+                <option value="active">نشطون 24h</option>
+                <option value="founders">المؤسسون فقط</option>
+                <option value="banned">المحظورون</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>المستخدم</th><th>البريد</th><th>الكود</th><th>الرصيد</th><th>VIP</th><th>الدولة</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+              <tbody id="usersTableBody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== NOTIFICATIONS PAGE ===== -->
+      <div id="page-notifications" class="page">
+        <div class="form-card">
+          <div class="form-card-title">🔔 إرسال إشعار جديد</div>
+          <div class="form-group">
+            <label class="form-label-sm">اختر المستلم</label>
+            <select class="field-input" id="notifTarget">
+              <option value="all">📢 إرسال للجميع</option>
+              <option value="single">👤 مستخدم محدد (UID أو البريد)</option>
+              <option value="founders">🏅 المؤسسون فقط</option>
+            </select>
+          </div>
+          <div class="form-group" id="notifTargetGroup" style="display:none">
+            <label class="form-label-sm">بريد المستخدم أو UID</label>
+            <input type="text" class="field-input" id="notifTargetUser" placeholder="البريد الإلكتروني أو UID أو كود الإحالة..."/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label-sm">عنوان الإشعار</label>
+              <input type="text" class="field-input" id="notifTitle" placeholder="مثال: تحديث جديد!"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">أيقونة (إيموجي)</label>
+              <input type="text" class="field-input" id="notifIcon" placeholder="🔔" value="🔔" maxlength="4"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label-sm">نص الإشعار</label>
+            <textarea class="field-input" id="notifMessage" placeholder="اكتب نص الإشعار هنا..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="sendNotification()">📤 إرسال الإشعار</button>
+        </div>
+
+        <div class="section-title">📋 الإشعارات المرسلة مؤخراً</div>
+        <div id="notifHistory" class="table-card"><div class="table-wrap"><table><thead><tr><th>العنوان</th><th>الرسالة</th><th>المستلم</th><th>الوقت</th><th>حذف</th></tr></thead><tbody id="notifHistoryBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- ===== NEWS PAGE ===== -->
+      <div id="page-news" class="page">
+        <div class="form-card">
+          <div class="form-card-title">📰 إضافة خبر جديد</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label-sm">عنوان الخبر</label>
+              <input type="text" class="field-input" id="newsTitle" placeholder="عنوان الخبر..."/>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">أيقونة (إيموجي)</label>
+              <input type="text" class="field-input" id="newsIcon" placeholder="📰" value="📰" maxlength="4"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label-sm">محتوى الخبر</label>
+            <textarea class="field-input" id="newsContent" placeholder="اكتب محتوى الخبر..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label-sm">الفئة</label>
+              <select class="field-input" id="newsCategory">
+                <option value="general">عام</option>
+                <option value="update">تحديث</option>
+                <option value="event">حدث</option>
+                <option value="announcement">إعلان</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">الأهمية</label>
+              <select class="field-input" id="newsPriority">
+                <option value="normal">عادي</option>
+                <option value="important">مهم</option>
+                <option value="urgent">عاجل</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="publishNews()">📢 نشر الخبر</button>
+        </div>
+
+        <div class="section-title">📋 الأخبار المنشورة</div>
+        <div class="table-card"><div class="table-wrap"><table><thead><tr><th>العنوان</th><th>الفئة</th><th>الأهمية</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="newsTableBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- ===== GIFTS PAGE ===== -->
+      <div id="page-gifts" class="page">
+        <div class="form-card">
+          <div class="form-card-title">🎁 إرسال هدية / إضافة أو خصم عملات</div>
+          <div class="form-group">
+            <label class="form-label-sm">المستلم</label>
+            <select class="field-input" id="giftTarget">
+              <option value="all">🌍 إرسال للجميع</option>
+              <option value="single">👤 مستخدم محدد</option>
+            </select>
+          </div>
+          <div class="form-group" id="giftTargetGroup" style="display:none">
+            <label class="form-label-sm">بريد المستخدم أو UID</label>
+            <input type="text" class="field-input" id="giftTargetUser" placeholder="البريد الإلكتروني أو UID أو كود الإحالة..."/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label-sm">نوع العملية</label>
+              <select class="field-input" id="giftOperation">
+                <option value="add">➕ إضافة عملات</option>
+                <option value="subtract">➖ خصم عملات</option>
+                <option value="set">⚙️ تعيين رصيد محدد</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">المبلغ (NDOG)</label>
+              <input type="number" class="field-input" id="giftAmount" placeholder="مثال: 100" min="1"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label-sm">رسالة مرفقة (تظهر كإشعار للمستخدم)</label>
+            <input type="text" class="field-input" id="giftReason" placeholder="مثال: مكافأة خاصة من الفريق 🎉"/>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="sendGift()">✅ تنفيذ العملية</button>
+        </div>
+
+        <div class="section-title">📋 سجل العمليات</div>
+        <div class="table-card"><div class="table-wrap"><table><thead><tr><th>المستلم</th><th>النوع</th><th>المبلغ</th><th>الرسالة</th><th>الوقت</th></tr></thead><tbody id="giftsHistoryBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- ===== REFERRALS PAGE ===== -->
+      <div id="page-referrals" class="page">
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">🔗 جميع الإحالات</div></div>
+          <div class="table-wrap"><table><thead><tr><th>المُحيل</th><th>المُحال</th><th>البريد المُحال</th><th>المستوى</th><th>التاريخ</th></tr></thead><tbody id="referralsBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ===== LEADERBOARD PAGE ===== -->
+      <div id="page-leaderboard" class="page">
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">🏆 أعلى 50 مستخدماً بالرصيد</div></div>
+          <div class="table-wrap"><table><thead><tr><th>#</th><th>المستخدم</th><th>البريد</th><th>الرصيد</th><th>VIP</th><th>الدولة</th></tr></thead><tbody id="leaderboardBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ===== ANALYTICS PAGE ===== -->
+      <div id="page-analytics" class="page">
+        <div class="stats-grid" id="analyticsStats">
+          <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value" id="anaDAU">—</div><div class="stat-label">نشطون اليوم</div></div>
+          <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="anaAvgBalance">—</div><div class="stat-label">متوسط الرصيد</div></div>
+          <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-value" id="anaDiamond">—</div><div class="stat-label">مستخدمو Diamond</div></div>
+          <div class="stat-card"><div class="stat-icon">📤</div><div class="stat-value" id="anaTotalGifts">—</div><div class="stat-label">إجمالي الهدايا المُرسلة</div></div>
+        </div>
+
+        <div class="form-card" style="margin-top:0">
+          <div class="form-card-title">📊 توزيع مستويات VIP</div>
+          <div id="vipDistribution"></div>
+        </div>
+      </div>
+
+      <!-- ===== EXPORT PAGE ===== -->
+      <div id="page-export" class="page">
+        <div class="form-card">
+          <div class="form-card-title">💾 تصدير البيانات</div>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:20px">قم بتنزيل بيانات التطبيق كملفات CSV للتحليل الخارجي.</p>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <button class="btn btn-info btn-full" onclick="exportCSV('users')">📥 تصدير بيانات المستخدمين CSV</button>
+            <button class="btn btn-success btn-full" onclick="exportCSV('gifts')">📥 تصدير سجل الهدايا CSV</button>
+            <button class="btn btn-purple btn-full" onclick="exportCSV('notifications')">📥 تصدير الإشعارات CSV</button>
+            <button class="btn btn-info btn-full" onclick="exportCSV('referrals')">📥 تصدير الإحالات CSV</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===== EDIT USER MODAL ===== -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ تعديل بيانات المستخدم <button class="modal-close" onclick="closeModal('editUserModal')">✕</button></div>
+    <input type="hidden" id="editUid"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label-sm">الاسم</label><input type="text" class="field-input" id="editName" placeholder="الاسم الكامل"/></div>
+      <div class="form-group"><label class="form-label-sm">الدولة</label><input type="text" class="field-input" id="editCountry" placeholder="كود الدولة (EG, SA...)"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label-sm">الرصيد (NDOG)</label><input type="number" class="field-input" id="editBalance" placeholder="0"/></div>
+      <div class="form-group"><label class="form-label-sm">مستوى VIP</label>
+        <select class="field-input" id="editVip">
+          <option value="bronze">🥉 Bronze</option>
+          <option value="silver">🥈 Silver</option>
+          <option value="gold">🥇 Gold</option>
+          <option value="platinum">💎 Platinum</option>
+          <option value="diamond">💠 Diamond</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal('editUserModal')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveUserEdits()">💾 حفظ التغييرات</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW USER MODAL ===== -->
+<div class="modal-overlay" id="viewUserModal">
+  <div class="modal-box">
+    <div class="modal-title">👤 تفاصيل المستخدم <button class="modal-close" onclick="closeModal('viewUserModal')">✕</button></div>
+    <div id="viewUserContent"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+// ==================== FIREBASE CONFIG ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyAwvOJCX4qSAtqcFfcnHtQgsTArnIrrhc",
+  authDomain: "ndog-a3265.firebaseapp.com",
+  databaseURL: "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ndog-a3265",
+  storageBucket: "ndog-a3265.firebasestorage.app",
+  messagingSenderId: "829364393352",
+  appId: "1:829364393352:web:82d0d0a99a3b3f2200163d"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ==================== CONSTANTS ====================
+const ADMIN_PASSWORD = "521988";
+const VIP_LEVELS = {
+  bronze:{min:0,emoji:"🥉",label:"Bronze"},
+  silver:{min:1000,emoji:"🥈",label:"Silver"},
+  gold:{min:5000,emoji:"🥇",label:"Gold"},
+  platinum:{min:20000,emoji:"💎",label:"Platinum"},
+  diamond:{min:100000,emoji:"💠",label:"Diamond"}
+};
+
+// ==================== LOGIN LOGIC ====================
+function checkLogin(){
+  const pw = document.getElementById("adminPw").value.trim();
+  const answer = document.getElementById("secretAnswer").value.trim();
+  const err = document.getElementById("loginError1");
+
+  if(!pw){err.textContent="الرجاء إدخال كلمة المرور";err.classList.add("show");return;}
+  if(pw !== ADMIN_PASSWORD){
+    err.textContent="كلمة المرور غير صحيحة";
+    err.classList.add("show");
+    document.getElementById("adminPw").value="";
+    return;
+  }
+  if(!answer){err.textContent="الرجاء إدخال رمز التحقق";err.classList.add("show");return;}
+
+  // Check clock code ±2 minutes tolerance
+  const now = new Date();
+  const validCodes = [];
+  for(let i=-2;i<=2;i++){
+    const d = new Date(now.getTime() + i*60000);
+    let h = d.getHours() % 12;
+    if(h===0) h=12;
+    validCodes.push(String(h).padStart(2,"0") + String(d.getMinutes()).padStart(2,"0"));
+  }
+  if(!validCodes.includes(answer)){
+    err.textContent="رمز التحقق غير صحيح، حاول مرة أخرى";
+    err.classList.add("show");
+    document.getElementById("secretAnswer").value="";
+    return;
+  }
+
+  err.classList.remove("show");
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("adminApp").style.display="block";
+  initAdminApp();
+}
+
+function adminLogout(){
+  if(!confirm("هل تريد تسجيل الخروج؟")) return;
+  location.reload();
+}
+
+// ==================== ADMIN APP INIT ====================
+let allUsers = [];
+let allUsersData = {};
+
+function initAdminApp(){
+  startAdminClock();
+  loadAllData();
+  // Listeners for dynamic forms
+  document.getElementById("notifTarget").addEventListener("change", function(){
+    document.getElementById("notifTargetGroup").style.display = this.value==="single" ? "block" : "none";
+  });
+  document.getElementById("giftTarget").addEventListener("change", function(){
+    document.getElementById("giftTargetGroup").style.display = this.value==="single" ? "block" : "none";
+  });
+}
+
+function startAdminClock(){
+  function tick(){
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,"0");
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const s = String(now.getSeconds()).padStart(2,"0");
+    const el = document.getElementById("adminClock");
+    if(el) el.textContent = h+":"+m+":"+s;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+function showLoader(){document.getElementById("pageLoader").classList.add("show")}
+function hideLoader(){document.getElementById("pageLoader").classList.remove("show")}
+
+function showToast(msg, type="info"){
+  const icons={success:"✅",error:"❌",info:"ℹ️",warning:"⚠️"};
+  const stack=document.getElementById("toastStack");
+  const t=document.createElement("div");
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span>${icons[type]||icons.info}</span><span>${msg}</span>`;
+  stack.appendChild(t);
+  setTimeout(()=>{t.classList.add("out");setTimeout(()=>t.remove(),300)},3500);
+}
+
+// ==================== PAGE SWITCHING ====================
+const pageTitles = {
+  overview:"📊 نظرة عامة",
+  users:"👥 إدارة المستخدمين",
+  notifications:"🔔 الإشعارات",
+  news:"📰 الأخبار",
+  gifts:"🎁 الهدايا والعملات",
+  referrals:"🔗 الإحالات",
+  leaderboard:"🏆 المتصدرون",
+  analytics:"📈 التحليلات",
+  export:"💾 تصدير البيانات"
+};
+
+function switchPage(name, btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  const pg = document.getElementById("page-"+name);
+  if(pg) pg.classList.add("active");
+  if(btn) btn.classList.add("active");
+  document.getElementById("pageTitle").textContent = pageTitles[name] || name;
+  closeSidebar();
+  // Load page data
+  if(name==="referrals") loadReferrals();
+  if(name==="leaderboard") loadLeaderboard();
+  if(name==="analytics") loadAnalytics();
+  if(name==="notifications") loadNotifHistory();
+  if(name==="news") loadNews();
+  if(name==="gifts") loadGiftsHistory();
+}
+
+// ==================== SIDEBAR ====================
+function toggleSidebar(){
+  const sb = document.getElementById("sidebar");
+  const ov = document.getElementById("sidebarOverlay");
+  sb.classList.toggle("open");
+  ov.classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+
+// ==================== MODAL ====================
+function openModal(id){document.getElementById(id).classList.add("open")}
+function closeModal(id){document.getElementById(id).classList.remove("open")}
+
+// ==================== DATA LOADING ====================
+function loadAllData(){
+  showLoader();
+  db.ref("users").once("value").then(snap=>{
+    hideLoader();
+    allUsersData = snap.val() || {};
+    allUsers = Object.entries(allUsersData).map(([uid, u])=>({...u, uid}));
+    renderOverview();
+    renderUsersTable(allUsers);
+  }).catch(()=>{hideLoader();showToast("خطأ في تحميل البيانات","error")});
+}
+
+// ==================== FORMAT HELPERS ====================
+function fmt(n){
+  n = Number(n)||0;
+  if(n>=1000000) return (n/1000000).toFixed(2)+"M";
+  if(n>=1000) return (n/1000).toFixed(1)+"K";
+  return n.toLocaleString("ar-EG");
+}
+function fmtDate(ts){
+  if(!ts) return "—";
+  return new Date(ts).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"});
+}
+function fmtDateTime(ts){
+  if(!ts) return "—";
+  return new Date(ts).toLocaleString("ar-EG",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function getVip(bal){
+  let tier = "bronze";
+  for(const k in VIP_LEVELS) if(bal >= VIP_LEVELS[k].min) tier = k;
+  return VIP_LEVELS[tier];
+}
+function avatarCell(u){
+  if(u.photoURL) return `<img src="${u.photoURL}" class="user-avatar-sm" onerror="this.style.display='none'">`;
+  const letter = (u.displayName||u.email||"?")[0].toUpperCase();
+  return `<div class="user-avatar-sm">${letter}</div>`;
+}
+function isActive24h(u){
+  return u.lastActive && (Date.now()-u.lastActive) < 86400000;
+}
+
+// ==================== OVERVIEW ====================
+function renderOverview(){
+  const users = allUsers;
+  const total = users.length;
+  const active = users.filter(u=>isActive24h(u)).length;
+  const supply = users.reduce((s,u)=>(s+(Number(u.balance)||0)),0);
+  const banned = users.filter(u=>u.banned).length;
+  const founders = users.filter(u=>u.founder).length;
+
+  document.getElementById("statUsers").textContent = fmt(total);
+  document.getElementById("statActive").textContent = fmt(active);
+  document.getElementById("statSupply").textContent = fmt(supply)+" NDOG";
+  document.getElementById("statBanned").textContent = banned;
+  document.getElementById("statFounders").textContent = founders;
+
+  // Referrals count
+  db.ref("referrals").once("value").then(snap=>{
+    const refs = snap.val()||{};
+    let count = 0;
+    Object.values(refs).forEach(v=>count+=Object.keys(v).length);
+    document.getElementById("statReferrals").textContent = fmt(count);
+  });
+
+  // Recent users (last 10 by createdAt)
+  const sorted = [...users].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,10);
+  const tbody = document.getElementById("recentUsersBody");
+  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">لا يوجد مستخدمون</td></tr>`;return;}
+  tbody.innerHTML = sorted.map(u=>{
+    const vip = getVip(u.balance||0);
+    const status = u.banned
+      ? `<span class="badge badge-banned">🚫 محظور</span>`
+      : u.founder ? `<span class="badge badge-founder">🏅 مؤسس</span>`
+      : `<span class="badge badge-active">✅ نشط</span>`;
+    return `<tr>
+      <td style="display:flex;align-items:center;gap:8px">${avatarCell(u)}<span>${u.displayName||"—"}</span></td>
+      <td style="color:var(--text2)">${u.email||"—"}</td>
+      <td>${u.country||"—"}</td>
+      <td style="color:var(--accent);font-weight:600">${fmt(u.balance||0)} NDOG</td>
+      <td>${fmtDate(u.createdAt)}</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ==================== USERS TABLE ====================
+function renderUsersTable(users){
+  const tbody = document.getElementById("usersTableBody");
+  if(!users.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)"><div class="empty-icon">👤</div><br>لا توجد نتائج</td></tr>`;return;}
+  tbody.innerHTML = users.map(u=>{
+    const vip = getVip(u.balance||0);
+    const statusBadge = u.banned
+      ? `<span class="badge badge-banned">🚫 محظور</span>`
+      : isActive24h(u) ? `<span class="badge badge-active">🟢 نشط</span>`
+      : `<span class="badge" style="background:rgba(100,116,139,.15);color:var(--text3);border:1px solid rgba(100,116,139,.3)">⚫ غير نشط</span>`;
+    const banBtn = u.banned
+      ? `<button class="btn btn-success btn-sm" onclick="toggleBan('${u.uid}',false)">✅ رفع الحظر</button>`
+      : `<button class="btn btn-danger btn-sm" onclick="toggleBan('${u.uid}',true)">🚫 حظر</button>`;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">${avatarCell(u)}<span>${u.displayName||"—"}</span></div></td>
+      <td style="color:var(--text2);font-size:12px">${u.email||"—"}</td>
+      <td><code style="background:var(--bg2);padding:2px 6px;border-radius:4px;font-size:11px">${u.referralCode||"—"}</code></td>
+      <td style="color:var(--accent);font-weight:700">${fmt(u.balance||0)}</td>
+      <td>${vip.emoji} ${vip.label}</td>
+      <td>${u.country||"—"}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-info btn-sm" onclick="viewUser('${u.uid}')">👁️</button>
+          <button class="btn btn-purple btn-sm" onclick="editUser('${u.uid}')">✏️</button>
+          ${banBtn}
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.uid}','${(u.displayName||u.email||"").replace(/'/g,"\'")}')">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function filterUsers(){
+  const q = document.getElementById("userSearch").value.toLowerCase();
+  const f = document.getElementById("userFilter").value;
+  let filtered = allUsers.filter(u=>{
+    const matchQ = !q ||
+      (u.displayName||"").toLowerCase().includes(q) ||
+      (u.email||"").toLowerCase().includes(q) ||
+      (u.referralCode||"").toLowerCase().includes(q) ||
+      (u.country||"").toLowerCase().includes(q) ||
+      u.uid.toLowerCase().includes(q);
+    const matchF = f==="all" ? true
+      : f==="active" ? isActive24h(u)
+      : f==="founders" ? u.founder
+      : f==="banned" ? u.banned
+      : true;
+    return matchQ && matchF;
+  });
+  renderUsersTable(filtered);
+}
+
+// ==================== USER ACTIONS ====================
+function viewUser(uid){
+  const u = allUsersData[uid];
+  if(!u) return;
+  const vip = getVip(u.balance||0);
+  const html = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+      ${u.photoURL?`<img src="${u.photoURL}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">`:
+        `<div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff">${(u.displayName||"?")[0].toUpperCase()}</div>`}
+      <div>
+        <div style="font-size:17px;font-weight:700">${u.displayName||"—"}</div>
+        <div style="font-size:13px;color:var(--text2)">${u.email||"—"}</div>
+        ${u.banned?`<span class="badge badge-banned">🚫 محظور</span>`:`<span class="badge badge-active">✅ نشط</span>`}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+      ${[
+        ["🪙 الرصيد", fmt(u.balance||0)+" NDOG"],
+        ["🏅 VIP", vip.emoji+" "+vip.label],
+        ["🌍 الدولة", u.country||"—"],
+        ["📱 الهاتف", (u.dialCode||"")+""+(u.phone||"—")],
+        ["🔗 كود الإحالة", u.referralCode||"—"],
+        ["📅 تاريخ التسجيل", fmtDate(u.createdAt)],
+        ["⏱️ آخر نشاط", fmtDateTime(u.lastActive)],
+        ["⛏️ جلسات التعدين", u.miningSessionsTotal||0],
+        ["🎖️ مؤسس", u.founder?"نعم ✅":"لا"],
+        ["💰 إجمالي الأرباح", fmt(u.totalClaimed||0)+" NDOG"],
+        ["🔥 Streak", u.streak||0],
+        ["🆔 UID", `<code style="font-size:10px;color:var(--text3)">${uid}</code>`]
+      ].map(([k,v])=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="color:var(--text3);font-size:11px;margin-bottom:3px">${k}</div><div style="font-weight:500;color:var(--text)">${v}</div></div>`).join("")}
+    </div>`;
+  document.getElementById("viewUserContent").innerHTML = html;
+  openModal("viewUserModal");
+}
+
+function editUser(uid){
+  const u = allUsersData[uid];
+  if(!u) return;
+  document.getElementById("editUid").value = uid;
+  document.getElementById("editName").value = u.displayName||"";
+  document.getElementById("editBalance").value = u.balance||0;
+  document.getElementById("editCountry").value = u.country||"";
+  document.getElementById("editVip").value = u.vipLevel||"bronze";
+  openModal("editUserModal");
+}
+
+function saveUserEdits(){
+  const uid = document.getElementById("editUid").value;
+  const name = document.getElementById("editName").value.trim();
+  const balance = Number(document.getElementById("editBalance").value)||0;
+  const country = document.getElementById("editCountry").value.trim().toUpperCase();
+  const vipLevel = document.getElementById("editVip").value;
+  if(!uid) return;
+  showLoader();
+  db.ref("users/"+uid).update({displayName:name,balance,country,vipLevel}).then(()=>{
+    hideLoader();
+    closeModal("editUserModal");
+    showToast("تم تحديث بيانات المستخدم ✅","success");
+    loadAllData();
+  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+}
+
+function toggleBan(uid, ban){
+  const action = ban ? "حظر" : "رفع حظر";
+  if(!confirm(`هل أنت متأكد من ${action} هذا المستخدم؟`)) return;
+  showLoader();
+  db.ref("users/"+uid).update({banned:ban}).then(()=>{
+    hideLoader();
+    showToast(ban?"تم حظر المستخدم 🚫":"تم رفع الحظر ✅", ban?"error":"success");
+    loadAllData();
+  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+}
+
+function deleteUser(uid, name){
+  if(!confirm(`⚠️ حذف نهائي للمستخدم "${name}"؟
+هذا الإجراء لا يمكن التراجع عنه!`)) return;
+  if(!confirm("⚠️ تأكيد نهائي: هل تريد حذف هذا المستخدم نهائياً؟")) return;
+  showLoader();
+  db.ref("users/"+uid).remove().then(()=>{
+    hideLoader();
+    showToast("تم حذف المستخدم نهائياً 🗑️","warning");
+    loadAllData();
+  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+}
+
+// ==================== NOTIFICATIONS ====================
+function sendNotification(){
+  const target = document.getElementById("notifTarget").value;
+  const targetUser = document.getElementById("notifTargetUser").value.trim();
+  const title = document.getElementById("notifTitle").value.trim();
+  const message = document.getElementById("notifMessage").value.trim();
+  const icon = document.getElementById("notifIcon").value.trim() || "🔔";
+  if(!title||!message){showToast("العنوان والرسالة مطلوبان","error");return;}
+
+  const notif = {title, message, icon, createdAt: Date.now(), readBy:{}};
+  showLoader();
+
+  const doSend = async ()=>{
+    if(target==="all"){
+      // Send to all users
+      const updates = {};
+      allUsers.forEach(u=>{
+        const nid = db.ref("notifications/"+u.uid).push().key;
+        updates[`notifications/${u.uid}/${nid}`] = notif;
+      });
+      await db.ref().update(updates);
+      // Also save to admin_notifications
+      await db.ref("admin_notifications").push({...notif, target:"all"});
+    } else if(target==="founders"){
+      const founders = allUsers.filter(u=>u.founder);
+      const updates = {};
+      founders.forEach(u=>{
+        const nid = db.ref("notifications/"+u.uid).push().key;
+        updates[`notifications/${u.uid}/${nid}`] = notif;
+      });
+      await db.ref().update(updates);
+      await db.ref("admin_notifications").push({...notif, target:"founders"});
+    } else if(target==="single"){
+      if(!targetUser){showToast("أدخل بريد أو UID المستخدم","error");hideLoader();return;}
+      let uid = null;
+      // Search by email first (safe), then try as UID
+      const uByEmail = allUsers.find(x=>(x.email||"").toLowerCase()===targetUser.toLowerCase());
+      if(uByEmail){
+        uid = uByEmail.uid;
+      } else {
+        // Try as UID (only if no dots/special chars)
+        if(!targetUser.includes(".")&&!targetUser.includes("#")&&!targetUser.includes("$")){
+          const snap = await db.ref("users/"+targetUser).once("value");
+          if(snap.exists()) uid = targetUser;
+        } else {
+          // Try referral code match
+          const uByCode = allUsers.find(x=>(x.referralCode||"").toUpperCase()===targetUser.toUpperCase());
+          if(uByCode) uid = uByCode.uid;
+        }
+      }
+      if(!uid){showToast("لم يتم العثور على المستخدم","error");hideLoader();return;}
+      const nid = db.ref("notifications/"+uid).push().key;
+      await db.ref(`notifications/${uid}/${nid}`).set(notif);
+      await db.ref("admin_notifications").push({...notif, target:targetUser});
+    }
+    hideLoader();
+    showToast("تم إرسال الإشعار بنجاح 🔔","success");
+    document.getElementById("notifTitle").value="";
+    document.getElementById("notifMessage").value="";
+    loadNotifHistory();
+  };
+  doSend().catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+}
+
+function loadNotifHistory(){
+  db.ref("admin_notifications").orderByChild("createdAt").limitToLast(30).once("value").then(snap=>{
+    const data = snap.val()||{};
+    const rows = Object.entries(data).sort((a,b)=>b[1].createdAt-a[1].createdAt);
+    const tbody = document.getElementById("notifHistoryBody");
+    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا توجد إشعارات</td></tr>`;return;}
+    tbody.innerHTML = rows.map(([id,n])=>`<tr>
+      <td>${n.icon||"🔔"} ${n.title}</td>
+      <td style="color:var(--text2);font-size:12px">${n.message}</td>
+      <td><span class="badge badge-active">${n.target==="all"?"الجميع":n.target==="founders"?"المؤسسون":n.target||"—"}</span></td>
+      <td style="color:var(--text3);font-size:12px">${fmtDateTime(n.createdAt)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteAdminNotif('${id}')">🗑️</button></td>
+    </tr>`).join("");
+  });
+}
+
+function deleteAdminNotif(id){
+  db.ref("admin_notifications/"+id).remove().then(()=>{loadNotifHistory();showToast("تم حذف الإشعار","success")});
+}
+
+// ==================== NEWS ====================
+function publishNews(){
+  const title = document.getElementById("newsTitle").value.trim();
+  const content = document.getElementById("newsContent").value.trim();
+  const icon = document.getElementById("newsIcon").value.trim() || "📰";
+  const category = document.getElementById("newsCategory").value;
+  const priority = document.getElementById("newsPriority").value;
+  if(!title||!content){showToast("العنوان والمحتوى مطلوبان","error");return;}
+  showLoader();
+  db.ref("news").push({title,content,icon,category,priority,createdAt:Date.now()}).then(()=>{
+    hideLoader();
+    showToast("تم نشر الخبر 📰","success");
+    document.getElementById("newsTitle").value="";
+    document.getElementById("newsContent").value="";
+    loadNews();
+  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+}
+
+function loadNews(){
+  db.ref("news").orderByChild("createdAt").limitToLast(50).once("value").then(snap=>{
+    const data=snap.val()||{};
+    const rows=Object.entries(data).sort((a,b)=>b[1].createdAt-a[1].createdAt);
+    const tbody=document.getElementById("newsTableBody");
+    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا توجد أخبار</td></tr>`;return;}
+    const catColors={general:"var(--blue)",update:"var(--green)",event:"var(--purple)",announcement:"var(--accent)"};
+    const prioColors={normal:"var(--text2)",important:"var(--accent)",urgent:"var(--red)"};
+    tbody.innerHTML=rows.map(([id,n])=>`<tr>
+      <td>${n.icon||"📰"} ${n.title}</td>
+      <td><span style="color:${catColors[n.category]||'var(--text2)'}">●</span> ${n.category||"عام"}</td>
+      <td><span style="color:${prioColors[n.priority]||'var(--text2)'};font-weight:600">${n.priority==="urgent"?"🔴 عاجل":n.priority==="important"?"🟡 مهم":"🔵 عادي"}</span></td>
+      <td style="color:var(--text3);font-size:12px">${fmtDateTime(n.createdAt)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteNews('${id}')">🗑️ حذف</button></td>
+    </tr>`).join("");
+  });
+}
+
+function deleteNews(id){
+  if(!confirm("هل تريد حذف هذا الخبر؟")) return;
+  db.ref("news/"+id).remove().then(()=>{loadNews();showToast("تم حذف الخبر","success")});
+}
+
+// ==================== GIFTS ====================
+function sendGift(){
+  const target = document.getElementById("giftTarget").value;
+  const targetUser = document.getElementById("giftTargetUser").value.trim();
+  const operation = document.getElementById("giftOperation").value;
+  const amount = Number(document.getElementById("giftAmount").value)||0;
+  const reason = document.getElementById("giftReason").value.trim();
+  if(amount<=0){showToast("أدخل مبلغاً صحيحاً","error");return;}
+
+  const histRecord = {target: target==="single"?targetUser:"all", operation, amount, reason, createdAt:Date.now()};
+  showLoader();
+
+  const processUser = async (uid)=>{
+    const snap = await db.ref("users/"+uid+"/balance").once("value");
+    const bal = Number(snap.val())||0;
+    let newBal;
+    if(operation==="add") newBal = bal+amount;
+    else if(operation==="subtract") newBal = Math.max(0,bal-amount);
+    else newBal = amount;
+    await db.ref("users/"+uid+"/balance").set(newBal);
+    // Send notification to user
+    if(reason){
+      const notif = {title: operation==="add"?"🎁 هدية من الفريق":"⚙️ تعديل رصيد", message:reason+(operation!=="subtract"?` (+${fmt(amount)} NDOG)`:` (-${fmt(amount)} NDOG)`), icon:operation==="add"?"🎁":"⚙️", createdAt:Date.now()};
+      await db.ref("notifications/"+uid).push(notif);
+    }
+  };
+
+  const doGift = async ()=>{
+    if(target==="all"){
+      for(const u of allUsers) await processUser(u.uid);
+    } else {
+      let uid = null;
+      // Search by email first (safe), then UID, then referral code
+      const uByEmail = allUsers.find(x=>(x.email||"").toLowerCase()===targetUser.toLowerCase());
+      if(uByEmail){
+        uid = uByEmail.uid;
+      } else if(!targetUser.includes(".")&&!targetUser.includes("#")&&!targetUser.includes("$")){
+        const snap = await db.ref("users/"+targetUser).once("value");
+        if(snap.exists()) uid = targetUser;
+      } else {
+        const uByCode = allUsers.find(x=>(x.referralCode||"").toUpperCase()===targetUser.toUpperCase());
+        if(uByCode) uid = uByCode.uid;
+      }
+      if(!uid){showToast("لم يتم العثور على المستخدم","error");hideLoader();return;}
+      await processUser(uid);
+    }
+    await db.ref("admin_gifts").push(histRecord);
+    hideLoader();
+    showToast(operation==="add"?"تم إضافة العملات 🎁":operation==="subtract"?"تم خصم العملات":"تم تعيين الرصيد","success");
+    document.getElementById("giftAmount").value="";
+    document.getElementById("giftReason").value="";
+    loadAllData();
+    loadGiftsHistory();
+  };
+  doGift().catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+}
+
+function loadGiftsHistory(){
+  db.ref("admin_gifts").orderByChild("createdAt").limitToLast(50).once("value").then(snap=>{
+    const data=snap.val()||{};
+    const rows=Object.entries(data).sort((a,b)=>b[1].createdAt-a[1].createdAt);
+    const tbody=document.getElementById("giftsHistoryBody");
+    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا يوجد سجل</td></tr>`;return;}
+    tbody.innerHTML=rows.map(([id,g])=>`<tr>
+      <td>${g.target==="all"?"🌍 الجميع":g.target}</td>
+      <td>${g.operation==="add"?`<span style="color:var(--green)">➕ إضافة</span>`:g.operation==="subtract"?`<span style="color:var(--red)">➖ خصم</span>`:`<span style="color:var(--blue)">⚙️ تعيين</span>`}</td>
+      <td><span class="gift-amount-badge">${fmt(g.amount)} NDOG</span></td>
+      <td style="color:var(--text2);font-size:12px">${g.reason||"—"}</td>
+      <td style="color:var(--text3);font-size:12px">${fmtDateTime(g.createdAt)}</td>
+    </tr>`).join("");
+  });
+}
+
+// ==================== REFERRALS ====================
+function loadReferrals(){
+  db.ref("referrals").once("value").then(snap=>{
+    const data=snap.val()||{};
+    const rows=[];
+    Object.entries(data).forEach(([refUid,refs])=>{
+      Object.entries(refs).forEach(([refedUid,info])=>{
+        rows.push({refUid,refedUid,...info});
+      });
+    });
+    rows.sort((a,b)=>(b.referredAt||0)-(a.referredAt||0));
+    const tbody=document.getElementById("referralsBody");
+    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا توجد إحالات</td></tr>`;return;}
+    tbody.innerHTML=rows.slice(0,200).map(r=>{
+      const refUser = allUsersData[r.refUid];
+      const refedUser = allUsersData[r.refedUid];
+      return `<tr>
+        <td>${refUser?refUser.displayName||refUser.email:r.refUid.slice(0,10)+"..."}</td>
+        <td>${refedUser?refedUser.displayName||refedUser.email:r.refedUid.slice(0,10)+"..."}</td>
+        <td style="color:var(--text2);font-size:12px">${r.email||"—"}</td>
+        <td><span class="badge badge-active">L${r.level||1}</span></td>
+        <td style="color:var(--text3);font-size:12px">${fmtDate(r.referredAt)}</td>
+      </tr>`;
+    }).join("");
+  });
+}
+
+// ==================== LEADERBOARD ====================
+function loadLeaderboard(){
+  const sorted=[...allUsers].sort((a,b)=>(b.balance||0)-(a.balance||0)).slice(0,50);
+  const tbody=document.getElementById("leaderboardBody");
+  const medals=["🥇","🥈","🥉"];
+  tbody.innerHTML=sorted.map((u,i)=>{
+    const vip=getVip(u.balance||0);
+    return `<tr>
+      <td style="font-size:18px;text-align:center">${medals[i]||"#"+(i+1)}</td>
+      <td><div style="display:flex;align-items:center;gap:8px">${avatarCell(u)}<span>${u.displayName||"—"}</span></div></td>
+      <td style="color:var(--text2);font-size:12px">${u.email||"—"}</td>
+      <td style="color:var(--accent);font-weight:700;font-size:16px">${fmt(u.balance||0)} NDOG</td>
+      <td>${vip.emoji} ${vip.label}</td>
+      <td>${u.country||"—"}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ==================== ANALYTICS ====================
+function loadAnalytics(){
+  const dau = allUsers.filter(u=>isActive24h(u)).length;
+  const avgBal = allUsers.length ? Math.round(allUsers.reduce((s,u)=>s+(u.balance||0),0)/allUsers.length) : 0;
+  const diamond = allUsers.filter(u=>(u.balance||0)>=100000).length;
+
+  document.getElementById("anaDAU").textContent=fmt(dau);
+  document.getElementById("anaAvgBalance").textContent=fmt(avgBal)+" NDOG";
+  document.getElementById("anaDiamond").textContent=diamond;
+
+  db.ref("admin_gifts").once("value").then(snap=>{
+    const cnt=Object.keys(snap.val()||{}).length;
+    document.getElementById("anaTotalGifts").textContent=cnt;
+  });
+
+  // VIP Distribution
+  const vipCount={bronze:0,silver:0,gold:0,platinum:0,diamond:0};
+  allUsers.forEach(u=>{
+    const vip=getVip(u.balance||0);
+    const k=Object.keys(VIP_LEVELS).find(k=>VIP_LEVELS[k]===vip)||"bronze";
+    vipCount[k]=(vipCount[k]||0)+1;
+  });
+  const total=allUsers.length||1;
+  const vipDiv=document.getElementById("vipDistribution");
+  vipDiv.innerHTML=Object.entries(vipCount).map(([k,v])=>{
+    const vl=VIP_LEVELS[k];
+    const pct=Math.round(v/total*100);
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px">
+        <span>${vl.emoji} ${vl.label}</span>
+        <span style="color:var(--text2)">${v} مستخدم (${pct}%)</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+}
+
+// ==================== EXPORT ====================
+function exportCSV(type){
+  let rows=[], headers=[], filename="";
+  if(type==="users"){
+    headers=["UID","الاسم","البريد","الدولة","الرصيد","VIP","مؤسس","محظور","تاريخ التسجيل","آخر نشاط"];
+    rows=allUsers.map(u=>[
+      u.uid,u.displayName||"",u.email||"",u.country||"",u.balance||0,
+      getVip(u.balance||0).label,u.founder?"نعم":"لا",u.banned?"نعم":"لا",
+      fmtDate(u.createdAt),fmtDate(u.lastActive)
+    ]);
+    filename="ndog_users.csv";
+  } else {
+    showToast("جارٍ تحضير الملف...","info");
+    if(type==="gifts"){
+      db.ref("admin_gifts").once("value").then(snap=>{
+        const data=snap.val()||{};
+        const rows2=Object.values(data);
+        headers=["المستلم","النوع","المبلغ","السبب","التاريخ"];
+        const r2=rows2.map(g=>[g.target,g.operation,g.amount,g.reason||"",fmtDate(g.createdAt)]);
+        downloadCSV(headers,r2,"ndog_gifts.csv");
+      });
+      return;
+    }
+    if(type==="notifications"){
+      db.ref("admin_notifications").once("value").then(snap=>{
+        const data=snap.val()||{};
+        const rows2=Object.values(data);
+        headers=["العنوان","الرسالة","المستلم","التاريخ"];
+        const r2=rows2.map(n=>[n.title,n.message,n.target||"all",fmtDate(n.createdAt)]);
+        downloadCSV(headers,r2,"ndog_notifications.csv");
+      });
+      return;
+    }
+    if(type==="referrals"){
+      db.ref("referrals").once("value").then(snap=>{
+        const data=snap.val()||{};
+        headers=["المُحيل UID","المُحال UID","البريد","المستوى","التاريخ"];
+        const rows2=[];
+        Object.entries(data).forEach(([ruid,refs])=>{
+          Object.entries(refs).forEach(([refedUid,info])=>{
+            rows2.push([ruid,refedUid,info.email||"",info.level||1,fmtDate(info.referredAt)]);
+          });
+        });
+        downloadCSV(headers,rows2,"ndog_referrals.csv");
+      });
+      return;
+    }
+    return;
+  }
+  downloadCSV(headers,rows,filename);
+}
+
+function downloadCSV(headers,rows,filename){
+  const BOM="﻿";
+  const csv=BOM+[headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
+  a.download=filename;
+  a.click();
+  showToast("تم تنزيل الملف 💾","success");
+}
+
+// ==================== START ====================
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape") document.querySelectorAll(".modal-overlay.open").forEach(m=>m.classList.remove("open"));
+});
+</script>
+</body>
+</html>

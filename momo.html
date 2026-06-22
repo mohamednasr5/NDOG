@@ -304,69 +304,140 @@ select.field-input{cursor:pointer}
 #pageLoader.show{display:flex}
 #pageLoader p{color:var(--text2);font-size:14px}
 
-/* ===== BOTTOM NAV (MOBILE) ===== */
+/* ===== BOTTOM NAV (MOBILE) - مطابق لتصميم الصورة ===== */
 .bottom-nav{
   display:none;
-  position:fixed;bottom:0;left:0;right:0;
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
   background:var(--card);
   border-top:1px solid var(--border);
   z-index:200;
-  padding:6px 0 env(safe-area-inset-bottom, 6px);
+  padding:8px 0 env(safe-area-inset-bottom, 8px);
 }
 .bottom-nav-inner{
   display:flex;
   justify-content:space-around;
-  align-items:center;
+  align-items:flex-start;
   max-width:500px;
   margin:0 auto;
 }
 .bnav-item{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
   padding:6px 4px 4px;
-  border:none;background:none;color:var(--text3);
-  font-size:10px;font-weight:500;cursor:pointer;
-  transition:.2s;min-width:56px;
-  font-family:inherit;border-radius:8px;
+  border:none;
+  background:none;
+  color:var(--text3);
+  font-size:10px;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.2s;
+  min-width:52px;
+  font-family:inherit;
+  border-radius:12px;
   -webkit-tap-highlight-color:transparent;
 }
-.bnav-item:active{transform:scale(.92)}
-.bnav-item .bnav-icon{font-size:20px;line-height:1;transition:.2s}
-.bnav-item.active{color:var(--accent)}
-.bnav-item.active .bnav-icon{transform:scale(1.1)}
+.bnav-item .bnav-icon{
+  width:46px;
+  height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg2);
+  border-radius:16px;
+  transition:0.25s ease;
+  font-size:20px;
+  color:var(--text2);
+  border:1px solid transparent;
+}
+.bnav-item.active .bnav-icon{
+  background:rgba(245,158,11,0.12);
+  color:var(--accent);
+  border-color:rgba(245,158,11,0.3);
+  transform:scale(1.02);
+}
+.bnav-item.active{
+  color:var(--accent);
+}
+.bnav-item:active .bnav-icon{
+  transform:scale(0.92);
+}
+.bnav-item span:last-child{
+  font-size:9px;
+  letter-spacing:0.3px;
+}
 
-/* Font Awesome icons in bottom nav */
-.bnav-item .bnav-icon i,
-.bmm-item .bmm-icon i {
-  font-size: 20px;
-  transition: transform 0.15s ease;
+/* أيقونات Font Awesome داخل الـ BNav */
+.bnav-item .bnav-icon i{
+  font-size:22px;
+  transition:0.2s;
 }
-.bnav-item:active .bnav-icon i {
-  transform: scale(0.85);
-}
-.bmm-item:active .bmm-icon i {
-  transform: scale(0.85);
+.bnav-item.active .bnav-icon i{
+  transform:scale(1.05);
 }
 
-/* MORE MENU */
+/* MORE MENU - نفس التصميم */
 .bnav-more-menu{
-  display:none;position:fixed;bottom:70px;left:12px;right:12px;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:16px;padding:12px;z-index:201;
+  display:none;
+  position:fixed;
+  bottom:76px;
+  left:12px;
+  right:12px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:12px;
+  z-index:201;
   box-shadow:0 -8px 40px rgba(0,0,0,.5);
   animation:slideUp .25s ease;
 }
 .bnav-more-menu.show{display:block}
 .bnav-more-menu .bmm-grid{
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
 }
 .bmm-item{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:14px 8px;border:none;background:var(--bg2);border-radius:12px;
-  color:var(--text2);font-size:11px;font-weight:500;cursor:pointer;
-  transition:.2s;font-family:inherit;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:14px 6px;
+  border:none;
+  background:var(--bg2);
+  border-radius:14px;
+  color:var(--text2);
+  font-size:11px;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.2s;
+  font-family:inherit;
 }
-.bmm-item:active{background:var(--card2);transform:scale(.95)}
-.bmm-item .bmm-icon{font-size:22px}
+.bmm-item:active{
+  background:var(--card2);
+  transform:scale(0.95);
+}
+.bmm-item .bmm-icon{
+  width:44px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg2);
+  border-radius:14px;
+  font-size:20px;
+  color:var(--text2);
+}
+.bmm-item:active .bmm-icon{
+  background:var(--card2);
+}
+.bmm-item .bmm-icon i{
+  font-size:22px;
+}
 
 /* RESPONSIVE */
 @media(max-width:900px){
@@ -421,9 +492,12 @@ select.field-input{cursor:pointer}
   .topbar{height:50px;padding:0 10px}
   .topbar-title{font-size:14px}
   .live-badge{font-size:10px;padding:4px 8px}
-  .bnav-item{min-width:48px;font-size:9px}
-  .bnav-item .bnav-icon i { font-size:18px; }
-  .bmm-item .bmm-icon i { font-size:20px; }
+  .bnav-item{min-width:44px}
+  .bnav-item .bnav-icon{width:40px;height:40px;border-radius:12px}
+  .bnav-item .bnav-icon i{font-size:18px}
+  .bnav-item span:last-child{font-size:8px}
+  .bmm-item .bmm-icon{width:38px;height:38px}
+  .bmm-item .bmm-icon i{font-size:18px}
 }
 </style>
 </head>
@@ -734,7 +808,7 @@ select.field-input{cursor:pointer}
     </main>
   </div>
 
-  <!-- BOTTOM NAVIGATION (Mobile) -->
+  <!-- BOTTOM NAVIGATION (Mobile) - بتصميم جديد يشبه الصورة -->
   <nav class="bottom-nav" id="bottomNav">
     <div class="bottom-nav-inner">
       <button class="bnav-item active" data-bpage="overview" onclick="bnavGo('overview',this)">

@@ -10,12 +10,8 @@
     <meta name="description" content="NDOG Coin — Premium Crypto Mining & Rewards Platform">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="./manifest.json">
-    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16.png">
-    <link rel="shortcut icon" href="./icons/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png">
-    <link rel="mask-icon" href="./icons/icon-source.svg" color="#D4A017">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23D4A017'/><text y='.9em' font-size='60' x='20' fill='%23070B14'>🐕</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23D4A017'/><text y='.9em' font-size='60' x='20' fill='%23070B14'>🐕</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -40,45 +36,80 @@
     <!-- ========== STYLES ========== -->
     <style>
         /* ═══════════════════════════════════════════════════════════════
-           NDOG COIN — Premium Design System (embedded for single file)
+           NDOG COIN — Premium Design System
+           Dark · Gold · Egyptian Innovation · Crypto Exchange Grade
            ═══════════════════════════════════════════════════════════════ */
 
+        /* ── 1. DESIGN TOKENS ─────────────────────────────────────── */
         :root {
+            /* Core palette */
             --bg: #070B14;
             --surface: #0D1220;
             --surface-2: #141826;
             --surface-3: #1C2236;
             --border: rgba(255, 255, 255, 0.07);
             --border-2: rgba(255, 255, 255, 0.12);
+
+            /* Brand */
             --gold: #D4A017;
             --gold-light: #F0C93A;
             --gold-dark: #9B7210;
             --gold-glow: rgba(212, 160, 23, 0.25);
+            --gold-2: #F0C93A;
             --blue: #1A6BDB;
             --blue-light: #3D8EF0;
             --blue-glow: rgba(26, 107, 219, 0.2);
+
+            /* Nile brand (compatibility aliases) */
+            --nile: #1A6BDB;
+            --nile-soft: #3D8EF0;
+
+            /* Text */
             --text-1: #F0F4FF;
             --text-2: #8B97B8;
             --text-3: #4A5577;
+            /* Text aliases (compatibility) */
+            --text: #F0F4FF;
+            --text-dim: #8B97B8;
+            --text-mute: #4A5577;
+
+            /* Status */
             --green: #10B981;
             --red: #EF4444;
             --orange: #F59E0B;
             --purple: #8B5CF6;
+            /* Neon status (compatibility) */
+            --neon-green: #36F1A3;
+            --neon-pink: #FF6EC7;
+
+            /* UI */
             --radius-sm: 10px;
             --radius: 16px;
             --radius-lg: 24px;
             --radius-xl: 32px;
+            /* Short aliases (compatibility) */
+            --r-sm: 10px;
+            --r-md: 16px;
+            --r-lg: 24px;
+            --r-xl: 32px;
+
+            /* Glass */
             --glass-bg: rgba(13, 18, 32, 0.8);
             --glass-blur: blur(20px);
             --glass-bd: rgba(255, 255, 255, 0.1);
+
+            /* Nav */
             --nav-h: 72px;
             --status-bar: env(safe-area-inset-top, 0px);
             --home-inset: env(safe-area-inset-bottom, 0px);
+
+            /* Fonts */
             --font-en: 'Space Grotesk', system-ui, sans-serif;
             --font-ar: 'Tajawal', system-ui, sans-serif;
             --font-mono: 'Space Mono', 'Courier New', monospace;
         }
 
+        /* ── 2. RESET & BASE ──────────────────────────────────────── */
         *,
         *::before,
         *::after {
@@ -126,13 +157,14 @@
             font-family: var(--font-mono);
         }
 
-        /* Ambient */
+        /* ── 3. AMBIENT BACKGROUND ────────────────────────────────── */
         #bg-canvas {
             position: fixed;
             inset: 0;
             z-index: 0;
             pointer-events: none;
         }
+
         .ambient-orbs {
             position: fixed;
             inset: 0;
@@ -140,12 +172,14 @@
             pointer-events: none;
             overflow: hidden;
         }
+
         .orb {
             position: absolute;
             border-radius: 50%;
             filter: blur(80px);
             animation: orbFloat 12s ease-in-out infinite;
         }
+
         .orb-1 {
             width: 400px;
             height: 400px;
@@ -154,6 +188,7 @@
             background: radial-gradient(circle, rgba(212, 160, 23, 0.12) 0%, transparent 70%);
             animation-delay: 0s;
         }
+
         .orb-2 {
             width: 350px;
             height: 350px;
@@ -162,6 +197,7 @@
             background: radial-gradient(circle, rgba(26, 107, 219, 0.12) 0%, transparent 70%);
             animation-delay: -4s;
         }
+
         .orb-3 {
             width: 300px;
             height: 300px;
@@ -170,6 +206,7 @@
             background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
             animation-delay: -8s;
         }
+
         @keyframes orbFloat {
             0%,
             100% {
@@ -183,7 +220,7 @@
             }
         }
 
-        /* Screens */
+        /* ── 4. SCREENS ───────────────────────────────────────────── */
         .screen {
             position: fixed;
             inset: 0;
@@ -194,26 +231,32 @@
             overflow-y: auto;
             padding: 24px 0;
         }
-        .auth-panel {
+
+        /* ── 5. LOGIN ─────────────────────────────────────────────── */
+        .login-screen {
+            background: var(--bg);
+        }
+
+        .login-inner {
+            position: relative;
+            z-index: 1;
             width: 100%;
             max-width: 420px;
-            padding: 20px 24px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            backdrop-filter: var(--glass-blur);
-        }
-        .auth-panel .auth-inner {
+            padding: 40px 24px 60px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            align-items: center;
+            gap: 24px;
         }
+
+        /* Brand */
         .login-brand {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 16px;
         }
+
         .login-coin {
             position: relative;
             width: 96px;
@@ -222,6 +265,7 @@
             align-items: center;
             justify-content: center;
         }
+
         .coin-emoji {
             font-size: 52px;
             position: relative;
@@ -229,6 +273,7 @@
             filter: drop-shadow(0 0 20px rgba(212, 160, 23, 0.5));
             animation: coinPulse 3s ease-in-out infinite;
         }
+
         .coin-ring {
             position: absolute;
             border-radius: 50%;
@@ -236,6 +281,7 @@
             opacity: 0;
             animation: coinRing 3s ease-out infinite;
         }
+
         .ring-1 {
             width: 80px;
             height: 80px;
@@ -246,12 +292,14 @@
             height: 110px;
             animation-delay: 0.5s;
         }
+
         .coin-glow {
             position: absolute;
             inset: -20px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(212, 160, 23, 0.2) 0%, transparent 70%);
         }
+
         @keyframes coinPulse {
             0%,
             100% {
@@ -263,6 +311,7 @@
                 filter: drop-shadow(0 0 30px rgba(212, 160, 23, 0.7));
             }
         }
+
         @keyframes coinRing {
             0% {
                 transform: scale(0.6);
@@ -273,6 +322,7 @@
                 opacity: 0;
             }
         }
+
         .login-title {
             font-size: 36px;
             font-weight: 700;
@@ -280,15 +330,18 @@
             color: var(--text-1);
             line-height: 1;
         }
+
         .login-title-accent {
             color: var(--gold);
         }
+
         .login-tagline {
             font-size: 14px;
             color: var(--text-2);
             letter-spacing: 0.5px;
         }
 
+        /* Login stats */
         .login-stats {
             display: flex;
             align-items: center;
@@ -299,6 +352,7 @@
             padding: 16px 24px;
             width: 100%;
         }
+
         .login-stat {
             flex: 1;
             text-align: center;
@@ -323,16 +377,26 @@
             background: var(--border);
         }
 
+        /* Forms */
+        .auth-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
+
         .form-label {
             font-size: 13px;
             font-weight: 600;
             color: var(--text-2);
         }
+
         .form-input {
             padding: 14px 16px;
             background: var(--surface-2);
@@ -344,12 +408,15 @@
             outline: none;
             width: 100%;
         }
+
         .form-input:focus {
             border-color: var(--gold);
         }
+
         .form-input::placeholder {
             color: var(--text-3);
         }
+
         .form-select {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B97B8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
@@ -357,35 +424,77 @@
             background-position: right 14px center;
             padding-right: 40px;
         }
+
         .form-select option {
             background: var(--surface);
             color: var(--text-1);
         }
+
         .form-row-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
-        .btn-google {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 16px 24px;
-            background: #fff;
-            border-radius: var(--radius);
-            color: #1a1a1a;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.2s;
+        .input-password-wrap {
+            position: relative;
+        }
+
+        .input-password-wrap .form-input {
+            padding-right: 48px;
+        }
+
+        .btn-toggle-pw {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-3);
+            padding: 4px;
+            background: none;
             border: none;
             cursor: pointer;
         }
-        .btn-google:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+
+        .btn-toggle-pw:hover {
+            color: var(--text-2);
+        }
+
+        .form-hint {
+            font-size: 11px;
+            color: var(--text-3);
+            margin-top: 4px;
+        }
+
+        .form-hint.error {
+            color: var(--red);
+        }
+
+        /* Auth switch */
+        .auth-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-2);
+        }
+
+        .link-btn {
+            color: var(--gold);
+            font-weight: 600;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: inherit;
+            padding: 0;
+        }
+
+        .link-btn:hover {
+            text-decoration: underline;
+        }
+
+        .btn-full {
+            width: 100%;
         }
 
         .btn-primary {
@@ -401,8 +510,8 @@
             overflow: hidden;
             border: none;
             cursor: pointer;
-            width: 100%;
         }
+
         .btn-primary::after {
             content: '';
             position: absolute;
@@ -410,9 +519,18 @@
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
             pointer-events: none;
         }
+
         .btn-primary:hover {
             transform: translateY(-1px);
             box-shadow: 0 8px 24px rgba(212, 160, 23, 0.4);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .btn-secondary {
@@ -425,7 +543,6 @@
             font-weight: 600;
             transition: all 0.2s;
             cursor: pointer;
-            width: 100%;
         }
         .btn-secondary:hover {
             border-color: var(--gold);
@@ -450,6 +567,7 @@
             color: var(--gold);
         }
 
+        /* Tokenomics */
         .tokenomics {
             width: 100%;
             background: var(--surface);
@@ -457,6 +575,7 @@
             border-radius: var(--radius);
             padding: 16px;
         }
+
         .tokenomics-title {
             font-size: 12px;
             font-weight: 600;
@@ -465,6 +584,7 @@
             letter-spacing: 0.8px;
             margin-bottom: 10px;
         }
+
         .token-bar {
             display: flex;
             height: 6px;
@@ -473,15 +593,18 @@
             gap: 2px;
             margin-bottom: 12px;
         }
+
         .token-seg {
             height: 100%;
             border-radius: 99px;
         }
+
         .token-legend {
             display: flex;
             flex-wrap: wrap;
             gap: 6px 12px;
         }
+
         .token-legend span {
             display: flex;
             align-items: center;
@@ -489,6 +612,7 @@
             font-size: 11px;
             color: var(--text-2);
         }
+
         .token-legend i {
             width: 8px;
             height: 8px;
@@ -506,7 +630,7 @@
             margin-bottom: 12px;
         }
 
-        /* App layout */
+        /* ── 6. MAIN APP ──────────────────────────────────────────── */
         .app {
             position: relative;
             z-index: 1;
@@ -514,10 +638,12 @@
             display: flex;
             flex-direction: column;
         }
+
         .status-bar-spacer {
             height: var(--status-bar);
             background: transparent;
         }
+
         .app-main {
             flex: 1;
             overflow-y: auto;
@@ -525,18 +651,22 @@
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
         }
+
         .home-bottom-spacer {
             height: calc(var(--nav-h) + 20px + var(--home-inset));
         }
 
+        /* ── 7. TAB VIEWS ─────────────────────────────────────────── */
         .tab-view {
             display: none;
             animation: fadeSlideUp 0.3s ease;
             padding: 0 16px;
         }
+
         .tab-view.active {
             display: block;
         }
+
         @keyframes fadeSlideUp {
             from {
                 opacity: 0;
@@ -548,6 +678,7 @@
             }
         }
 
+        /* ── 8. HOME HEADER ───────────────────────────────────────── */
         .home-header {
             display: flex;
             align-items: center;
@@ -555,6 +686,7 @@
             padding: 16px 0 12px;
             gap: 12px;
         }
+
         .home-header-left {
             display: flex;
             align-items: center;
@@ -565,6 +697,7 @@
             align-items: center;
             gap: 8px;
         }
+
         .avatar-wrap {
             width: 40px;
             height: 40px;
@@ -578,11 +711,13 @@
             flex-shrink: 0;
             border: 2px solid rgba(212, 160, 23, 0.3);
         }
+
         .avatar-wrap img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .home-user-info {
             display: flex;
             flex-direction: column;
@@ -598,6 +733,7 @@
             font-weight: 600;
             color: var(--text-1);
         }
+
         .icon-btn {
             width: 36px;
             height: 36px;
@@ -615,6 +751,7 @@
             color: var(--text-1);
         }
 
+        /* ── 9. BALANCE HERO CARD ────────────────────────────────── */
         .balance-card {
             position: relative;
             border-radius: var(--radius-lg);
@@ -624,6 +761,7 @@
             background: linear-gradient(135deg, #0F1825 0%, #1A2140 50%, #0F1825 100%);
             border: 1px solid rgba(212, 160, 23, 0.2);
         }
+
         .balance-card-bg {
             position: absolute;
             inset: 0;
@@ -632,6 +770,7 @@
                 radial-gradient(ellipse at 0% 100%, rgba(26, 107, 219, 0.1) 0%, transparent 60%);
             pointer-events: none;
         }
+
         .balance-label {
             font-size: 11px;
             font-weight: 600;
@@ -641,6 +780,7 @@
             margin-bottom: 8px;
             position: relative;
         }
+
         .balance-amount {
             font-size: 42px;
             font-weight: 700;
@@ -652,6 +792,7 @@
             transition: all 0.4s;
             font-variant-numeric: tabular-nums;
         }
+
         .balance-unit {
             font-size: 14px;
             color: var(--text-2);
@@ -660,12 +801,14 @@
             margin-bottom: 16px;
             position: relative;
         }
+
         .balance-badges {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
             position: relative;
         }
+
         .badge {
             padding: 4px 12px;
             border-radius: 99px;
@@ -673,22 +816,26 @@
             font-weight: 700;
             letter-spacing: 0.3px;
         }
+
         .badge-vip {
             background: linear-gradient(135deg, var(--gold-dark), var(--gold-light));
             color: #070B14;
         }
+
         .badge-founder {
             background: rgba(139, 92, 246, 0.2);
             border: 1px solid rgba(139, 92, 246, 0.4);
             color: #C4B5FD;
         }
 
+        /* ── 10. QUICK STATS ─────────────────────────────────────── */
         .quick-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin-bottom: 16px;
         }
+
         .quick-stat {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -697,9 +844,11 @@
             text-align: center;
             transition: border-color 0.2s;
         }
+
         .quick-stat:hover {
             border-color: var(--border-2);
         }
+
         .quick-stat-icon {
             font-size: 20px;
             margin-bottom: 6px;
@@ -718,6 +867,7 @@
             margin-top: 3px;
         }
 
+        /* ── 11. GLASS CARD ──────────────────────────────────────── */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
@@ -729,21 +879,25 @@
             position: relative;
             overflow: hidden;
         }
+
         .card-header {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 14px;
         }
+
         .card-header-icon {
             font-size: 18px;
         }
+
         .card-header-title {
             font-size: 14px;
             font-weight: 600;
             color: var(--text-1);
             flex: 1;
         }
+
         .card-header-badge {
             font-size: 11px;
             padding: 3px 8px;
@@ -754,12 +908,14 @@
             font-weight: 600;
         }
 
+        /* ── 12. CLAIM CARD ──────────────────────────────────────── */
         .claim-card-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 16px;
         }
+
         .claim-card-label {
             display: flex;
             align-items: center;
@@ -768,9 +924,11 @@
             font-weight: 600;
             color: var(--text-1);
         }
+
         .claim-icon {
             font-size: 18px;
         }
+
         .claim-cooldown-badge {
             background: rgba(245, 158, 11, 0.1);
             border: 1px solid rgba(245, 158, 11, 0.3);
@@ -781,14 +939,17 @@
             color: var(--orange);
             font-family: var(--font-mono);
         }
+
         .streak-track {
             margin-bottom: 16px;
         }
+
         .streak-days {
             display: flex;
             gap: 6px;
             justify-content: space-between;
         }
+
         .streak-day {
             flex: 1;
             aspect-ratio: 1;
@@ -804,20 +965,24 @@
             color: var(--text-3);
             transition: all 0.3s;
         }
+
         .streak-day.completed {
             background: linear-gradient(135deg, var(--gold-dark), var(--gold));
             border-color: var(--gold);
             color: #070B14;
             transform: scale(1.05);
         }
+
         .streak-day.today {
             border-color: var(--blue-light);
             color: var(--blue-light);
             box-shadow: 0 0 12px rgba(61, 142, 240, 0.3);
         }
+
         .streak-day-special {
             font-size: 9px;
         }
+
         .claim-msg {
             margin-top: 10px;
             font-size: 13px;
@@ -825,12 +990,14 @@
             text-align: center;
         }
 
+        /* ── 13. WHEEL ────────────────────────────────────────────── */
         .wheel-wrap {
             position: relative;
             display: flex;
             justify-content: center;
             margin-bottom: 16px;
         }
+
         .wheel-pointer-wrap {
             position: absolute;
             top: -4px;
@@ -838,12 +1005,14 @@
             transform: translateX(-50%);
             z-index: 2;
         }
+
         .wheel-pointer {
             font-size: 20px;
             color: var(--gold);
             text-shadow: 0 0 8px rgba(212, 160, 23, 0.6);
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
         }
+
         #wheel-canvas {
             border-radius: 50%;
             box-shadow: 0 0 30px rgba(212, 160, 23, 0.15), 0 0 60px rgba(0, 0, 0, 0.5);
@@ -851,6 +1020,7 @@
             max-width: 100%;
             height: auto;
         }
+
         .spin-result-msg {
             margin-top: 10px;
             padding: 12px;
@@ -863,12 +1033,14 @@
             text-align: center;
         }
 
+        /* ── 14. MINI GAMES ──────────────────────────────────────── */
         .mini-games {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-bottom: 14px;
         }
+
         .mini-game-card {
             display: flex;
             flex-direction: column;
@@ -877,9 +1049,11 @@
             padding: 16px;
             cursor: pointer;
         }
+
         .mini-game-card:hover {
             border-color: var(--border-2);
         }
+
         .mini-game-icon {
             font-size: 28px;
         }
@@ -893,23 +1067,7 @@
             color: var(--text-3);
         }
 
-        .btn-mini {
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-            color: #070B14;
-            font-size: 13px;
-            font-weight: 700;
-            transition: all 0.2s;
-            flex-shrink: 0;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-mini:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
-        }
-
+        /* ── 15. LEVEL PROGRESS ──────────────────────────────────── */
         .level-row {
             display: flex;
             align-items: center;
@@ -917,6 +1075,7 @@
             margin-bottom: 8px;
             flex-wrap: wrap;
         }
+
         .level-badge-item {
             flex: 1;
             display: flex;
@@ -932,46 +1091,37 @@
             transition: all 0.3s;
             min-width: 44px;
         }
+
         .level-badge-item span {
             font-size: 9px;
             text-align: center;
         }
+
         .level-badge-item.active {
             border-color: var(--gold);
             background: rgba(212, 160, 23, 0.08);
             color: var(--gold);
             box-shadow: 0 0 12px rgba(212, 160, 23, 0.15);
         }
+
         .level-connector {
             width: 12px;
             height: 2px;
             background: var(--surface-3);
             flex-shrink: 0;
         }
+
         .level-connector.done {
             background: var(--gold-dark);
         }
+
         .level-next-label {
             font-size: 11px;
             color: var(--text-3);
             text-align: center;
         }
 
-        .level-threshold {
-            display: block;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--gold);
-            opacity: 0.7;
-            margin-top: 2px;
-            font-family: var(--font-mono);
-            letter-spacing: -0.3px;
-        }
-        .level-badge-item.active .level-threshold {
-            opacity: 1;
-            text-shadow: 0 0 8px rgba(212, 160, 23, 0.5);
-        }
-
+        /* ── 16. REFERRAL QUICK ───────────────────────────────────── */
         .referral-code-display {
             display: flex;
             align-items: center;
@@ -982,6 +1132,7 @@
             padding: 12px 16px;
             margin-bottom: 14px;
         }
+
         .referral-code-val {
             flex: 1;
             font-size: 16px;
@@ -992,25 +1143,6 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .btn-copy {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: var(--radius-sm);
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            color: var(--text-2);
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.2s;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-        .btn-copy:hover {
-            border-color: var(--gold);
-            color: var(--gold);
-        }
 
         .share-row {
             display: flex;
@@ -1018,6 +1150,7 @@
             flex-wrap: wrap;
             margin-bottom: 6px;
         }
+
         .share-btn {
             flex: 1;
             padding: 8px 4px;
@@ -1030,12 +1163,13 @@
             transition: all 0.2s;
             text-align: center;
             min-width: 32px;
-            cursor: pointer;
         }
+
         .share-btn:hover {
             border-color: var(--border-2);
             color: var(--text-1);
         }
+
         .share-wa:hover {
             background: rgba(37, 211, 102, 0.1);
             border-color: rgba(37, 211, 102, 0.4);
@@ -1087,6 +1221,7 @@
             color: var(--text-1);
         }
 
+        /* ── 17. FOUNDER BANNER ───────────────────────────────────── */
         .founder-banner {
             display: flex;
             align-items: center;
@@ -1097,20 +1232,24 @@
             border: 1px solid rgba(139, 92, 246, 0.25);
             margin-bottom: 14px;
         }
+
         .founder-banner span {
             font-size: 24px;
             flex-shrink: 0;
         }
+
         .founder-banner p {
             font-size: 13px;
             color: #C4B5FD;
             line-height: 1.5;
         }
 
+        /* ── 18. PAGE HEADERS ─────────────────────────────────────── */
         .page-header,
         .mining-header {
             padding: 20px 0 12px;
         }
+
         .page-title {
             font-size: 26px;
             font-weight: 700;
@@ -1118,6 +1257,7 @@
             letter-spacing: -0.5px;
         }
 
+        /* ── 19. MINING SCREEN ────────────────────────────────────── */
         .mining-core-wrap {
             position: relative;
             display: flex;
@@ -1126,30 +1266,35 @@
             height: 280px;
             margin: 0 0 24px;
         }
+
         .mining-energy-ring {
             position: absolute;
             border-radius: 50%;
             border: 1.5px solid;
             pointer-events: none;
         }
+
         .ring-a {
             width: 200px;
             height: 200px;
             border-color: rgba(212, 160, 23, 0.2);
             animation: ringRotate 8s linear infinite;
         }
+
         .ring-b {
             width: 240px;
             height: 240px;
             border-color: rgba(26, 107, 219, 0.15);
             animation: ringRotate 12s linear infinite reverse;
         }
+
         .ring-c {
             width: 170px;
             height: 170px;
             border-color: rgba(139, 92, 246, 0.15);
             animation: ringRotate 6s linear infinite;
         }
+
         @keyframes ringRotate {
             from {
                 transform: rotate(0deg);
@@ -1163,6 +1308,7 @@
             position: relative;
             z-index: 2;
         }
+
         .mining-btn {
             width: 140px;
             height: 140px;
@@ -1173,9 +1319,11 @@
             cursor: pointer;
             transition: transform 0.15s;
         }
+
         .mining-btn:active {
             transform: scale(0.95);
         }
+
         .mining-btn-inner {
             width: 100%;
             height: 100%;
@@ -1195,6 +1343,7 @@
                 inset 0 0 30px rgba(212, 160, 23, 0.05);
             transition: all 0.3s;
         }
+
         .mining-btn.is-mining .mining-btn-inner {
             border-color: var(--gold);
             box-shadow:
@@ -1202,6 +1351,7 @@
                 0 0 40px rgba(212, 160, 23, 0.4),
                 inset 0 0 30px rgba(212, 160, 23, 0.1);
         }
+
         .mining-btn.is-cooldown .mining-btn-inner {
             border-color: var(--blue-light);
             box-shadow:
@@ -1209,14 +1359,17 @@
                 0 0 30px rgba(61, 142, 240, 0.3),
                 inset 0 0 20px rgba(61, 142, 240, 0.05);
         }
+
         .mining-btn-emoji {
             font-size: 42px;
             filter: drop-shadow(0 0 12px rgba(212, 160, 23, 0.6));
             animation: mineEmoji 2s ease-in-out infinite;
         }
+
         .mining-btn.is-mining .mining-btn-emoji {
             animation: mineEmojiActive 0.8s ease-in-out infinite;
         }
+
         @keyframes mineEmoji {
             0%,
             100% {
@@ -1226,6 +1379,7 @@
                 transform: scale(1.05);
             }
         }
+
         @keyframes mineEmojiActive {
             0%,
             100% {
@@ -1235,6 +1389,7 @@
                 transform: scale(1.1) rotate(5deg);
             }
         }
+
         .mining-btn-label {
             font-size: 10px;
             font-weight: 800;
@@ -1242,6 +1397,7 @@
             color: var(--gold);
             text-transform: uppercase;
         }
+
         .mining-btn-glow {
             position: absolute;
             inset: -20px;
@@ -1250,9 +1406,11 @@
             animation: glowPulse 2s ease-in-out infinite;
             pointer-events: none;
         }
+
         .mining-btn.is-mining .mining-btn-glow {
             animation: glowPulseActive 0.6s ease-in-out infinite;
         }
+
         @keyframes glowPulse {
             0%,
             100% {
@@ -1264,6 +1422,7 @@
                 transform: scale(1.1);
             }
         }
+
         @keyframes glowPulseActive {
             0%,
             100% {
@@ -1281,12 +1440,14 @@
             inset: 0;
             pointer-events: none;
         }
+
         .mine-particle {
             position: absolute;
             font-size: 16px;
             pointer-events: none;
             animation: particleFly 1.2s ease-out forwards;
         }
+
         @keyframes particleFly {
             0% {
                 opacity: 1;
@@ -1302,16 +1463,19 @@
             text-align: center;
             margin-bottom: 20px;
         }
+
         .mining-status-state {
             font-size: 14px;
             font-weight: 600;
             color: var(--text-2);
             margin-bottom: 10px;
         }
+
         .mining-progress-wrap {
             margin: 0 auto;
             max-width: 280px;
         }
+
         .mining-progress-bar {
             height: 6px;
             background: var(--surface-3);
@@ -1319,6 +1483,7 @@
             overflow: hidden;
             margin-bottom: 8px;
         }
+
         .mining-progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
@@ -1326,6 +1491,7 @@
             width: 0%;
             transition: width 0.5s linear;
         }
+
         .mining-progress-vals {
             display: flex;
             justify-content: center;
@@ -1334,6 +1500,7 @@
             color: var(--text-2);
             font-weight: 600;
         }
+
         .mining-countdown-text {
             font-size: 16px;
             font-weight: 700;
@@ -1341,23 +1508,27 @@
             font-family: var(--font-mono);
             margin-top: 4px;
         }
+
         .mining-estimated-reward {
             font-size: 13px;
             color: var(--text-2);
             margin-top: 2px;
         }
 
+        /* Boost card */
         .boost-card {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
         }
+
         .boost-card-left {
             display: flex;
             align-items: center;
             gap: 12px;
         }
+
         .boost-icon {
             font-size: 28px;
             width: 44px;
@@ -1369,6 +1540,7 @@
             border: 1px solid rgba(26, 107, 219, 0.2);
             border-radius: var(--radius-sm);
         }
+
         .boost-title {
             font-size: 13px;
             font-weight: 700;
@@ -1379,6 +1551,7 @@
             color: var(--text-3);
             margin-top: 2px;
         }
+
         .btn-boost {
             padding: 10px 20px;
             border-radius: var(--radius);
@@ -1389,12 +1562,13 @@
             font-weight: 700;
             transition: all 0.2s;
             flex-shrink: 0;
-            cursor: pointer;
         }
+
         .btn-boost:hover {
             box-shadow: 0 4px 16px rgba(26, 107, 219, 0.4);
             transform: translateY(-1px);
         }
+
         .boost-timer-wrap {
             display: flex;
             align-items: center;
@@ -1405,6 +1579,7 @@
             border-radius: var(--radius);
             margin-bottom: 14px;
         }
+
         .boost-active-label {
             display: flex;
             align-items: center;
@@ -1413,6 +1588,7 @@
             color: var(--blue-light);
             font-weight: 600;
         }
+
         .boost-active-dot {
             width: 8px;
             height: 8px;
@@ -1420,6 +1596,7 @@
             border-radius: 50%;
             animation: dotBlink 1s ease-in-out infinite;
         }
+
         @keyframes dotBlink {
             0%,
             100% {
@@ -1429,6 +1606,7 @@
                 opacity: 0.3;
             }
         }
+
         .boost-countdown {
             font-size: 18px;
             font-weight: 700;
@@ -1441,6 +1619,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
+
         .mstat {
             background: var(--surface-3);
             border-radius: var(--radius-sm);
@@ -1449,6 +1628,7 @@
             flex-direction: column;
             gap: 4px;
         }
+
         .mstat-label {
             font-size: 11px;
             color: var(--text-3);
@@ -1459,6 +1639,7 @@
             color: var(--text-1);
         }
 
+        /* ── 20. WALLET ────────────────────────────────────────────── */
         .wallet-card {
             position: relative;
             border-radius: var(--radius-lg);
@@ -1468,6 +1649,7 @@
             background: linear-gradient(135deg, #131B35 0%, #1E2A50 50%, #131B35 100%);
             border: 1px solid rgba(26, 107, 219, 0.3);
         }
+
         .wallet-card-bg {
             position: absolute;
             inset: 0;
@@ -1476,6 +1658,7 @@
                 radial-gradient(ellipse at 0% 100%, rgba(212, 160, 23, 0.08) 0%, transparent 60%);
             pointer-events: none;
         }
+
         .wallet-label {
             font-size: 11px;
             font-weight: 600;
@@ -1485,6 +1668,7 @@
             margin-bottom: 8px;
             position: relative;
         }
+
         .wallet-amount {
             font-size: 40px;
             font-weight: 700;
@@ -1494,18 +1678,21 @@
             position: relative;
             letter-spacing: -1px;
         }
+
         .wallet-unit {
             font-size: 14px;
             color: rgba(255, 255, 255, 0.5);
             margin-bottom: 20px;
             position: relative;
         }
+
         .wallet-usd-price {
             font-size: 13px;
             color: rgba(255, 255, 255, 0.4);
             margin-bottom: 12px;
             position: relative;
         }
+
         .wallet-price-hint {
             display: flex;
             align-items: center;
@@ -1516,11 +1703,13 @@
             position: relative;
             cursor: help;
         }
+
         .wallet-actions {
             display: flex;
             gap: 12px;
             position: relative;
         }
+
         .wallet-action-btn {
             flex: 1;
             display: flex;
@@ -1537,9 +1726,11 @@
             transition: all 0.2s;
             cursor: pointer;
         }
+
         .wallet-action-btn:hover {
             background: rgba(255, 255, 255, 0.15);
         }
+
         .coming-soon-tag {
             font-size: 8px;
             color: var(--text-3);
@@ -1548,11 +1739,13 @@
             border-radius: 99px;
         }
 
+        /* Earnings grid */
         .earnings-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
+
         .earning-item {
             background: var(--surface-3);
             border-radius: var(--radius-sm);
@@ -1561,6 +1754,7 @@
             flex-direction: column;
             gap: 2px;
         }
+
         .earning-icon {
             font-size: 16px;
         }
@@ -1574,6 +1768,7 @@
             color: var(--gold-light);
         }
 
+        /* Staking */
         .stake-avail-row {
             display: flex;
             justify-content: space-between;
@@ -1582,16 +1777,19 @@
             color: var(--text-2);
             margin-bottom: 14px;
         }
+
         .stake-avail-val {
             font-weight: 700;
             color: var(--gold-light);
         }
+
         .plan-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
             margin-bottom: 14px;
         }
+
         .plan-card {
             padding: 12px;
             background: var(--surface-3);
@@ -1603,14 +1801,17 @@
             flex-direction: column;
             gap: 4px;
         }
+
         .plan-card input {
             display: none;
         }
+
         .plan-card:hover,
         .plan-card.active-plan {
             border-color: var(--gold);
             background: rgba(212, 160, 23, 0.06);
         }
+
         .plan-days {
             font-size: 13px;
             font-weight: 700;
@@ -1631,6 +1832,7 @@
             gap: 8px;
             margin-bottom: 12px;
         }
+
         .stake-input {
             flex: 1;
             padding: 13px 16px;
@@ -1643,12 +1845,14 @@
             outline: none;
             transition: border-color 0.2s;
         }
+
         .stake-input:focus {
             border-color: var(--gold);
         }
         .stake-input::placeholder {
             color: var(--text-3);
         }
+
         .btn-max {
             padding: 12px 16px;
             border-radius: var(--radius-sm);
@@ -1660,12 +1864,14 @@
             flex-shrink: 0;
             cursor: pointer;
         }
+
         .btn-max:hover {
             border-color: var(--gold);
             background: rgba(212, 160, 23, 0.08);
         }
 
         .contracts-list {}
+
         .contract-item {
             display: flex;
             align-items: center;
@@ -1677,6 +1883,7 @@
             border-radius: var(--radius);
             margin-bottom: 8px;
         }
+
         .contract-info {
             flex: 1;
             min-width: 0;
@@ -1696,6 +1903,7 @@
             color: var(--gold);
             margin-top: 2px;
         }
+
         .btn-unstake {
             padding: 8px 16px;
             border-radius: var(--radius-sm);
@@ -1708,10 +1916,12 @@
             border: none;
             cursor: pointer;
         }
+
         .btn-unstake:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
+
         .contracts-empty,
         .tx-empty {
             padding: 24px;
@@ -1721,6 +1931,7 @@
         }
 
         .tx-history-list {}
+
         .tx-item {
             display: flex;
             align-items: center;
@@ -1730,6 +1941,7 @@
             border-radius: var(--radius-sm);
             margin-bottom: 6px;
         }
+
         .tx-icon {
             font-size: 20px;
             width: 36px;
@@ -1741,6 +1953,7 @@
             border-radius: 50%;
             flex-shrink: 0;
         }
+
         .tx-info {
             flex: 1;
             min-width: 0;
@@ -1764,7 +1977,9 @@
             color: var(--red);
         }
 
+        /* ── 21. REWARDS ────────────────────────────────────────────── */
         .mission-list {}
+
         .mission-item {
             display: flex;
             align-items: center;
@@ -1777,9 +1992,11 @@
             margin-bottom: 8px;
             transition: border-color 0.2s;
         }
+
         .mission-item:hover {
             border-color: var(--border-2);
         }
+
         .mission-info {
             flex: 1;
             min-width: 0;
@@ -1800,6 +2017,7 @@
             font-weight: 700;
             margin-top: 4px;
         }
+
         .mission-empty {
             padding: 20px;
             text-align: center;
@@ -1808,6 +2026,7 @@
         }
 
         .leader-list {}
+
         .leader-item {
             display: flex;
             align-items: center;
@@ -1818,6 +2037,7 @@
             margin-bottom: 4px;
             transition: background 0.2s;
         }
+
         .leader-item:hover {
             background: var(--surface-3);
         }
@@ -1825,6 +2045,7 @@
             background: rgba(212, 160, 23, 0.06);
             border: 1px solid rgba(212, 160, 23, 0.15);
         }
+
         .leader-rank {
             font-size: 18px;
             min-width: 32px;
@@ -1850,6 +2071,7 @@
             gap: 8px;
             margin-bottom: 14px;
         }
+
         .lb-tab {
             padding: 8px 16px;
             border-radius: 99px;
@@ -1861,26 +2083,31 @@
             transition: all 0.2s;
             cursor: pointer;
         }
+
         .lb-tab.active {
             background: rgba(212, 160, 23, 0.1);
             border-color: var(--gold);
             color: var(--gold);
         }
 
+        /* Airdrop */
         .airdrop-card {
             text-align: center;
             padding: 32px 20px;
         }
+
         .airdrop-icon-wrap {
             position: relative;
             width: 80px;
             height: 80px;
             margin: 0 auto 16px;
         }
+
         .airdrop-icon {
             font-size: 48px;
             display: block;
         }
+
         .airdrop-glow {
             position: absolute;
             inset: -10px;
@@ -1888,6 +2115,7 @@
             background: radial-gradient(circle, rgba(212, 160, 23, 0.2) 0%, transparent 70%);
             animation: glowPulse 2s ease-in-out infinite;
         }
+
         .airdrop-title {
             font-size: 20px;
             font-weight: 700;
@@ -1905,7 +2133,9 @@
             margin-top: 10px;
         }
 
+        /* News */
         .news-list {}
+
         .news-item {
             padding: 14px;
             background: var(--surface-3);
@@ -1913,6 +2143,7 @@
             border-radius: var(--radius);
             margin-bottom: 8px;
         }
+
         .news-title {
             font-size: 14px;
             font-weight: 700;
@@ -1930,6 +2161,7 @@
             line-height: 1.6;
         }
 
+        /* ── 22. PROFILE ────────────────────────────────────────────── */
         .profile-card {
             display: flex;
             flex-direction: column;
@@ -1938,6 +2170,7 @@
             padding: 28px 20px;
             text-align: center;
         }
+
         .profile-avatar-lg {
             width: 72px;
             height: 72px;
@@ -1951,11 +2184,13 @@
             border: 3px solid rgba(212, 160, 23, 0.4);
             margin-bottom: 4px;
         }
+
         .profile-avatar-lg img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .profile-name {
             font-size: 18px;
             font-weight: 700;
@@ -1965,6 +2200,7 @@
             font-size: 13px;
             color: var(--text-3);
         }
+
         .profile-badges {
             display: flex;
             gap: 8px;
@@ -1979,9 +2215,11 @@
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
         }
+
         .profile-detail-row:last-child {
             border-bottom: none;
         }
+
         .profile-detail-label {
             font-size: 13px;
             color: var(--text-3);
@@ -2009,12 +2247,15 @@
             margin-bottom: 14px;
             cursor: pointer;
         }
+
         .btn-logout-full:hover {
             background: rgba(239, 68, 68, 0.15);
             border-color: rgba(239, 68, 68, 0.4);
         }
 
+        /* ── 23. REFERRAL TREE ────────────────────────────────────── */
         .referral-tree {}
+
         .ref-tree-level {
             margin-bottom: 16px;
             padding: 12px;
@@ -2022,6 +2263,7 @@
             border-radius: var(--radius-sm);
             border-left: 3px solid var(--gold-dark);
         }
+
         .ref-tree-label {
             font-size: 13px;
             font-weight: 700;
@@ -2038,6 +2280,7 @@
             gap: 6px;
             margin-top: 8px;
         }
+
         .ref-tree-member {
             padding: 4px 12px;
             background: var(--surface-2);
@@ -2046,6 +2289,7 @@
             color: var(--text-2);
             border: 1px solid var(--border);
         }
+
         .ref-tree-member.founder {
             border-color: var(--gold);
             color: var(--gold);
@@ -2056,6 +2300,7 @@
             grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
             gap: 8px;
         }
+
         .share-all-btn {
             display: flex;
             flex-direction: column;
@@ -2071,14 +2316,17 @@
             transition: all 0.2s;
             cursor: pointer;
         }
+
         .share-all-btn:hover {
             border-color: var(--border-2);
             color: var(--text-1);
         }
+
         .share-all-icon {
             font-size: 20px;
         }
 
+        /* ── 24. QR CODE ───────────────────────────────────────────── */
         .qr-section {
             display: flex;
             flex-direction: column;
@@ -2086,6 +2334,7 @@
             gap: 12px;
             padding: 16px 0 8px;
         }
+
         .qr-label {
             font-size: 12px;
             color: var(--text-3);
@@ -2093,6 +2342,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         #qrCanvas {
             border-radius: var(--radius-sm);
             background: #fff;
@@ -2100,6 +2350,7 @@
             max-width: 200px;
             height: auto;
         }
+
         .btn-sm {
             padding: 10px 16px;
             width: auto;
@@ -2107,17 +2358,20 @@
             border: none;
             cursor: pointer;
         }
+
         .btn-secondary.btn-sm {
             background: var(--surface-2);
             border: 1px solid var(--border);
             color: var(--text-2);
             border-radius: var(--radius-sm);
         }
+
         .btn-secondary.btn-sm:hover {
             border-color: var(--gold);
             color: var(--gold);
         }
 
+        /* ── 25. TOAST NOTIFICATIONS ──────────────────────────────── */
         .toast-stack {
             position: fixed;
             top: calc(var(--status-bar) + 16px);
@@ -2131,6 +2385,7 @@
             width: calc(100% - 32px);
             max-width: 380px;
         }
+
         .toast {
             display: flex;
             align-items: center;
@@ -2146,6 +2401,7 @@
             animation: toastIn 0.3s ease;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
         }
+
         @keyframes toastIn {
             from {
                 opacity: 0;
@@ -2156,15 +2412,18 @@
                 transform: translateY(0) scale(1);
             }
         }
+
         .toast-out {
             animation: toastOut 0.25s ease forwards;
         }
+
         @keyframes toastOut {
             to {
                 opacity: 0;
                 transform: translateY(-8px) scale(0.95);
             }
         }
+
         .toast-success {
             background: rgba(16, 185, 129, 0.9);
         }
@@ -2178,6 +2437,7 @@
             background: rgba(26, 107, 219, 0.9);
         }
 
+        /* ── 26. LOADING OVERLAY ──────────────────────────────────── */
         .loading-overlay {
             position: fixed;
             inset: 0;
@@ -2189,14 +2449,17 @@
             justify-content: center;
             gap: 24px;
         }
+
         .loading-overlay.active {
             display: flex;
         }
+
         .loading-coin {
             font-size: 56px;
             animation: loadingCoin 1.5s ease-in-out infinite;
             filter: drop-shadow(0 0 20px rgba(212, 160, 23, 0.5));
         }
+
         @keyframes loadingCoin {
             0%,
             100% {
@@ -2206,6 +2469,7 @@
                 transform: scale(1.1) rotate(10deg);
             }
         }
+
         .loading-bar {
             width: 160px;
             height: 3px;
@@ -2213,12 +2477,14 @@
             border-radius: 99px;
             overflow: hidden;
         }
+
         .loading-progress {
             height: 100%;
             background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
             border-radius: 99px;
             animation: loadingBar 1.5s ease-in-out infinite;
         }
+
         @keyframes loadingBar {
             0% {
                 width: 0%;
@@ -2234,6 +2500,7 @@
             }
         }
 
+        /* ── 27. BOTTOM NAVIGATION ────────────────────────────────── */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -2242,6 +2509,7 @@
             z-index: 100;
             padding-bottom: var(--home-inset);
         }
+
         .bottom-nav-inner {
             display: flex;
             align-items: flex-end;
@@ -2253,6 +2521,7 @@
             border-top: 1px solid rgba(212, 160, 23, 0.12);
             box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(212, 160, 23, 0.08);
         }
+
         .nav-item {
             flex: 1;
             display: flex;
@@ -2268,26 +2537,32 @@
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
+
         .nav-item:active {
             transform: scale(0.92);
         }
+
         .nav-item.active {
             color: var(--gold);
         }
+
         .nav-icon {
             width: 26px;
             height: 26px;
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
         }
+
         .nav-item.active .nav-icon {
             transform: scale(1.15) translateY(-1px);
             filter: drop-shadow(0 2px 8px rgba(212, 160, 23, 0.5));
         }
+
         .nav-item.active svg {
             stroke: var(--gold);
             filter: drop-shadow(0 0 6px rgba(212, 160, 23, 0.6));
         }
+
         .nav-label {
             font-size: 10px;
             font-weight: 700;
@@ -2295,14 +2570,17 @@
             transition: color 0.3s, transform 0.3s;
             font-family: var(--font-ar);
         }
+
         html[dir="ltr"] .nav-label {
             font-family: var(--font-en);
         }
+
         .nav-item.active .nav-label {
             color: var(--gold);
             transform: translateY(-1px);
             text-shadow: 0 0 10px rgba(212, 160, 23, 0.4);
         }
+
         .nav-indicator {
             position: absolute;
             bottom: 0;
@@ -2315,13 +2593,16 @@
             opacity: 0;
             transition: opacity 0.3s, width 0.3s;
         }
+
         .nav-item.active .nav-indicator {
             opacity: 1;
             width: 28px;
         }
+
         .nav-center-spacer {
             flex: 1.3;
         }
+
         .nav-center-btn {
             position: absolute;
             left: 50%;
@@ -2344,6 +2625,7 @@
             transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
             -webkit-tap-highlight-color: transparent;
         }
+
         .nav-center-btn:hover {
             transform: translateX(-50%) translateY(-3px);
             box-shadow:
@@ -2351,15 +2633,18 @@
                 0 0 0 4px rgba(212, 160, 23, 0.18),
                 inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
+
         .nav-center-btn:active {
             transform: translateX(-50%) scale(0.9);
         }
+
         .nav-center-btn.active {
             box-shadow:
                 0 6px 30px rgba(212, 160, 23, 0.75),
                 0 0 0 6px rgba(212, 160, 23, 0.12),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
+
         .nav-center-btn-inner {
             width: 56px;
             height: 56px;
@@ -2369,9 +2654,11 @@
             align-items: center;
             justify-content: center;
         }
+
         .nav-center-emoji {
             font-size: 26px;
         }
+
         .nav-center-pulse {
             position: absolute;
             inset: -4px;
@@ -2379,12 +2666,14 @@
             border: 2px solid rgba(212, 160, 23, 0.4);
             animation: navPulse 2s ease-out infinite;
         }
+
         .pulse-a {
             animation-delay: 0s;
         }
         .pulse-b {
             animation-delay: 1s;
         }
+
         @keyframes navPulse {
             0% {
                 transform: scale(1);
@@ -2396,6 +2685,7 @@
             }
         }
 
+        /* ── 28. RTL SUPPORT ────────────────────────────────────────── */
         html[dir="rtl"] .home-header-left {
             flex-direction: row-reverse;
         }
@@ -2446,6 +2736,7 @@
             border-right: 3px solid var(--gold-dark);
         }
 
+        /* ── 29. RESPONSIVE ─────────────────────────────────────────── */
         @media (min-width: 480px) {
             .login-inner {
                 padding: 60px 32px;
@@ -2479,10 +2770,12 @@
             }
         }
 
+        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 0;
         }
 
+        /* ── 30. MODAL ────────────────────────────────────────────── */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -2494,6 +2787,7 @@
             align-items: flex-end;
             justify-content: center;
         }
+
         .modal-sheet {
             width: 100%;
             max-width: 480px;
@@ -2504,6 +2798,7 @@
             padding: 0 0 calc(24px + var(--home-inset));
             animation: sheetUp 0.3s ease;
         }
+
         @keyframes sheetUp {
             from {
                 transform: translateY(100%);
@@ -2512,6 +2807,7 @@
                 transform: translateY(0);
             }
         }
+
         .modal-handle {
             width: 40px;
             height: 4px;
@@ -2519,9 +2815,11 @@
             border-radius: 99px;
             margin: 14px auto;
         }
+
         .modal-content {
             padding: 0 20px;
         }
+
         .modal-title {
             font-size: 18px;
             font-weight: 700;
@@ -2529,10 +2827,12 @@
             padding: 0 20px 16px;
         }
 
+        /* ── 31. LUCKY BOX MODAL ──────────────────────────────────── */
         .modal-lucky-box {
             text-align: center;
             padding: 20px 20px 30px;
         }
+
         .lucky-box-scene {
             position: relative;
             display: flex;
@@ -2541,6 +2841,7 @@
             justify-content: center;
             min-height: 220px;
         }
+
         .lucky-chest {
             position: relative;
             width: 120px;
@@ -2548,9 +2849,11 @@
             cursor: pointer;
             transition: transform 0.3s;
         }
+
         .lucky-chest:hover {
             transform: scale(1.05);
         }
+
         .chest-lid {
             position: absolute;
             top: -20px;
@@ -2564,6 +2867,7 @@
             border: 2px solid #6B4F10;
             border-bottom: none;
         }
+
         .chest-body {
             position: absolute;
             bottom: 0;
@@ -2578,9 +2882,11 @@
             border: 2px solid #6B4F10;
             border-top: none;
         }
+
         .chest-emoji {
             font-size: 32px;
         }
+
         .chest-glow {
             position: absolute;
             inset: -10px;
@@ -2588,13 +2894,16 @@
             background: radial-gradient(circle, rgba(212, 160, 23, 0.2) 0%, transparent 70%);
             animation: glowPulse 1.5s ease-in-out infinite;
         }
+
         .lucky-chest.open .chest-lid {
             transform: rotateX(70deg);
         }
+
         .lucky-box-reward {
             margin-top: 20px;
             animation: rewardPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+
         @keyframes rewardPop {
             0% {
                 transform: scale(0);
@@ -2605,30 +2914,36 @@
                 opacity: 1;
             }
         }
+
         .lucky-reward-amount {
             font-size: 36px;
             font-weight: 800;
             color: var(--gold-light);
         }
+
         .lucky-reward-label {
             font-size: 14px;
             color: var(--text-2);
             margin-top: 4px;
         }
 
+        /* ── 32. SCRATCH CARD MODAL ───────────────────────────────── */
         .modal-scratch {
             padding: 20px 20px 30px;
         }
+
         .scratch-scene {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 16px;
         }
+
         .scratch-hint {
             font-size: 13px;
             color: var(--text-2);
         }
+
         .scratch-container {
             position: relative;
             border-radius: var(--radius-sm);
@@ -2638,6 +2953,7 @@
             max-width: 280px;
             aspect-ratio: 280/160;
         }
+
         .scratch-prize {
             position: absolute;
             inset: 0;
@@ -2651,6 +2967,7 @@
             user-select: none;
             pointer-events: none;
         }
+
         #scratchCanvas {
             position: absolute;
             inset: 0;
@@ -2661,7 +2978,9 @@
             border-radius: var(--radius-sm);
         }
 
+        /* ── 33. NOTIFICATIONS PANEL ─────────────────────────────── */
         .notif-list {}
+
         .notif-item {
             padding: 14px;
             background: var(--surface-3);
@@ -2669,10 +2988,12 @@
             margin-bottom: 6px;
             border-left: 3px solid var(--gold-dark);
         }
+
         .notif-item.unread {
             border-left-color: var(--gold);
             background: rgba(212, 160, 23, 0.04);
         }
+
         .notif-title {
             font-size: 13px;
             font-weight: 700;
@@ -2695,10 +3016,13 @@
             font-size: 13px;
         }
 
+        /* ── 34. FAQ ────────────────────────────────────────────────── */
         .faq-list {}
+
         .faq-item {
             margin-bottom: 6px;
         }
+
         .faq-btn {
             width: 100%;
             display: flex;
@@ -2715,6 +3039,7 @@
             text-align: inherit;
             cursor: pointer;
         }
+
         .faq-btn:hover {
             border-color: var(--border-2);
         }
@@ -2723,16 +3048,19 @@
             background: rgba(212, 160, 23, 0.04);
             border-radius: var(--radius-sm) var(--radius-sm) 0 0;
         }
+
         .faq-arrow {
             color: var(--text-3);
             transition: transform 0.3s;
             font-size: 11px;
             flex-shrink: 0;
         }
+
         .faq-btn.open .faq-arrow {
             transform: rotate(180deg);
             color: var(--gold);
         }
+
         .faq-answer {
             max-height: 0;
             overflow: hidden;
@@ -2742,6 +3070,7 @@
             border-top: none;
             border-radius: 0 0 var(--radius-sm) var(--radius-sm);
         }
+
         .faq-answer-inner {
             padding: 12px 14px;
             font-size: 13px;
@@ -2749,6 +3078,90 @@
             line-height: 1.7;
         }
 
+        /* ── 35. AUTH PANELS ───────────────────────────────────────── */
+        .auth-panel {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .auth-panel .auth-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-panel .login-brand {
+            margin-bottom: 4px;
+        }
+
+        .auth-panel .login-coin {
+            width: 72px;
+            height: 72px;
+        }
+
+        .auth-panel .coin-emoji {
+            font-size: 38px;
+        }
+
+        .auth-panel .login-title {
+            font-size: 28px;
+        }
+
+        .auth-panel .login-stats {
+            padding: 12px 16px;
+        }
+
+        .auth-panel .login-stat-val {
+            font-size: 18px;
+        }
+
+        .auth-panel .auth-form {
+            gap: 12px;
+        }
+
+        .auth-panel .form-input {
+            padding: 12px 14px;
+            font-size: 13px;
+        }
+
+        .active-auth {
+            display: flex !important;
+        }
+
+        #authScreens {
+            background: var(--bg);
+            align-items: center;
+            padding: 20px 16px;
+        }
+
+        /* Admin Login */
+        .admin-login {
+            max-width: 380px;
+            margin: 80px auto;
+            padding: 32px;
+            border-radius: var(--radius-xl);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-bd);
+            backdrop-filter: blur(18px);
+            text-align: center;
+        }
+
+        .admin-login h1 {
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+        .admin-login p {
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        /* ── 36. NOTIFICATION BELL ────────────────────────────────── */
         .notif-bell {
             position: fixed;
             top: calc(var(--status-bar) + 12px);
@@ -2766,10 +3179,12 @@
             transition: all 0.2s;
             cursor: pointer;
         }
+
         .notif-bell:hover {
             background: var(--surface-2);
             color: var(--text-1);
         }
+
         .notif-badge {
             position: absolute;
             top: -4px;
@@ -2786,6 +3201,7 @@
             justify-content: center;
         }
 
+        /* ── 37. REDUCED MOTION ────────────────────────────────────── */
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -2795,350 +3211,40 @@
             }
         }
 
-        /* Profile completion modal (for new users) */
-        .profile-complete-modal .modal-sheet {
-            max-width: 440px;
-        }
-        .profile-complete-modal .modal-content {
-            padding: 0 20px 20px;
-        }
-        .profile-complete-modal .modal-title {
-            padding-bottom: 8px;
-        }
-
-        /* ═══════════════════════════════════════════════════════════════
-           PREMIUM VISUAL UPGRADE LAYER
-           Animated mesh background · refined glass · micro-interactions
-           ═══════════════════════════════════════════════════════════════ */
-
-        /* ---- Animated gradient mesh (replaces flat ambient orbs feel) ---- */
-        .mesh-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-            opacity: 0.9;
-        }
-        .mesh-bg::before,
-        .mesh-bg::after {
-            content: '';
-            position: absolute;
-            inset: -20%;
-            background:
-                radial-gradient(circle at 20% 20%, rgba(212, 160, 23, 0.16) 0%, transparent 45%),
-                radial-gradient(circle at 80% 15%, rgba(26, 107, 219, 0.14) 0%, transparent 45%),
-                radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.10) 0%, transparent 45%);
-            animation: meshDrift 22s ease-in-out infinite alternate;
-            filter: blur(10px);
-        }
-        .mesh-bg::after {
-            background:
-                radial-gradient(circle at 70% 70%, rgba(240, 201, 58, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 30% 60%, rgba(61, 142, 240, 0.10) 0%, transparent 40%);
-            animation: meshDrift 28s ease-in-out infinite alternate-reverse;
-            mix-blend-mode: screen;
-        }
-        @keyframes meshDrift {
-            0%   { transform: translate(0%, 0%) rotate(0deg) scale(1); }
-            50%  { transform: translate(3%, -4%) rotate(8deg) scale(1.08); }
-            100% { transform: translate(-4%, 3%) rotate(-6deg) scale(1.04); }
-        }
-        .grain-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
-            opacity: 0.035;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
-        }
-
-        /* ---- Refined glass cards: subtle border sheen + lift on interaction ---- */
-        .glass-card {
-            position: relative;
-            isolation: isolate;
-            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s, box-shadow 0.35s;
-        }
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(135deg, rgba(212, 160, 23, 0.22), rgba(255, 255, 255, 0.02) 40%, rgba(26, 107, 219, 0.14));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.4s;
-            pointer-events: none;
-            z-index: -1;
-        }
-        @media (hover: hover) {
-            .glass-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 14px 32px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(212, 160, 23, 0.08);
-            }
-            .glass-card:hover::before {
-                opacity: 1;
-            }
-        }
-
-        /* ---- Buttons: tactile press + gold sheen sweep ---- */
-        .btn-primary, .btn-secondary, .btn-full {
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s, box-shadow 0.25s;
-        }
-        .btn-primary::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -60%;
-            width: 40%; height: 100%;
-            background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-            transform: skewX(-20deg);
-            transition: left 0.65s ease;
-            pointer-events: none;
-        }
-        .btn-primary:hover::after {
-            left: 130%;
-        }
-        .btn-primary:active, .btn-secondary:active, .btn-full:active {
-            transform: scale(0.96);
-        }
-        @media (hover: hover) {
-            .btn-primary:hover, .btn-secondary:hover {
-                filter: brightness(1.08);
-                box-shadow: 0 6px 20px -4px var(--gold-glow);
-            }
-        }
-
-        /* ---- Nav items: smoother active transitions ---- */
-        .nav-item {
-            transition: color 0.25s, transform 0.2s;
-        }
-        .nav-item:active {
-            transform: scale(0.92);
-        }
-
-        /* ---- Page entrance: tab content fades + lifts in ---- */
-        .tab-view.active {
-            animation: tabReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        @keyframes tabReveal {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ---- Balance card: living gold sheen ---- */
-        .balance-card-bg {
-            background-size: 200% 200%;
-            animation: balanceSheen 8s ease infinite;
-        }
-        @keyframes balanceSheen {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        /* ---- Scrollbar polish (desktop) ---- */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb {
-            background: var(--surface-3);
-            border-radius: 8px;
-        }
-        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
-
-        /* ---- Focus visibility (accessibility) ---- */
-        button:focus-visible, a:focus-visible, input:focus-visible {
-            outline: 2px solid var(--gold-light);
-            outline-offset: 2px;
-            border-radius: 6px;
-        }
-
-        /* ═══════════════════════════════════════════════════════════════
-           PWA INSTALL BANNER
-           ═══════════════════════════════════════════════════════════════ */
-        .pwa-install-banner {
-            position: fixed;
-            left: 50%;
-            bottom: calc(var(--nav-h) + var(--home-inset) + 14px);
-            transform: translate(-50%, 140%);
-            width: min(92vw, 420px);
-            z-index: 80;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 14px 14px 16px;
-            background: linear-gradient(135deg, rgba(20, 24, 38, 0.92), rgba(13, 18, 32, 0.96));
-            border: 1px solid rgba(212, 160, 23, 0.3);
-            border-radius: var(--radius-lg);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-            opacity: 0;
-            pointer-events: none;
-            transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
-        }
-        html[dir="rtl"] .pwa-install-banner {
-            padding: 14px 16px 14px 14px;
-        }
-        .pwa-install-banner.show {
-            transform: translate(-50%, 0);
-            opacity: 1;
-            pointer-events: auto;
-            animation: pwaBannerSettle 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        @keyframes pwaBannerSettle {
-            0%   { transform: translate(-50%, 140%); }
-            70%  { transform: translate(-50%, -6px); }
-            100% { transform: translate(-50%, 0); }
-        }
-        .pwa-banner-icon {
-            position: relative;
-            flex-shrink: 0;
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 4px 14px -2px rgba(212, 160, 23, 0.45);
-        }
-        .pwa-banner-icon img {
-            width: 100%;
-            height: 100%;
+        /* ── 38. LEVEL THRESHOLD BADGES ───────────────────────────── */
+        .level-threshold {
             display: block;
-        }
-        .pwa-banner-icon::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
-        }
-        .pwa-banner-text {
-            flex: 1;
-            min-width: 0;
-        }
-        .pwa-banner-title {
-            font-size: 13.5px;
+            font-size: 10px;
             font-weight: 700;
-            color: var(--text-1);
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .pwa-banner-sub {
-            font-size: 11.5px;
-            color: var(--text-2);
-            line-height: 1.4;
-        }
-        .pwa-banner-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        .pwa-banner-install {
-            background: linear-gradient(135deg, var(--gold-light), var(--gold));
-            color: #1A1304;
-            font-size: 12.5px;
-            font-weight: 700;
-            padding: 9px 14px;
-            border-radius: 10px;
-            white-space: nowrap;
-            transition: transform 0.18s, filter 0.2s;
-            box-shadow: 0 4px 14px -3px var(--gold-glow);
-        }
-        .pwa-banner-install:active {
-            transform: scale(0.94);
-        }
-        @media (hover: hover) {
-            .pwa-banner-install:hover {
-                filter: brightness(1.1);
-            }
-        }
-        .pwa-banner-close {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-3);
-            flex-shrink: 0;
-            transition: background 0.2s, color 0.2s;
-        }
-        .pwa-banner-close:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--text-2);
+            color: var(--gold);
+            opacity: 0.7;
+            margin-top: 2px;
+            font-family: var(--font-mono);
+            letter-spacing: -0.3px;
         }
 
-        /* Profile menu link row (whitepaper, etc.) */
-        .profile-link-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 4px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            text-decoration: none;
-            color: inherit;
-        }
-        .profile-link-row:hover {
-            opacity: 0.8;
-        }
-        .profile-link-row + .profile-link-row {
-            border-top: 1px solid var(--border);
-        }
-        .profile-link-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: var(--surface-3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 16px;
-        }
-        .profile-link-label {
-            flex: 1;
-            font-size: 13.5px;
-            font-weight: 600;
-            color: var(--text-1);
-        }
-        .profile-link-arrow {
-            color: var(--text-3);
-            flex-shrink: 0;
-            transition: transform 0.2s;
-        }
-        html[dir="rtl"] .profile-link-arrow {
-            transform: scaleX(-1);
-        }
-        .profile-link-row:hover .profile-link-arrow {
-            transform: translateX(3px);
-        }
-        html[dir="rtl"] .profile-link-row:hover .profile-link-arrow {
-            transform: scaleX(-1) translateX(3px);
-        }
-        .profile-lang-flag {
-            font-size: 13px;
-            padding: 2px 7px;
-            border-radius: 6px;
-            background: var(--surface-2);
-            color: var(--text-2);
-            font-weight: 600;
-            flex-shrink: 0;
+        html[dir="ltr"] .level-threshold {
+            font-family: var(--font-mono);
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            .mesh-bg::before, .mesh-bg::after,
-            .balance-card-bg,
-            .tab-view.active {
-                animation: none !important;
-            }
+        .level-badge-item.active .level-threshold {
+            opacity: 1;
+            text-shadow: 0 0 8px rgba(212, 160, 23, 0.5);
+        }
+
+        /* ── 39. SHARE ALL GRID RTL FIX ───────────────────────────── */
+        html[dir="rtl"] .share-grid-all {
+            direction: rtl;
+        }
+
+        /* ── 40. TOKENOMICS RTL ───────────────────────────────────── */
+        html[dir="rtl"] .token-legend {
+            justify-content: flex-start;
+        }
+
+        /* ── 41. WALLET PRICE HINT RTL ───────────────────────────── */
+        html[dir="rtl"] .wallet-price-hint {
+            flex-direction: row-reverse;
         }
     </style>
 </head>
@@ -3146,29 +3252,10 @@
 
     <!-- ========== AMBIENT BACKGROUND ========== -->
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
-    <div class="mesh-bg" aria-hidden="true"></div>
     <div class="ambient-orbs" aria-hidden="true">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
-    </div>
-    <div class="grain-overlay" aria-hidden="true"></div>
-
-    <!-- ========== PWA INSTALL BANNER ========== -->
-    <div class="pwa-install-banner" id="pwaInstallBanner" role="dialog" aria-label="Install app">
-        <div class="pwa-banner-icon">
-            <img src="./icons/icon-192.png" alt="NDOG" width="48" height="48">
-        </div>
-        <div class="pwa-banner-text">
-            <div class="pwa-banner-title" data-ar="ثبّت تطبيق NDOG" data-en="Install NDOG App">Install NDOG App</div>
-            <div class="pwa-banner-sub" data-ar="وصول أسرع، يعمل بدون نت" data-en="Faster access, works offline">Faster access, works offline</div>
-        </div>
-        <div class="pwa-banner-actions">
-            <button class="pwa-banner-install" id="pwaInstallBtn" type="button" data-ar="تثبيت" data-en="Install">Install</button>
-            <button class="pwa-banner-close" id="pwaInstallClose" type="button" aria-label="Close">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-        </div>
     </div>
 
     <!-- ========== LOADING OVERLAY ========== -->
@@ -3187,9 +3274,10 @@
     </button>
 
     <!-- ============================================================= -->
-    <!-- AUTH SCREEN (Login with Google) -->
+    <!-- AUTH SCREENS -->
     <!-- ============================================================= -->
     <div id="authScreens" class="screen">
+        <!-- LOGIN PANEL -->
         <div id="loginPanel" class="auth-panel active-auth">
             <div class="auth-inner">
                 <div class="login-brand">
@@ -3220,11 +3308,30 @@
                     </div>
                 </div>
 
-                <!-- Google Sign-In Button -->
-                <button id="googleSignInBtn" class="btn-google" type="button">
-                    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                    <span data-ar="سجّل الدخول بحساب Google" data-en="Sign in with Google">Sign in with Google</span>
-                </button>
+                <form id="loginForm" class="auth-form" autocomplete="on">
+                    <div class="form-group">
+                        <label class="form-label" data-ar="البريد الإلكتروني" data-en="Email">Email</label>
+                        <input class="form-input" type="email" id="loginEmail" required autocomplete="email" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-ar="كلمة المرور" data-en="Password">Password</label>
+                        <div class="input-password-wrap">
+                            <input class="form-input" type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••">
+                            <button type="button" class="btn-toggle-pw" data-target="loginPassword" aria-label="Toggle password">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="link-btn" id="forgotPwBtn" data-ar="نسيت كلمة المرور؟" data-en="Forgot Password?">Forgot Password?</button>
+                    <button type="submit" class="btn-primary btn-full" id="loginSubmitBtn">
+                        <span data-ar="تسجيل الدخول" data-en="Sign In">Sign In</span>
+                    </button>
+                </form>
+
+                <div class="auth-switch">
+                    <span data-ar="ليس لديك حساب؟" data-en="Don't have an account?">Don't have an account?</span>
+                    <button type="button" class="link-btn" id="goRegisterBtn" data-ar="سجّل الآن" data-en="Register now">Register now</button>
+                </div>
 
                 <button id="langBtnLogin" class="btn-lang" type="button">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
@@ -3250,6 +3357,116 @@
                 </div>
             </div>
         </div>
+
+        <!-- REGISTER PANEL -->
+        <div id="registerPanel" class="auth-panel" style="display:none;">
+            <div class="auth-inner">
+                <div class="login-brand" style="margin-bottom:8px;">
+                    <div class="login-coin">
+                        <span class="coin-emoji">🐕</span>
+                        <div class="coin-ring ring-1"></div>
+                        <div class="coin-ring ring-2"></div>
+                        <div class="coin-glow"></div>
+                    </div>
+                    <h1 class="login-title">NDOG<span class="login-title-accent">Coin</span></h1>
+                </div>
+
+                <div class="register-hero" data-ar="كن من الأوائل ومن مؤسسي العملة لتكون حوتاً من الحيتان في المستقبل القريب." data-en="Be among the pioneers and founders of NDOG Coin and become one of the future whales.">Be among the pioneers and founders of NDOG Coin and become one of the future whales.</div>
+
+                <form id="registerForm" class="auth-form" autocomplete="on">
+                    <div class="form-group">
+                        <label class="form-label" data-ar="الاسم بالإنجليزية" data-en="Full Name (English)">Full Name (English)</label>
+                        <input class="form-input" type="text" id="regName" required autocomplete="name" placeholder="John Doe" pattern="[A-Za-z\s]{2,80}" title="English letters only">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-ar="البريد الإلكتروني" data-en="Email">Email</label>
+                        <input class="form-input" type="email" id="regEmail" required autocomplete="email" placeholder="email@example.com">
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" data-ar="الدولة" data-en="Country">Country</label>
+                            <select class="form-input form-select" id="regCountry" required>
+                                <option value="" disabled selected data-ar="اختر الدولة" data-en="Select Country">Select Country</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-ar="رمز الدولة" data-en="Dial Code">Dial Code</label>
+                            <select class="form-input form-select" id="regDialCode" required>
+                                <option value="" disabled selected data-ar="رمز" data-en="Code">Code</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-ar="رقم الهاتف (بدون الصفر في البداية)" data-en="Phone Number (no leading zero)">Phone Number (no leading zero)</label>
+                        <input class="form-input" type="tel" id="regPhone" required autocomplete="tel" placeholder="5XXXXXXXX" inputmode="numeric" pattern="[0-9]{7,15}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-ar="كلمة المرور" data-en="Password">Password</label>
+                        <div class="input-password-wrap">
+                            <input class="form-input" type="password" id="regPassword" required autocomplete="new-password" placeholder="••••••••" minlength="6">
+                            <button type="button" class="btn-toggle-pw" data-target="regPassword" aria-label="Toggle password">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-ar="تأكيد كلمة المرور" data-en="Confirm Password">Confirm Password</label>
+                        <div class="input-password-wrap">
+                            <input class="form-input" type="password" id="regPasswordConfirm" required autocomplete="new-password" placeholder="••••••••">
+                            <button type="button" class="btn-toggle-pw" data-target="regPasswordConfirm" aria-label="Toggle password">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-ar="كود الإحالة" data-en="Referral Code">Referral Code</label>
+                        <input class="form-input" type="text" id="regReferralCode" required autocomplete="off" placeholder="ndogs" maxlength="12" style="text-transform:uppercase;">
+                        <div class="form-hint" data-ar="إذا لم يكن لديك كود إحالة استخدم ndogs" data-en="If you do not have a referral code use ndogs">If you do not have a referral code use ndogs</div>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full" id="registerSubmitBtn">
+                        <span data-ar="إنشاء حساب" data-en="Create Account">Create Account</span>
+                    </button>
+                </form>
+
+                <div class="auth-switch">
+                    <span data-ar="لديك حساب بالفعل؟" data-en="Already have an account?">Already have an account?</span>
+                    <button type="button" class="link-btn" id="goLoginBtn" data-ar="سجّل الدخول" data-en="Sign In">Sign In</button>
+                </div>
+
+                <button id="langBtnRegister" class="btn-lang" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+                    <span data-ar="English" data-en="العربية">العربية</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- FORGOT PASSWORD PANEL -->
+        <div id="resetPanel" class="auth-panel" style="display:none;">
+            <div class="auth-inner">
+                <div class="login-brand" style="margin-bottom:16px;">
+                    <div class="login-coin">
+                        <span class="coin-emoji">🐕</span>
+                        <div class="coin-ring ring-1"></div>
+                        <div class="coin-glow"></div>
+                    </div>
+                    <h1 class="login-title" style="font-size:1.6rem;" data-ar="إعادة تعيين كلمة المرور" data-en="Reset Password">Reset Password</h1>
+                </div>
+
+                <form id="resetForm" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label" data-ar="البريد الإلكتروني" data-en="Email">Email</label>
+                        <input class="form-input" type="email" id="resetEmail" required autocomplete="email" placeholder="email@example.com">
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">
+                        <span data-ar="إرسال رابط إعادة التعيين" data-en="Send Reset Link">Send Reset Link</span>
+                    </button>
+                </form>
+
+                <div class="auth-switch">
+                    <button type="button" class="link-btn" id="goLoginFromResetBtn" data-ar="← العودة لتسجيل الدخول" data-en="← Back to Sign In">← Back to Sign In</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ============================================================= -->
@@ -3257,8 +3474,10 @@
     <!-- ============================================================= -->
     <div id="mainApp" class="app" style="display:none;">
 
+        <!-- STATUS BAR SPACER -->
         <div class="status-bar-spacer"></div>
 
+        <!-- ========== MAIN CONTENT ========== -->
         <main class="app-main" id="appMain">
 
             <!-- ─── HOME TAB ─── -->
@@ -4070,48 +4289,6 @@
         </div>
     </div>
 
-    <!-- Profile Completion Modal (for new users) -->
-    <div id="profileCompleteModal" class="modal-overlay profile-complete-modal" style="display:none;">
-        <div class="modal-sheet">
-            <div class="modal-handle"></div>
-            <div class="modal-title" data-ar="أكمل بياناتك" data-en="Complete Your Profile">Complete Your Profile</div>
-            <div class="modal-content">
-                <form id="profileCompleteForm">
-                    <div class="form-group">
-                        <label class="form-label" data-ar="الاسم بالإنجليزية" data-en="Full Name (English)">Full Name (English)</label>
-                        <input class="form-input" type="text" id="compName" required placeholder="John Doe" pattern="[A-Za-z\s]{2,80}">
-                    </div>
-                    <div class="form-row-2">
-                        <div class="form-group">
-                            <label class="form-label" data-ar="الدولة" data-en="Country">Country</label>
-                            <select class="form-input form-select" id="compCountry" required>
-                                <option value="" disabled selected data-ar="اختر الدولة" data-en="Select Country">Select Country</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" data-ar="رمز الدولة" data-en="Dial Code">Dial Code</label>
-                            <select class="form-input form-select" id="compDialCode" required>
-                                <option value="" disabled selected data-ar="رمز" data-en="Code">Code</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" data-ar="رقم الهاتف (بدون الصفر في البداية)" data-en="Phone Number (no leading zero)">Phone Number (no leading zero)</label>
-                        <input class="form-input" type="tel" id="compPhone" required placeholder="5XXXXXXXX" inputmode="numeric" pattern="[0-9]{7,15}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" data-ar="كود الإحالة" data-en="Referral Code">Referral Code</label>
-                        <input class="form-input" type="text" id="compReferralCode" placeholder="ndogs" maxlength="12" style="text-transform:uppercase;">
-                        <div class="form-hint" data-ar="إذا لم يكن لديك كود إحالة استخدم ndogs" data-en="If you do not have a referral code use ndogs">If you do not have a referral code use ndogs</div>
-                    </div>
-                    <button type="submit" class="btn-primary" id="compSubmitBtn">
-                        <span data-ar="حفظ" data-en="Save">Save</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- ============================================================= -->
     <!-- FIREBASE & QR LIBRARIES -->
     <!-- ============================================================= -->
@@ -4125,7 +4302,7 @@
     </script>
 
     <!-- ============================================================= -->
-    <!-- FIREBASE CONFIG & APP LOGIC -->
+    <!-- FIREBASE CONFIG -->
     <!-- ============================================================= -->
     <script>
         // ========== FIREBASE CONFIGURATION ==========
@@ -4144,7 +4321,7 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // ========== I18N (minimal) ==========
+        // ========== I18N ==========
         const I18N = {
             ar: {
                 'admin.loginTitle': 'لوحة المسؤول',
@@ -4512,7 +4689,7 @@
         function copyText(text, successMsg) {
             if (navigator.clipboard?.writeText) {
                 navigator.clipboard.writeText(text).then(() => showToast(successMsg, 'success')).catch(() => fallbackCopy(text,
-                    successMsg));
+                successMsg));
             } else fallbackCopy(text, successMsg);
         }
 
@@ -4543,6 +4720,7 @@
                     else el.textContent = val;
                 }
             });
+            // Apply i18n admin strings
             applyI18n(currentLang);
         }
 
@@ -4558,177 +4736,127 @@
             }
         }
 
-        // ========== GOOGLE SIGN-IN ==========
-        function signInWithGoogle() {
+        // ========== AUTH ==========
+        function loginUser(email, password) {
             showLoading();
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
+            auth.signInWithEmailAndPassword(email, password)
                 .then(result => {
-                    const user = result.user;
-                    currentUser = user;
-                    // Check if user exists in DB
-                    db.ref('users/' + user.uid).once('value').then(snap => {
-                        if (snap.exists()) {
-                            userData = { ...snap.val(), uid: user.uid };
-                            showApp();
-                            hideLoading();
-                        } else {
-                            // New user: show profile completion modal
-                            hideLoading();
-                            showProfileCompleteModal(user);
-                        }
-                    }).catch(err => {
-                        hideLoading();
-                        showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                    });
+                    hideLoading();
+                    currentUser = result.user;
+                    initUserData(currentUser);
                 })
                 .catch(err => {
                     hideLoading();
                     const msgs = {
-                        'auth/popup-blocked': t('يُرجى السماح بالنوافذ المنبثقة', 'Please allow popups'),
-                        'auth/unauthorized-domain': t('نطاق غير مصرح به', 'Unauthorized domain'),
+                        'auth/user-not-found': t('المستخدم غير موجود', 'User not found'),
+                        'auth/wrong-password': t('كلمة مرور خاطئة', 'Wrong password'),
+                        'auth/invalid-email': t('بريد إلكتروني غير صحيح', 'Invalid email'),
+                        'auth/too-many-requests': t('محاولات كثيرة، حاول لاحقاً', 'Too many attempts, try later'),
                     };
                     showToast(msgs[err.code] || t('فشل الدخول: ' + err.message, 'Login failed: ' + err.message), 'error');
                 });
         }
 
-        // ========== PROFILE COMPLETION ==========
-        function showProfileCompleteModal(user) {
-            const modal = document.getElementById('profileCompleteModal');
-            modal.style.display = 'flex';
-            // Pre-fill name and email from Google
-            document.getElementById('compName').value = user.displayName || '';
-            // Set country and dial code lists
-            populateCompCountries();
-            // Store user reference for completion
-            modal.dataset.uid = user.uid;
-        }
-
-        function populateCompCountries() {
-            const countrySelect = document.getElementById('compCountry');
-            const dialSelect = document.getElementById('compDialCode');
-            if (!countrySelect || !dialSelect) return;
-            countrySelect.innerHTML =
-                `<option value="" disabled selected>${t('اختر الدولة', 'Select Country')}</option>`;
-            dialSelect.innerHTML = `<option value="" disabled selected>${t('رمز', 'Code')}</option>`;
-            COUNTRIES.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.code;
-                opt.textContent = c.name + ' (' + c.dial + ')';
-                countrySelect.appendChild(opt);
-                const dOpt = document.createElement('option');
-                dOpt.value = c.dial;
-                dOpt.textContent = c.dial + ' (' + c.code + ')';
-                dialSelect.appendChild(dOpt);
-            });
-            countrySelect.addEventListener('change', function() {
-                const country = COUNTRIES.find(c => c.code === this.value);
-                if (country) dialSelect.value = country.dial;
-            });
-        }
-
-        function completeProfile() {
-            const form = document.getElementById('profileCompleteForm');
-            const name = document.getElementById('compName').value.trim();
-            const country = document.getElementById('compCountry').value;
-            const dialCode = document.getElementById('compDialCode').value;
-            const phone = document.getElementById('compPhone').value.trim();
-            const referralCode = document.getElementById('compReferralCode').value.trim() || 'ndogs';
-            const modal = document.getElementById('profileCompleteModal');
-            const uid = modal.dataset.uid;
-
-            if (!name) { showToast(t('الاسم مطلوب', 'Name is required'), 'error'); return; }
-            if (!phone) { showToast(t('رقم الهاتف مطلوب', 'Phone is required'), 'error'); return; }
-
+        function registerUser(email, password, name, phone, country, dialCode, referralCode) {
             showLoading();
-            const code = genCode();
-            const ts = Date.now();
-            const profile = {
-                displayName: name,
-                email: currentUser.email || '',
-                phone: phone,
-                country: country,
-                dialCode: dialCode,
-                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-                balance: 0,
-                streak: 0,
-                lastClaimAt: 0,
-                totalClaimed: 0,
-                referralCode: code,
-                referredBy: null,
-                founder: true,
-                earlyAdopter: true,
-                vipLevel: 'bronze',
-                createdAt: ts,
-                lastActive: ts,
-                miningSessionsTotal: 0,
-                earnedToday: 0,
-                miningEarnings: 0,
-                referralEarnings: 0,
-                rewardEarnings: 0,
-                stakingEarnings: 0
-            };
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(result => {
+                    const user = result.user;
+                    const code = genCode();
+                    const ts = Date.now();
+                    const profile = {
+                        displayName: name || '',
+                        email: email || '',
+                        phone: phone || '',
+                        country: country || '',
+                        dialCode: dialCode || '',
+                        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name||'User')}&background=random`,
+                        balance: 0,
+                        streak: 0,
+                        lastClaimAt: 0,
+                        totalClaimed: 0,
+                        referralCode: code,
+                        referredBy: null,
+                        founder: true,
+                        earlyAdopter: true,
+                        vipLevel: 'bronze',
+                        createdAt: ts,
+                        lastActive: ts,
+                        miningSessionsTotal: 0,
+                        earnedToday: 0,
+                        miningEarnings: 0,
+                        referralEarnings: 0,
+                        rewardEarnings: 0,
+                        stakingEarnings: 0
+                    };
+                    const updates = {};
+                    updates['users/' + user.uid] = profile;
+                    updates['referralCodes/' + code] = { uid: user.uid, createdAt: ts };
 
-            const updates = {};
-            updates['users/' + uid] = profile;
-            updates['referralCodes/' + code] = { uid: uid, createdAt: ts };
-
-            // Process referral if provided
-            if (referralCode && referralCode.toUpperCase() !== 'NDOGS') {
-                const refCode = referralCode.toUpperCase();
-                db.ref('referralCodes/' + refCode).once('value').then(snap => {
-                    if (snap.exists()) {
-                        const refData = snap.val();
-                        const refUid = refData.uid;
-                        if (refUid && refUid !== uid) {
-                            updates['users/' + uid + '/referredBy'] = refUid;
-                            updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email,
-                                level: 1 };
-                            // L1 bonus
-                            db.ref('users/' + refUid + '/balance').transaction(b => (b || 0) + 50);
-                            db.ref('users/' + refUid + '/referralEarnings').transaction(b => (b || 0) + 50);
-                            // L2
-                            db.ref('users/' + refUid + '/referredBy').once('value').then(s2 => {
-                                if (s2.exists()) {
-                                    const l2Uid = s2.val();
-                                    db.ref('users/' + l2Uid + '/balance').transaction(b => (b || 0) + 20);
-                                    db.ref('users/' + l2Uid + '/referralEarnings').transaction(b => (b || 0) +
-                                        20);
-                                    db.ref('referrals/' + l2Uid + '/' + uid).set({ referredAt: ts,
-                                        email: currentUser.email, level: 2 });
-                                    // L3
-                                    db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
-                                        if (s3.exists()) {
-                                            const l3Uid = s3.val();
-                                            db.ref('users/' + l3Uid + '/balance').transaction(b =>
-                                                (b || 0) + 10);
-                                            db.ref('users/' + l3Uid + '/referralEarnings')
-                                                .transaction(b => (b || 0) + 10);
-                                            db.ref('referrals/' + l3Uid + '/' + uid)
-                                                .set({ referredAt: ts, email: currentUser.email,
-                                                    level: 3 });
+                    // Process referral if code provided
+                    if (referralCode && referralCode.toUpperCase() !== 'NDOGS') {
+                        const refCode = referralCode.toUpperCase();
+                        db.ref('referralCodes/' + refCode).once('value').then(snap => {
+                            if (snap.exists()) {
+                                const refData = snap.val();
+                                const refUid = refData.uid;
+                                if (refUid && refUid !== user.uid) {
+                                    updates['users/' + user.uid + '/referredBy'] = refUid;
+                                    updates['referrals/' + refUid + '/' + user.uid] = { referredAt: ts, email: email,
+                                        level: 1 };
+                                    // Give L1 bonus to referrer
+                                    db.ref('users/' + refUid + '/balance').transaction(b => (b || 0) + 50);
+                                    db.ref('users/' + refUid + '/referralEarnings').transaction(b => (b || 0) + 50);
+                                    // Check L2
+                                    db.ref('users/' + refUid + '/referredBy').once('value').then(s2 => {
+                                        if (s2.exists()) {
+                                            const l2Uid = s2.val();
+                                            db.ref('users/' + l2Uid + '/balance').transaction(b => (b || 0) +
+                                            20);
+                                            db.ref('users/' + l2Uid + '/referralEarnings').transaction(b => (b ||
+                                                0) + 20);
+                                            db.ref('referrals/' + l2Uid + '/' + user.uid).set({ referredAt: ts,
+                                                email: email, level: 2 });
+                                            // Check L3
+                                            db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
+                                                if (s3.exists()) {
+                                                    const l3Uid = s3.val();
+                                                    db.ref('users/' + l3Uid + '/balance').transaction(b =>
+                                                        (b || 0) + 10);
+                                                    db.ref('users/' + l3Uid + '/referralEarnings')
+                                                        .transaction(b => (b || 0) + 10);
+                                                    db.ref('referrals/' + l3Uid + '/' + user.uid)
+                                                        .set({ referredAt: ts, email: email, level: 3 });
+                                                }
+                                            });
                                         }
                                     });
                                 }
-                            });
-                        }
+                            }
+                        });
                     }
-                });
-            }
 
-            db.ref().update(updates).then(() => {
-                hideLoading();
-                modal.style.display = 'none';
-                userData = { ...profile, uid: uid };
-                showApp();
-                showToast(t('✅ تم إنشاء الحساب بنجاح!', '✅ Account created successfully!'), 'success');
-            }).catch(err => {
-                hideLoading();
-                showToast(t('فشل إنشاء الحساب: ' + err.message, 'Failed to create account'), 'error');
-            });
+                    db.ref().update(updates).then(() => {
+                        hideLoading();
+                        currentUser = user;
+                        initUserData(user);
+                        showToast(t('✅ تم التسجيل بنجاح!', '✅ Registration successful!'), 'success');
+                    }).catch(err => {
+                        hideLoading();
+                        showToast(t('فشل إنشاء الحساب: ' + err.message, 'Failed to create account'), 'error');
+                    });
+                })
+                .catch(err => {
+                    hideLoading();
+                    const msgs = {
+                        'auth/email-already-in-use': t('البريد مستخدم بالفعل', 'Email already in use'),
+                        'auth/invalid-email': t('بريد غير صحيح', 'Invalid email'),
+                        'auth/weak-password': t('كلمة مرور ضعيفة', 'Weak password'),
+                    };
+                    showToast(msgs[err.code] || t('فشل التسجيل: ' + err.message, 'Registration failed'), 'error');
+                });
         }
 
-        // ========== LOGOUT ==========
         function logoutUser() {
             if (!confirm(t('هل تريد تسجيل الخروج؟', 'Sign out?'))) return;
             if (cooldownInterval) clearInterval(cooldownInterval);
@@ -4738,14 +4866,14 @@
             auth.signOut();
         }
 
-        // ========== USER INIT (existing user) ==========
+        // ========== USER INIT ==========
         function initUserData(user) {
             db.ref('users/' + user.uid).once('value').then(snap => {
                 if (snap.exists()) {
                     userData = { ...snap.val(), uid: user.uid };
                     showApp();
                 } else {
-                    // Should not happen for existing user, but fallback
+                    // Fallback: create minimal profile
                     const code = genCode();
                     const ts = Date.now();
                     const profile = {
@@ -4795,13 +4923,20 @@
             initBgCanvas();
             updateMiningUI();
 
+            // Real-time balance update
             db.ref('users/' + currentUser.uid).on('value', snap => {
                 if (snap.exists()) {
+                    const oldData = userData;
                     userData = { ...snap.val(), uid: currentUser.uid };
                     renderDashboard();
+                    // Check for balance change notification
+                    if (oldData && oldData.balance !== userData.balance) {
+                        // Balance updated
+                    }
                 }
             });
 
+            // Load notifications
             loadNotifications();
         }
 
@@ -4873,10 +5008,12 @@
                 setEl('profileJoinDate', new Date(userData.createdAt).toLocaleDateString());
             }
 
+            // Profile details
             setEl('profilePhone', userData.phone || '—');
             const countryName = COUNTRIES.find(c => c.code === userData.country)?.name || userData.country || '—';
             setEl('profileCountry', countryName);
 
+            // Wallet breakdown
             const miningE = userData.miningEarnings || 0;
             const refE = userData.referralEarnings || 0;
             const rewardE = userData.rewardEarnings || 0;
@@ -4886,14 +5023,17 @@
             setEl('walletRewardEarnings', fmt(rewardE) + ' NDOG');
             setEl('walletStakingEarnings', fmt(stakeE) + ' NDOG');
 
+            // USD
             const usd = (bal * 0.9914).toFixed(2);
             setEl('walletUSD', '≈ $' + usd);
 
+            // Mining stats
             const mining_mult = vip.mult * (userData.founder ? 1.1 : 1) * (boostActive ? 2 : 1);
             setEl('miningRate', fmt(MINING_RATE * mining_mult, 1) + ' NDOG/hr');
             setEl('miningSessions', userData.miningSessionsTotal || 0);
             setEl('miningTotalMined', fmt(userData.miningEarnings || 0) + ' NDOG');
 
+            // Referral stats
             const refs = userData.referredUsers ? Object.keys(userData.referredUsers).length : 0;
             setEl('refTotalCount', refs);
             setEl('refEarnings', fmt(userData.referralEarnings || 0));
@@ -4901,6 +5041,7 @@
             const earlyBanner = document.getElementById('earlyAdopterBanner');
             if (earlyBanner) earlyBanner.style.display = userData.founder ? 'flex' : 'none';
 
+            // Airdrop status
             loadAirdropInfo();
         }
 
@@ -5182,6 +5323,7 @@
             rewardEl.style.display = 'none';
             closeBtn.style.display = 'none';
 
+            // Animate chest opening
             setTimeout(() => {
                 chest.classList.add('open');
                 setTimeout(() => {
@@ -5223,10 +5365,13 @@
             closeBtn.style.display = 'none';
             hint.style.display = 'block';
 
+            // Setup scratch canvas
             const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
             canvas.width = canvas.offsetWidth || 280;
             canvas.height = canvas.offsetHeight || 160;
 
+            // Draw scratch overlay
             ctx.fillStyle = '#888';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#aaa';
@@ -5250,6 +5395,7 @@
                 ctx.arc(cx, cy, 25, 0, 2 * Math.PI);
                 ctx.fill();
 
+                // Check reveal percentage
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const pixels = imageData.data;
                 let transparent = 0;
@@ -5266,17 +5412,20 @@
                         showToast(t(`🃏 ${prize} NDOG من البطاقة!`, `🃏 Scratch card: ${prize} NDOG!`),
                         'success');
                     });
+                    // Clear rest of scratch
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
             }
 
+            // Mouse events
             canvas.addEventListener('mousedown', (e) => { isScratching = true;
                 scratch(e.clientX, e.clientY); });
             canvas.addEventListener('mousemove', (e) => { if (isScratching) scratch(e.clientX, e.clientY); });
             canvas.addEventListener('mouseup', () => { isScratching = false; });
             canvas.addEventListener('mouseleave', () => { isScratching = false; });
 
+            // Touch events
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 isScratching = true;
@@ -5338,6 +5487,7 @@
 
                 setEl('miningSessionReward', fmt(miningEarned, 2) + ' NDOG');
 
+                // Countdown
                 const remaining = Math.max(0, MINING_SESSION_SECS - elapsed);
                 const m = Math.floor(remaining / 60);
                 const s = Math.floor(remaining % 60);
@@ -5435,6 +5585,7 @@
         // ========== BOOST ==========
         function activateBoost() {
             showToast(t('🎬 شاهد إعلاناً للتعزيز', '🎬 Watch an ad to boost'), 'info');
+            // Simulate boost
             boostActive = true;
             boostEndTime = Date.now() + BOOST_DURATION_SECS * 1000;
             const wrap = document.getElementById('boostTimerWrap');
@@ -5616,6 +5767,7 @@
                 if (el) el.innerHTML = '';
             });
 
+            // Load referrals for this user
             db.ref('referrals/' + currentUser.uid).once('value').then(snap => {
                 const refs = snap.val() || {};
                 const l1 = [];
@@ -5624,6 +5776,7 @@
                     if (data.level === 1) l1.push(uid);
                 }
 
+                // Show L1
                 const el1 = document.getElementById('refTreeL1');
                 if (el1) {
                     if (l1.length === 0) el1.innerHTML =
@@ -5641,6 +5794,7 @@
                     }
                 }
 
+                // L2 - lookup referrers of L1
                 let l2Count = 0;
                 l1.forEach(uid => {
                     db.ref('referrals/' + uid).once('value').then(s => {
@@ -5650,12 +5804,14 @@
                         }
                         const el2 = document.getElementById('refTreeL2');
                         if (el2) {
+                            // Just show count for simplicity
                             el2.innerHTML =
                             `<span class="ref-tree-member" style="color:var(--text-3);">${l2Count} ${t('مستخدم', 'users')}</span>`;
                         }
                     });
                 });
 
+                // L3 - simplified
                 const el3 = document.getElementById('refTreeL3');
                 if (el3) {
                     el3.innerHTML =
@@ -5708,6 +5864,7 @@
                     <div class="notif-message">${n.message || ''}</div>
                     <div class="notif-time">${n.ts ? new Date(n.ts).toLocaleDateString() : ''}</div>`;
                             panelList.appendChild(div);
+                            // Mark as read
                             if (!n.read) {
                                 db.ref('notifications/' + currentUser.uid + '/' + n.id + '/read').set(true);
                             }
@@ -5715,6 +5872,7 @@
                     }
                 }
 
+                // Update badge
                 const unread = notifs.filter(n => !n.read).length;
                 if (badge) {
                     if (unread > 0) { badge.style.display = 'flex';
@@ -5757,9 +5915,9 @@
                     if (!cfg.exists()) { hideLoading();
                         showToast(t('غير متاح حالياً', 'Not available'), 'warning'); return; }
                     const a = cfg.val();
-                    if (!a.enabled) { hideLoading();
+                    if (!a.enabled || (a.currentRound ? 0 : 0) <= 0) { hideLoading();
                         showToast(t('غير نشط', 'Inactive'), 'warning'); return; }
-                    const amount = 50;
+                    const amount = 50; // Default airdrop amount
                     return addBalance(amount, 'airdrop').then(() =>
                         db.ref('airdropClaims/' + currentUser.uid).set({ claimedAt: Date.now(), amount })
                     ).then(() => { hideLoading();
@@ -5847,6 +6005,7 @@
                 b.classList.toggle('active', b.dataset.tab === tabName);
             });
 
+            // Special handling for center button
             const centerBtn = document.getElementById('navMineBtn');
             if (centerBtn) centerBtn.classList.toggle('active', tabName === 'mining');
 
@@ -5938,6 +6097,7 @@
                     });
                 }
             } catch (e) {
+                // QR library may not be loaded
                 console.warn('QR generation failed');
             }
         }
@@ -5981,17 +6141,88 @@
 
         // ========== WIRE EVENTS ==========
         function wireEvents() {
-            // Google sign-in
-            document.getElementById('googleSignInBtn').addEventListener('click', signInWithGoogle);
-
-            // Profile completion
-            document.getElementById('profileCompleteForm').addEventListener('submit', function(e) {
+            // Login
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                completeProfile();
+                const email = document.getElementById('loginEmail').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                if (email && password) loginUser(email, password);
+            });
+
+            // Register
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('regName').value.trim();
+                const email = document.getElementById('regEmail').value.trim();
+                const password = document.getElementById('regPassword').value;
+                const confirm = document.getElementById('regPasswordConfirm').value;
+                const phone = document.getElementById('regPhone').value.trim();
+                const country = document.getElementById('regCountry').value;
+                const dialCode = document.getElementById('regDialCode').value;
+                const referralCode = document.getElementById('regReferralCode').value.trim() || 'ndogs';
+
+                if (password !== confirm) { showToast(t('كلمات المرور غير متطابقة', 'Passwords do not match'),
+                        'error'); return; }
+                if (password.length < 6) { showToast(t('كلمة المرور قصيرة جداً (6 أحرف على الأقل)',
+                        'Password too short (min 6 chars)'), 'error'); return; }
+                if (!name) { showToast(t('الاسم مطلوب', 'Name is required'), 'error'); return; }
+                if (!phone) { showToast(t('رقم الهاتف مطلوب', 'Phone is required'), 'error'); return; }
+
+                registerUser(email, password, name, phone, country, dialCode, referralCode);
+            });
+
+            // Reset password
+            document.getElementById('resetForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('resetEmail').value.trim();
+                if (!email) { showToast(t('أدخل بريداً إلكترونياً', 'Enter an email'), 'warning'); return; }
+                showLoading();
+                auth.sendPasswordResetEmail(email).then(() => {
+                    hideLoading();
+                    showToast(t('📧 تم إرسال رابط إعادة التعيين', '📧 Reset link sent'), 'success');
+                    document.getElementById('resetPanel').style.display = 'none';
+                    document.getElementById('loginPanel').style.display = 'flex';
+                }).catch(err => {
+                    hideLoading();
+                    showToast(t('فشل: ' + err.message, 'Failed: ' + err.message), 'error');
+                });
+            });
+
+            // Toggle password visibility
+            document.querySelectorAll('.btn-toggle-pw').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const target = document.getElementById(this.dataset.target);
+                    if (target) {
+                        target.type = target.type === 'password' ? 'text' : 'password';
+                    }
+                });
+            });
+
+            // Auth panel switching
+            document.getElementById('goRegisterBtn').addEventListener('click', function() {
+                document.getElementById('loginPanel').style.display = 'none';
+                document.getElementById('registerPanel').style.display = 'flex';
+                document.getElementById('resetPanel').style.display = 'none';
+            });
+            document.getElementById('goLoginBtn').addEventListener('click', function() {
+                document.getElementById('loginPanel').style.display = 'flex';
+                document.getElementById('registerPanel').style.display = 'none';
+                document.getElementById('resetPanel').style.display = 'none';
+            });
+            document.getElementById('forgotPwBtn').addEventListener('click', function() {
+                document.getElementById('loginPanel').style.display = 'none';
+                document.getElementById('registerPanel').style.display = 'none';
+                document.getElementById('resetPanel').style.display = 'flex';
+            });
+            document.getElementById('goLoginFromResetBtn').addEventListener('click', function() {
+                document.getElementById('resetPanel').style.display = 'none';
+                document.getElementById('loginPanel').style.display = 'flex';
+                document.getElementById('registerPanel').style.display = 'none';
             });
 
             // Lang buttons
             document.getElementById('langBtnLogin').addEventListener('click', toggleLang);
+            document.getElementById('langBtnRegister').addEventListener('click', toggleLang);
             document.getElementById('langBtnApp').addEventListener('click', toggleLang);
 
             // Logout
@@ -6153,8 +6384,10 @@
                     upd['referrals/' + ref.uid + '/' + currentUser.uid] = { referredAt: now, email: currentUser
                             .email || '', level: 1 };
                     return db.ref().update(upd).then(() => {
+                        // Give L1 bonus
                         db.ref('users/' + ref.uid + '/balance').transaction(b => (b || 0) + 50);
                         db.ref('users/' + ref.uid + '/referralEarnings').transaction(b => (b || 0) + 50);
+                        // Check L2
                         db.ref('users/' + ref.uid + '/referredBy').once('value').then(s2 => {
                             if (s2.exists()) {
                                 const l2Uid = s2.val();
@@ -6164,6 +6397,7 @@
                                     0) + 20);
                                 db.ref('referrals/' + l2Uid + '/' + currentUser.uid).set({ referredAt: now,
                                         email: currentUser.email || '', level: 2 });
+                                // Check L3
                                 db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
                                     if (s3.exists()) {
                                         const l3Uid = s3.val();
@@ -6186,47 +6420,86 @@
             }).catch(err => console.error(err));
         }
 
-        // ========== POPULATE COUNTRIES (for login page) ==========
+        // ========== POPULATE COUNTRIES ==========
         function populateCountries() {
-            const countrySelect = document.getElementById('compCountry');
-            const dialSelect = document.getElementById('compDialCode');
-            // These are populated in the modal show function
+            const countrySelect = document.getElementById('regCountry');
+            const dialSelect = document.getElementById('regDialCode');
+            if (!countrySelect || !dialSelect) return;
+
+            // Add default option
+            countrySelect.innerHTML =
+                `<option value="" disabled selected>${t('اختر الدولة', 'Select Country')}</option>`;
+            dialSelect.innerHTML = `<option value="" disabled selected>${t('رمز', 'Code')}</option>`;
+
+            COUNTRIES.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.code;
+                opt.textContent = c.name + ' (' + c.dial + ')';
+                countrySelect.appendChild(opt);
+
+                const dOpt = document.createElement('option');
+                dOpt.value = c.dial;
+                dOpt.textContent = c.dial + ' (' + c.code + ')';
+                dialSelect.appendChild(dOpt);
+            });
+
+            // Auto-fill dial code when country selected
+            countrySelect.addEventListener('change', function() {
+                const country = COUNTRIES.find(c => c.code === this.value);
+                if (country) {
+                    dialSelect.value = country.dial;
+                }
+            });
         }
 
         // ========== BOOT ==========
         document.addEventListener('DOMContentLoaded', function() {
+            // Populate countries
+            populateCountries();
+
+            // Apply language
             applyLang();
+
+            // Detect referral
             detectRefFromUrl();
+
+            // Wire events
             wireEvents();
+
+            // Init background
             initBgCanvas();
+
+            // Build wheel
             setTimeout(buildWheel, 500);
 
             // Auth state listener
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUser = user;
-                    // Check if user has profile in DB
-                    db.ref('users/' + user.uid).once('value').then(snap => {
-                        if (snap.exists()) {
-                            userData = { ...snap.val(), uid: user.uid };
-                            showApp();
-                            hideLoading();
-                        } else {
-                            // Show profile completion
-                            hideLoading();
-                            showProfileCompleteModal(user);
-                        }
-                    }).catch(err => {
-                        hideLoading();
-                        showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                    });
+                    initUserData(user);
                 } else {
                     currentUser = null;
                     userData = null;
                     document.getElementById('mainApp').style.display = 'none';
                     document.getElementById('authScreens').style.display = 'flex';
                     document.getElementById('notifBellBtn').style.display = 'none';
+                    // Show login panel by default
+                    document.getElementById('loginPanel').style.display = 'flex';
+                    document.getElementById('registerPanel').style.display = 'none';
+                    document.getElementById('resetPanel').style.display = 'none';
                     hideLoading();
+                }
+            });
+
+            // Handle visibility change for mining
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden && isMining) {
+                    // Mining continues in background via interval
+                }
+                if (!document.hidden && currentUser && userData) {
+                    // Refresh data when returning
+                    renderDashboard();
+                    startCooldownTimer();
                 }
             });
 
@@ -6237,6 +6510,13 @@
                     setTimeout(generateQR, 1000);
                 }
             }, 500);
+
+            // Watch for userData changes to update QR
+            const origShowApp = window.showApp;
+            window.showApp = function() {
+                if (origShowApp) origShowApp();
+                if (userData) setTimeout(generateQR, 1000);
+            };
         });
 
         // ========== SERVICE WORKER ==========
@@ -6246,7 +6526,7 @@
             });
         }
 
-        console.log('🐕 NDOG Coin v3.0 (Google Auth) loaded');
+        console.log('🐕 NDOG Coin v3.0 loaded successfully');
     </script>
 </body>
 </html>

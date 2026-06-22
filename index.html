@@ -3141,86 +3141,221 @@
             }
         }
     
-        /* 24H MINING SYSTEM - NAV RING & PROGRESS */
-        .mine-ring-svg {
-            position: absolute;
-            inset: -4px;
-            width: calc(100% + 8px);
-            height: calc(100% + 8px);
-            transform: rotate(-90deg);
+        /* ============================================
+           CRYPTO STYLE ENHANCEMENTS + FLOATING COINS
+           ============================================ */
+
+        /* Floating transparent coin layer */
+        #cryptoCoinsBg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
             pointer-events: none;
-            z-index: 2;
-        }
-        .mine-ring-bg {
-            fill: none;
-            stroke: rgba(255,255,255,0.08);
-            stroke-width: 3;
-        }
-        .mine-ring-fill {
-            fill: none;
-            stroke: #D4A017;
-            stroke-width: 3.5;
-            stroke-linecap: round;
-            stroke-dasharray: 188.5;
-            stroke-dashoffset: 0;
-            transition: stroke-dashoffset 1s linear, stroke 0.6s ease;
-            filter: drop-shadow(0 0 4px rgba(212,160,23,0.7));
-        }
-        .nav-mine-pct {
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 8px;
-            font-family: var(--font-mono);
-            font-weight: 700;
-            color: var(--gold-light);
-            background: rgba(0,0,0,0.6);
-            padding: 1px 4px;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
-        .nav-center-btn.mine-ready {
-            animation: mineReadyPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow:
-                0 0 0 0 rgba(16,185,129,0.7),
-                0 6px 30px rgba(16,185,129,0.5);
-        }
-        @keyframes mineReadyPop {
-            0% { transform: translateX(-50%) scale(1); }
-            40% { transform: translateX(-50%) scale(1.25); }
-            70% { transform: translateX(-50%) scale(0.95); }
-            100% { transform: translateX(-50%) scale(1); }
-        }
-        .mining-progress-bar {
-            background: var(--surface-3);
-            border-radius: 999px;
-            height: 8px;
             overflow: hidden;
         }
-        .mining-progress-fill {
-            height: 100%;
-            width: 100%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-            transition: width 1s linear, background 0.5s ease;
+        .crypto-coin {
+            position: absolute;
+            font-size: 32px;
+            opacity: 0;
+            animation: coinDrift var(--dur, 18s) var(--delay, 0s) ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(212,160,23,0.3));
+            user-select: none;
         }
-        .mining-countdown-text {
-            font-size: 28px;
-            font-family: var(--font-mono);
-            font-weight: 700;
+        @keyframes coinDrift {
+            0%   { transform: translateY(110vh) rotate(0deg) scale(0.6); opacity: 0; }
+            5%   { opacity: var(--opacity, 0.07); }
+            50%  { transform: translateY(40vh) rotate(180deg) scale(1); opacity: var(--opacity, 0.10); }
+            95%  { opacity: var(--opacity, 0.07); }
+            100% { transform: translateY(-10vh) rotate(360deg) scale(0.6); opacity: 0; }
+        }
+
+        /* Scan-line overlay for crypto feel */
+        .crypto-scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 3px,
+                rgba(0,0,0,0.018) 3px,
+                rgba(0,0,0,0.018) 4px
+            );
+        }
+
+        /* Neon gold text glow utility */
+        .neon-gold {
             color: var(--gold-light);
-            letter-spacing: 2px;
-            text-shadow: 0 0 12px rgba(212,160,23,0.45);
+            text-shadow: 0 0 8px rgba(212,160,23,0.6), 0 0 20px rgba(212,160,23,0.3);
         }
-        .mining-reward-badge {
+
+        /* Glitch animation on balance amount */
+        .balance-amount {
+            animation: balancePulse 4s ease-in-out infinite;
+        }
+        @keyframes balancePulse {
+            0%, 100% { text-shadow: none; }
+            50% { text-shadow: 0 0 12px rgba(240,201,58,0.4), 0 0 30px rgba(212,160,23,0.2); }
+        }
+
+        /* Crypto matrix grid lines on balance card */
+        .balance-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background-image:
+                linear-gradient(rgba(212,160,23,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212,160,23,0.04) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ticker strip at top */
+        .crypto-ticker {
+            position: fixed;
+            top: env(safe-area-inset-top, 0px);
+            left: 0; right: 0;
+            height: 28px;
+            z-index: 60;
+            overflow: hidden;
+            background: rgba(7,11,20,0.85);
+            border-bottom: 1px solid rgba(212,160,23,0.12);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+        }
+        .ticker-track {
+            display: flex;
+            gap: 0;
+            animation: tickerScroll 28s linear infinite;
+            white-space: nowrap;
+            will-change: transform;
+        }
+        .ticker-item {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(212,160,23,0.1);
-            border: 1px solid rgba(212,160,23,0.3);
-            border-radius: 999px;
-            padding: 6px 16px;
+            padding: 0 20px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--text-2);
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .ticker-item .t-sym { color: var(--gold); }
+        .ticker-item .t-up  { color: var(--green); }
+        .ticker-item .t-dn  { color: var(--red); }
+        @keyframes tickerScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Status bar spacer accounts for ticker */
+        .status-bar-spacer {
+            height: calc(var(--status-bar) + 28px) !important;
+        }
+
+        /* Hexagon pattern on auth screen */
+        #authScreens::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'%3E%3Cpath d='M30 2l26 15v20L30 51 4 37V17z' fill='none' stroke='rgba(212,160,23,0.06)' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 60px 52px;
+            pointer-events: none;
+            animation: hexShift 20s linear infinite;
+        }
+        @keyframes hexShift {
+            from { background-position: 0 0; }
+            to   { background-position: 120px 104px; }
+        }
+
+        /* Card data lines / holo shimmer */
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(105deg, transparent, rgba(212,160,23,0.04), transparent);
+            animation: holoSweep 6s ease-in-out infinite;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+        @keyframes holoSweep {
+            0%   { left: -100%; }
+            50%  { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        /* PWA Banner coin floaters */
+        .pwa-coin-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .pwa-coin-float {
+            position: absolute;
+            font-size: 18px;
+            opacity: 0.12;
+            animation: pwaCoinFloat 4s ease-in-out infinite;
+        }
+        .pwa-coin-float.c1 { top: 10%; right: 15%; animation-delay: 0s; }
+        .pwa-coin-float.c2 { bottom: 15%; right: 30%; animation-delay: 1.4s; font-size: 14px; }
+        .pwa-coin-float.c3 { top: 50%; right: 8%; animation-delay: 2.8s; font-size: 12px; }
+        @keyframes pwaCoinFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50%       { transform: translateY(-6px) rotate(15deg); }
+        }
+
+        /* PWA banner icon ring pulse */
+        .pwa-banner-icon-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 18px;
+            border: 2px solid var(--gold);
+            opacity: 0;
+            animation: ringPulse 2.5s ease-out infinite;
+        }
+        @keyframes ringPulse {
+            0%   { transform: scale(0.85); opacity: 0.6; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .pwa-banner-icon { position: relative; }
+
+        /* PWA install button shimmer */
+        .pwa-banner-install {
+            position: relative;
+            overflow: hidden;
+        }
+        .pwa-banner-install::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -60%;
+            width: 40%; height: 100%;
+            background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: skewX(-20deg);
+            animation: btnShimmer 3s ease-in-out infinite;
+        }
+        @keyframes btnShimmer {
+            0%   { left: -60%; }
+            50%  { left: 130%; }
+            100% { left: 130%; }
+        }
+
+        /* Whitepaper links highlight */
+        .profile-link-row:hover .profile-link-icon {
+            background: rgba(212,160,23,0.15);
+            transform: scale(1.1);
+            transition: all 0.2s;
+        }
+        .profile-link-icon {
+            transition: all 0.2s;
         }
 
         </style>
@@ -3238,16 +3373,23 @@
     <div class="grain-overlay" aria-hidden="true"></div>
 
     <!-- ========== PWA INSTALL BANNER ========== -->
-    <div class="pwa-install-banner" id="pwaInstallBanner" role="dialog" aria-label="Install app">
+    <div class="pwa-install-banner" id="pwaInstallBanner" role="dialog" aria-label="Install NDOG App">
+        <!-- Animated coin background -->
+        <div class="pwa-coin-bg" aria-hidden="true">
+            <span class="pwa-coin-float c1">🪙</span>
+            <span class="pwa-coin-float c2">💰</span>
+            <span class="pwa-coin-float c3">🐕</span>
+        </div>
         <div class="pwa-banner-icon">
             <img src="./icons/icon-192.png" alt="NDOG" width="48" height="48">
+            <div class="pwa-banner-icon-ring"></div>
         </div>
         <div class="pwa-banner-text">
-            <div class="pwa-banner-title" data-ar="ثبّت تطبيق NDOG" data-en="Install NDOG App">Install NDOG App</div>
-            <div class="pwa-banner-sub" data-ar="وصول أسرع، يعمل بدون نت" data-en="Faster access, works offline">Faster access, works offline</div>
+            <div class="pwa-banner-title" data-ar="📲 ثبّت تطبيق NDOG" data-en="📲 Install NDOG App">📲 Install NDOG App</div>
+            <div class="pwa-banner-sub" data-ar="تطبيق منفصل • يعمل بدون إنترنت • أسرع وأسهل" data-en="Standalone app • Works offline • Faster &amp; easier">Standalone app • Works offline • Faster &amp; easier</div>
         </div>
         <div class="pwa-banner-actions">
-            <button class="pwa-banner-install" id="pwaInstallBtn" type="button" data-ar="تثبيت" data-en="Install">Install</button>
+            <button class="pwa-banner-install" id="pwaInstallBtn" type="button" data-ar="تثبيت الآن" data-en="Install Now">Install Now</button>
             <button class="pwa-banner-close" id="pwaInstallClose" type="button" aria-label="Close">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
@@ -3680,24 +3822,17 @@
                 </div>
 
                 <div class="mining-status" id="miningStatus">
-                    <div class="mining-status-state" id="miningStateLabel">اضغط للبدء • 5 NDOG / 24 ساعة</div>
-                    <div class="mining-reward-badge">
-                        <span>⛏️</span>
-                        <span id="miningEstimatedReward" style="font-size:18px;font-weight:800;color:var(--gold);font-family:var(--font-mono)">5 NDOG</span>
-                        <span style="font-size:11px;color:var(--text-3)" data-ar="لكل 24 ساعة" data-en="per 24h">per 24h</span>
-                    </div>
+                    <div class="mining-status-state" id="miningStateLabel" data-ar="اضغط للتعدين" data-en="Tap to Mine">Tap to Mine</div>
                     <div class="mining-progress-wrap" id="miningProgressWrap" style="display:none;">
-                        <div style="text-align:center;margin-bottom:10px">
-                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px" data-ar="الوقت المتبقي" data-en="Time Remaining">Time Remaining</div>
-                            <div class="mining-countdown-text" id="miningCountdownText">24:00:00</div>
+                        <div class="mining-progress-bar">
+                            <div class="mining-progress-fill" id="miningProgressFill"></div>
                         </div>
-                        <div class="mining-progress-bar" style="margin-bottom:8px">
-                            <div class="mining-progress-fill" id="miningProgressFill" style="width:100%"></div>
+                        <div class="mining-progress-vals">
+                            <span id="miningProgressEarned">0.00</span>
+                            <span>NDOG</span>
                         </div>
-                        <div class="mining-progress-vals" style="justify-content:space-between">
-                            <span style="font-size:11px;color:var(--text-3)" data-ar="جُمع حتى الآن" data-en="Earned so far">Earned so far</span>
-                            <span style="font-size:13px;font-weight:700;color:var(--gold)"><span id="miningProgressEarned">0.00</span> NDOG</span>
-                        </div>
+                        <div class="mining-countdown-text" id="miningCountdownText">23:59:59</div>
+                        <div class="mining-estimated-reward" id="miningEstimatedReward">+0 NDOG</div>
                     </div>
                 </div>
 
@@ -4029,6 +4164,25 @@
                     <div id="faqList" class="faq-list"></div>
                 </div>
 
+                
+                <!-- Whitepaper Links -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <span class="card-header-icon">📄</span>
+                        <span class="card-header-title" data-ar="الورقة البيضاء" data-en="Whitepaper">Whitepaper</span>
+                    </div>
+                    <a href="./whitepaper-en.html" target="_blank" rel="noopener" class="profile-link-row">
+                        <div class="profile-link-icon">🇬🇧</div>
+                        <span class="profile-link-label" data-ar="الورقة البيضاء - إنجليزي" data-en="Whitepaper — English">Whitepaper — English</span>
+                        <svg class="profile-link-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                    <a href="./whitepaper-ar.html" target="_blank" rel="noopener" class="profile-link-row">
+                        <div class="profile-link-icon">🇸🇦</div>
+                        <span class="profile-link-label" data-ar="الورقة البيضاء - عربي" data-en="Whitepaper — Arabic">Whitepaper — Arabic</span>
+                        <svg class="profile-link-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+
                 <button class="btn-logout-full" id="logoutBtnFull" type="button">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
                     <span data-ar="تسجيل الخروج" data-en="Sign Out">Sign Out</span>
@@ -4097,13 +4251,8 @@
 
             <!-- FLOATING CENTER MINING BUTTON -->
             <button class="nav-center-btn" id="navMineBtn" data-tab="mining" type="button" aria-label="Mine NDOG">
-                <svg class="mine-ring-svg" viewBox="0 0 68 68" aria-hidden="true">
-                    <circle class="mine-ring-bg" cx="34" cy="34" r="30"></circle>
-                    <circle class="mine-ring-fill" id="mineProgressRing" cx="34" cy="34" r="30" stroke-dasharray="188.5" stroke-dashoffset="0"></circle>
-                </svg>
                 <span class="nav-center-btn-inner">
-                    <span class="nav-center-emoji" id="navMineEmoji">🐕</span>
-                    <span class="nav-mine-pct" id="navMinePct" style="display:none"></span>
+                    <span class="nav-center-emoji">🐕</span>
                 </span>
                 <div class="nav-center-pulse pulse-a"></div>
                 <div class="nav-center-pulse pulse-b"></div>
@@ -4528,8 +4677,8 @@
             '180_days': { apr: 0.25, days: 180, min: 2000 },
         };
         const REF_BONUSES = { 1: 50, 2: 20, 3: 10 };
-        const MINING_RATE = 5;          // 5 NDOG لكل جلسة
-        const MINING_SESSION_SECS = 86400; // 24 ساعة
+        const MINING_RATE = 10;
+        const MINING_SESSION_SECS = 60;
         const BOOST_DURATION_SECS = 30 * 60;
 
         const COUNTRIES = [
@@ -6334,131 +6483,96 @@
             }, 500);
         });
 
-        
-        // ===== 24H MINING LOGIC PATCH =====
-        function startMining() {
-            isMining = true;
-            miningStartTime = Date.now();
-            miningEarned = 0;
-            localStorage.setItem('ndog_mine_start', miningStartTime);
-            const btn = document.getElementById('miningBtn');
-            if (btn) btn.classList.add('is-mining');
-            const stateLabel = document.getElementById('miningStateLabel');
-            if (stateLabel) stateLabel.textContent = t('⛏️ جاري التعدين... 24 ساعة', '⛏️ Mining... 24 hours');
-            const wrap = document.getElementById('miningProgressWrap');
-            if (wrap) wrap.style.display = 'block';
-            const navBtn = document.getElementById('navMineBtn');
-            if (navBtn) navBtn.classList.add('active');
-            _runMiningTick();
-            if (miningInterval) clearInterval(miningInterval);
-            miningInterval = setInterval(_runMiningTick, 1000);
-            showToast(t('⛏️ بدأ التعدين! ستجمع 5 NDOG خلال 24 ساعة', '⛏️ Mining started! Earn 5 NDOG in 24 hours'), 'info');
-        }
+        // ========== PWA INSTALL BANNER ==========
+        (function() {
+            let deferredPrompt = null;
+            const banner = document.getElementById('pwaInstallBanner');
+            const installBtn = document.getElementById('pwaInstallBtn');
+            const closeBtn = document.getElementById('pwaInstallClose');
 
-        function stopMining() {
-            return; // لا يمكن الإيقاف المبكر في نظام 24 ساعة
-        }
+            // Store dismiss state
+            const DISMISSED_KEY = 'ndog_pwa_dismissed';
+            const INSTALLED_KEY = 'ndog_pwa_installed';
 
-        function _runMiningTick() {
-            const elapsed = (Date.now() - miningStartTime) / 1000;
-            const progress = Math.min(1, elapsed / MINING_SESSION_SECS);
-            const remaining = Math.max(0, MINING_SESSION_SECS - elapsed);
-            miningEarned = Math.round(MINING_RATE * progress * 100) / 100;
-            const fillPct = (1 - progress) * 100;
-            const fill = document.getElementById('miningProgressFill');
-            if (fill) {
-                fill.style.width = fillPct + '%';
-                if (fillPct > 50) fill.style.background = 'linear-gradient(90deg, var(--gold-dark), var(--gold-light))';
-                else if (fillPct > 20) fill.style.background = 'linear-gradient(90deg, var(--orange), var(--gold))';
-                else fill.style.background = 'linear-gradient(90deg, var(--red), var(--orange))';
+            function showBanner() {
+                if (localStorage.getItem(DISMISSED_KEY) || localStorage.getItem(INSTALLED_KEY)) return;
+                if (!banner) return;
+                setTimeout(() => banner.classList.add('show'), 3500);
             }
-            const earnedEl = document.getElementById('miningProgressEarned');
-            if (earnedEl) earnedEl.textContent = fmt(miningEarned, 2);
-            setEl('miningEstimatedReward', '5 NDOG');
-            const hh = Math.floor(remaining / 3600);
-            const mm = Math.floor((remaining % 3600) / 60);
-            const ss = Math.floor(remaining % 60);
-            setEl('miningCountdownText', `${pad(hh)}:${pad(mm)}:${pad(ss)}`);
-            _updateMineRing(progress);
-            if (progress >= 1) completeMiningSession();
-        }
 
-        function completeMiningSession() {
-            if (miningInterval) clearInterval(miningInterval);
-            miningInterval = null;
-            isMining = false;
-            localStorage.removeItem('ndog_mine_start');
-            const reward = MINING_RATE;
-            miningEarned = 0;
-            const btn = document.getElementById('miningBtn');
-            if (btn) { btn.classList.remove('is-mining'); btn.classList.add('is-cooldown'); }
-            const navBtn = document.getElementById('navMineBtn');
-            if (navBtn) { navBtn.classList.remove('active'); navBtn.classList.add('mine-ready'); }
-            _updateMineRing(0);
-            addBalance(reward, 'mining_session').then(() => {
-                const sessions = (userData?.miningSessionsTotal || 0) + 1;
-                db.ref('users/' + currentUser.uid + '/miningSessionsTotal').set(sessions);
-                setEl('miningSessions', sessions);
-                showToast(t('🏆 اكتمل التعدين! +5 NDOG لقد جمعت 5 عملات!', '🏆 Mining complete! +5 NDOG collected!'), 'success', 5000);
+            function hideBanner(permanent) {
+                if (banner) banner.classList.remove('show');
+                if (permanent) localStorage.setItem(DISMISSED_KEY, '1');
+            }
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showBanner();
             });
-        }
 
-        function _updateMineRing(progress) {
-            const ring = document.getElementById('mineProgressRing');
-            if (ring) {
-                const C = 2 * Math.PI * 30;
-                ring.style.strokeDashoffset = C * progress;
-                const remaining = 1 - progress;
-                if (remaining > 0.5) ring.style.stroke = '#D4A017';
-                else if (remaining > 0.2) ring.style.stroke = '#F59E0B';
-                else ring.style.stroke = '#EF4444';
+            if (installBtn) {
+                installBtn.addEventListener('click', async () => {
+                    if (!deferredPrompt) {
+                        // iOS fallback - show instructions
+                        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+                        if (isIOS) {
+                            if (typeof showToast === 'function') {
+                                showToast('📲 افتح القائمة ← اضغط "إضافة إلى الشاشة الرئيسية"', 'info', 5000);
+                            }
+                        }
+                        hideBanner(true);
+                        return;
+                    }
+                    hideBanner(false);
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        localStorage.setItem(INSTALLED_KEY, '1');
+                        if (typeof showToast === 'function') showToast('🎉 تم تثبيت التطبيق بنجاح!', 'success');
+                    }
+                    deferredPrompt = null;
+                });
             }
-            const pctEl = document.getElementById('navMinePct');
-            const emoji = document.getElementById('navMineEmoji');
-            if (pctEl) {
-                if (progress > 0 && progress < 1) {
-                    pctEl.style.display = 'block';
-                    pctEl.textContent = Math.floor(progress * 100) + '%';
-                    if (emoji) emoji.style.fontSize = '18px';
-                } else {
-                    pctEl.style.display = 'none';
-                    if (emoji) emoji.style.fontSize = '26px';
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => hideBanner(true));
+            }
+
+            window.addEventListener('appinstalled', () => {
+                localStorage.setItem(INSTALLED_KEY, '1');
+                hideBanner(true);
+            });
+
+            // iOS: show banner after delay if not already installed in standalone
+            if (window.navigator.standalone === false || window.matchMedia('(display-mode: browser)').matches) {
+                const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                if (isIOS && isSafari && !localStorage.getItem(DISMISSED_KEY) && !localStorage.getItem(INSTALLED_KEY)) {
+                    setTimeout(() => { if (banner) banner.classList.add('show'); }, 4000);
                 }
             }
-        }
+        })();
 
-        function updateMiningUI() {
-            setEl('miningRate', '5 NDOG / 24h');
-            setEl('miningSessions', userData?.miningSessionsTotal || 0);
-            setEl('miningEstimatedReward', '5 NDOG');
-            const savedStart = localStorage.getItem('ndog_mine_start');
-            if (savedStart && !isMining) {
-                const elapsed = (Date.now() - parseInt(savedStart)) / 1000;
-                if (elapsed < MINING_SESSION_SECS) {
-                    miningStartTime = parseInt(savedStart);
-                    isMining = true;
-                    const btn = document.getElementById('miningBtn');
-                    if (btn) btn.classList.add('is-mining');
-                    const navBtn = document.getElementById('navMineBtn');
-                    if (navBtn) navBtn.classList.add('active');
-                    const wrap = document.getElementById('miningProgressWrap');
-                    if (wrap) wrap.style.display = 'block';
-                    if (miningInterval) clearInterval(miningInterval);
-                    _runMiningTick();
-                    miningInterval = setInterval(_runMiningTick, 1000);
-                    return;
-                } else {
-                    localStorage.removeItem('ndog_mine_start');
-                }
+        // ========== FLOATING CRYPTO COINS ==========
+        (function() {
+            const container = document.getElementById('cryptoCoinsBg');
+            if (!container) return;
+            const coins = ['🪙','💰','🐕','⭐','🔷','💎','🌟','🏆'];
+            const count = 18;
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('span');
+                el.className = 'crypto-coin';
+                el.textContent = coins[Math.floor(Math.random() * coins.length)];
+                const left = Math.random() * 100;
+                const dur = 16 + Math.random() * 18;
+                const delay = Math.random() * 20;
+                const opacity = 0.04 + Math.random() * 0.07;
+                const size = 20 + Math.random() * 22;
+                el.style.cssText = `left:${left}%;--dur:${dur}s;--delay:${delay}s;--opacity:${opacity};font-size:${size}px;`;
+                container.appendChild(el);
             }
-            const wrap = document.getElementById('miningProgressWrap');
-            if (wrap) wrap.style.display = 'none';
-            setEl('miningStateLabel', 'اضغط للبدء • 5 NDOG / 24 ساعة');
-            setEl('miningCountdownText', '24:00:00');
-            const fill = document.getElementById('miningProgressFill');
-            if (fill) { fill.style.width = '100%'; }
-            _updateMineRing(0);
-        }
+        })();
 
         // ========== SERVICE WORKER ==========
         if ('serviceWorker' in navigator) {
@@ -6470,4 +6584,33 @@
         console.log('🐕 NDOG Coin v3.0 (Google Auth) loaded');
     </script>
 </body>
-</html>
+</html><!-- CRYPTO SCANLINES -->
+        <div class="crypto-scanlines" aria-hidden="true"></div>
+
+        <!-- CRYPTO TICKER STRIP -->
+        <div class="crypto-ticker" id="cryptoTicker" aria-hidden="true">
+            <div class="ticker-track" id="tickerTrack">
+                <span class="ticker-item"><span class="t-sym">NDOG</span><span class="t-up">+8.42%</span></span>
+                <span class="ticker-item"><span class="t-sym">BTC</span><span class="t-up">+2.14%</span></span>
+                <span class="ticker-item"><span class="t-sym">ETH</span><span class="t-dn">-0.83%</span></span>
+                <span class="ticker-item"><span class="t-sym">DOGE</span><span class="t-up">+5.61%</span></span>
+                <span class="ticker-item"><span class="t-sym">SOL</span><span class="t-up">+3.27%</span></span>
+                <span class="ticker-item"><span class="t-sym">BNB</span><span class="t-dn">-1.02%</span></span>
+                <span class="ticker-item"><span class="t-sym">ADA</span><span class="t-up">+1.88%</span></span>
+                <span class="ticker-item"><span class="t-sym">MATIC</span><span class="t-up">+4.55%</span></span>
+                <!-- duplicate for seamless loop -->
+                <span class="ticker-item"><span class="t-sym">NDOG</span><span class="t-up">+8.42%</span></span>
+                <span class="ticker-item"><span class="t-sym">BTC</span><span class="t-up">+2.14%</span></span>
+                <span class="ticker-item"><span class="t-sym">ETH</span><span class="t-dn">-0.83%</span></span>
+                <span class="ticker-item"><span class="t-sym">DOGE</span><span class="t-up">+5.61%</span></span>
+                <span class="ticker-item"><span class="t-sym">SOL</span><span class="t-up">+3.27%</span></span>
+                <span class="ticker-item"><span class="t-sym">BNB</span><span class="t-dn">-1.02%</span></span>
+                <span class="ticker-item"><span class="t-sym">ADA</span><span class="t-up">+1.88%</span></span>
+                <span class="ticker-item"><span class="t-sym">MATIC</span><span class="t-up">+4.55%</span></span>
+            </div>
+        </div>
+
+        <!-- FLOATING CRYPTO COINS BACKGROUND -->
+        <div id="cryptoCoinsBg" aria-hidden="true"></div>
+
+        

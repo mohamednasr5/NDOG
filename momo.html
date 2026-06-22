@@ -302,10 +302,61 @@ select.field-input{cursor:pointer}
 #pageLoader.show{display:flex}
 #pageLoader p{color:var(--text2);font-size:14px}
 
+/* ===== BOTTOM NAV (MOBILE) ===== */
+.bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--card);
+  border-top:1px solid var(--border);
+  z-index:200;
+  padding:6px 0 env(safe-area-inset-bottom, 6px);
+}
+.bottom-nav-inner{
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  max-width:500px;
+  margin:0 auto;
+}
+.bnav-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px 4px;
+  border:none;background:none;color:var(--text3);
+  font-size:10px;font-weight:500;cursor:pointer;
+  transition:.2s;min-width:56px;
+  font-family:inherit;border-radius:8px;
+  -webkit-tap-highlight-color:transparent;
+}
+.bnav-item:active{transform:scale(.92)}
+.bnav-item .bnav-icon{font-size:20px;line-height:1;transition:.2s}
+.bnav-item.active{color:var(--accent)}
+.bnav-item.active .bnav-icon{transform:scale(1.1)}
+
+/* MORE MENU */
+.bnav-more-menu{
+  display:none;position:fixed;bottom:64px;left:8px;right:8px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:12px;z-index:201;
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  animation:slideUp .25s ease;
+}
+.bnav-more-menu.show{display:block}
+.bnav-more-menu .bmm-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+}
+.bmm-item{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:14px 8px;border:none;background:var(--bg2);border-radius:12px;
+  color:var(--text2);font-size:11px;font-weight:500;cursor:pointer;
+  transition:.2s;font-family:inherit;
+}
+.bmm-item:active{background:var(--card2);transform:scale(.95)}
+.bmm-item .bmm-icon{font-size:22px}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   :root{--sidebar:0px}
-  .sidebar{width:260px;right:-260px}
+  .sidebar{width:280px;right:-280px}
   .sidebar.open{right:0;box-shadow:-10px 0 40px rgba(0,0,0,.5)}
   .topbar{right:0}
   .main{margin-right:0}
@@ -314,11 +365,49 @@ select.field-input{cursor:pointer}
   .overlay-sidebar.show{display:block}
   .form-row,.form-row-3{grid-template-columns:1fr}
 }
-@media(max-width:600px){
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .main{padding:16px}
-  .topbar{padding:0 14px}
-  table{min-width:520px}
+@media(max-width:768px){
+  .bottom-nav{display:block}
+  .main{margin-top:56px;padding:16px;padding-bottom:80px;min-height:calc(100vh - 56px - 64px)}
+  .topbar{height:56px;padding:0 14px}
+  .topbar-title{font-size:15px}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .stat-card{padding:14px}
+  .stat-icon{font-size:22px;margin-bottom:6px}
+  .stat-value{font-size:20px}
+  .stat-label{font-size:11px}
+  .quick-actions{grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .qa-card{padding:14px 8px}
+  .qa-icon{font-size:22px}
+  .qa-label{font-size:11px}
+  .section-title{font-size:14px}
+  .table-header{padding:12px 14px;flex-direction:column;align-items:stretch;gap:8px}
+  .table-title{font-size:14px}
+  .search-input{width:100%;min-width:0;font-size:14px;padding:10px 12px}
+  .filter-select{width:100%;font-size:14px;padding:10px 12px}
+  .form-card{padding:16px}
+  .form-card-title{font-size:15px}
+  .field-input{font-size:14px;padding:10px 12px}
+  .modal-box{margin:12px;max-height:85vh;padding:20px;border-radius:14px}
+  .modal-title{font-size:15px}
+  .btn-full{padding:12px;font-size:13px}
+  table{min-width:520px;font-size:12px}
+  th,td{padding:9px 10px;font-size:11px}
+  .action-btns{gap:4px}
+  .btn{padding:5px 8px;font-size:11px}
+  .btn-sm{padding:4px 7px;font-size:10px}
+  .page-loader{display:none}
+}
+@media(max-width:400px){
+  .stats-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-card{padding:12px}
+  .stat-value{font-size:18px}
+  .quick-actions{grid-template-columns:1fr 1fr}
+  .main{padding:12px;padding-bottom:76px}
+  .topbar{height:50px;padding:0 10px}
+  .topbar-title{font-size:14px}
+  .live-badge{font-size:10px;padding:4px 8px}
+  .bnav-item{min-width:48px;font-size:9px}
+  .bnav-item .bnav-icon{font-size:18px}
 }
 </style>
 </head>
@@ -628,6 +717,29 @@ select.field-input{cursor:pointer}
 
     </main>
   </div>
+
+  <!-- BOTTOM NAVIGATION (Mobile) -->
+  <nav class="bottom-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+      <button class="bnav-item active" data-bpage="overview" onclick="bnavGo('overview',this)"><span class="bnav-icon">📊</span>الرئيسية</button>
+      <button class="bnav-item" data-bpage="users" onclick="bnavGo('users',this)"><span class="bnav-icon">👥</span>المستخدمين</button>
+      <button class="bnav-item" data-bpage="notifications" onclick="bnavGo('notifications',this)"><span class="bnav-icon">🔔</span>إشعارات</button>
+      <button class="bnav-item" data-bpage="gifts" onclick="bnavGo('gifts',this)"><span class="bnav-icon">🎁</span>هدايا</button>
+      <button class="bnav-item" data-bpage="more" onclick="toggleMoreMenu()"><span class="bnav-icon">⋯</span>المزيد</button>
+    </div>
+  </nav>
+
+  <!-- MORE MENU (Mobile) -->
+  <div class="bnav-more-menu" id="moreMenu">
+    <div class="bmm-grid">
+      <button class="bmm-item" onclick="bnavGo('news',null);toggleMoreMenu()"><span class="bmm-icon">📰</span>الأخبار</button>
+      <button class="bmm-item" onclick="bnavGo('referrals',null);toggleMoreMenu()"><span class="bmm-icon">🔗</span>الإحالات</button>
+      <button class="bmm-item" onclick="bnavGo('leaderboard',null);toggleMoreMenu()"><span class="bmm-icon">🏆</span>المتصدرون</button>
+      <button class="bmm-item" onclick="bnavGo('analytics',null);toggleMoreMenu()"><span class="bmm-icon">📈</span>تحليلات</button>
+      <button class="bmm-item" onclick="bnavGo('export',null);toggleMoreMenu()"><span class="bmm-icon">💾</span>تصدير</button>
+      <button class="bmm-item" onclick="adminLogout()" style="color:var(--red)"><span class="bmm-icon">🚪</span>خروج</button>
+    </div>
+  </div>
 </div>
 
 <!-- ===== EDIT USER MODAL ===== -->
@@ -796,11 +908,17 @@ const pageTitles = {
 function switchPage(name, btn){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.querySelectorAll(".bnav-item").forEach(n=>n.classList.remove("active"));
   const pg = document.getElementById("page-"+name);
   if(pg) pg.classList.add("active");
-  if(btn) btn.classList.add("active");
+  if(btn && btn.classList.contains("nav-item")) btn.classList.add("active");
+  // highlight bottom nav
+  const bnav = document.querySelector(`.bnav-item[data-bpage="${name}"]`);
+  if(bnav) bnav.classList.add("active");
   document.getElementById("pageTitle").textContent = pageTitles[name] || name;
   closeSidebar();
+  // scroll to top
+  window.scrollTo({top:0,behavior:'smooth'});
   // Load page data
   if(name==="referrals") loadReferrals();
   if(name==="leaderboard") loadLeaderboard();
@@ -809,6 +927,23 @@ function switchPage(name, btn){
   if(name==="news") loadNews();
   if(name==="gifts") loadGiftsHistory();
 }
+
+// ==================== BOTTOM NAV (MOBILE) ====================
+function bnavGo(name, btn){
+  const sidebarBtn = document.querySelector(`.nav-item[data-page="${name}"]`);
+  switchPage(name, sidebarBtn);
+}
+function toggleMoreMenu(){
+  document.getElementById("moreMenu").classList.toggle("show");
+}
+// Close more menu on outside tap
+document.addEventListener('click', function(e){
+  const mm = document.getElementById("moreMenu");
+  if(!mm) return;
+  if(!mm.contains(e.target) && !e.target.closest('[data-bpage="more"]')){
+    mm.classList.remove("show");
+  }
+});
 
 // ==================== SIDEBAR ====================
 function toggleSidebar(){

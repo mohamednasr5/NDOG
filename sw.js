@@ -1,0 +1,210 @@
+// ═══════════════════════════════════════════════════════
+// NDOG Coin — Service Worker v2.0
+// Enables true standalone PWA with full offline support
+// ═══════════════════════════════════════════════════════
+
+const CACHE_NAME = 'ndog-v3.0.0';
+const STATIC_CACHE = 'ndog-static-v3.0.0';
+const DYNAMIC_CACHE = 'ndog-dynamic-v3.0.0';
+const GOOGLE_FONTS_CACHE = 'ndog-fonts-v1';
+
+// Static assets to pre-cache for instant offline loading
+const PRECACHE_URLS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/favicon.svg',
+  './icons/favicon-32.png',
+  './icons/favicon-16.png',
+  './icons/favicon.ico',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Space+Mono:wght@400;700&display=swap'
+];
+
+// CDN libraries to cache on first use
+const CDN_CACHE_URLS = [
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js',
+  'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
+];
+
+// Install: pre-cache critical assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      console.log('[SW] Pre-caching static assets');
+      return cache.addAll(PRECACHE_URLS).catch(err => {
+        console.warn('[SW] Some pre-cache URLs failed:', err);
+        // Continue install even if some fail (fonts may be blocked)
+        return Promise.resolve();
+      });
+    })
+  );
+  // Activate immediately without waiting for old SW to finish
+  self.skipWaiting();
+});
+
+// Activate: clean up old caches
+self.addEventListener('activate', (event) => {
+  const currentCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, GOOGLE_FONTS_CACHE];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => !currentCaches.includes(name))
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          })
+      );
+    })
+  );
+  // Take control of all clients immediately
+  self.clients.claim();
+});
+
+// Fetch: Network-first with cache fallback for API, Cache-first for static
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Skip chrome-extension and other non-http(s)
+  if (!url.protocol.startsWith('http')) return;
+
+  // Firebase Realtime Database: network-only (must be fresh)
+  if (url.hostname === 'ndog-coin-default-rtdb.firebaseio.com' ||
+      url.hostname.endsWith('.firebaseio.com')) {
+    event.respondWith(
+      fetch(request).catch(() => {
+        // If offline and it's a read, return a minimal JSON response
+        return new Response(JSON.stringify({ error: 'offline', data: null }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
+    return;
+  }
+
+  // Firebase Auth: network-only
+  if (url.hostname.includes('googleapis.com') && url.pathname.includes('identitytoolkit')) {
+    event.respondWith(fetch(request).catch(() => {
+      return new Response(JSON.stringify({ error: 'auth_offline' }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }));
+    return;
+  }
+
+  // Google Fonts: stale-while-revalidate
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    event.respondWith(
+      caches.open(GOOGLE_FONTS_CACHE).then((cache) => {
+        return cache.match(request).then((cached) => {
+          const fetchPromise = fetch(request).then((response) => {
+            if (response.ok) {
+              cache.put(request, response.clone());
+            }
+            return response;
+          }).catch(() => cached);
+          return cached || fetchPromise;
+        });
+      })
+    );
+    return;
+  }
+
+  // CDN libraries: cache-first
+  if (url.hostname === 'cdn.jsdelivr.net' || url.hostname.includes('gstatic.com')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(DYNAMIC_CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Local static assets: cache-first with network fallback
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        }).catch(() => {
+          // For navigation requests, serve the cached index.html (SPA fallback)
+          if (request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
+    );
+    return;
+  }
+
+  // Everything else: network-first with cache fallback
+  event.respondWith(
+    fetch(request).then((response) => {
+      if (response.ok) {
+        const clone = response.clone();
+        caches.open(DYNAMIC_CACHE).then((cache) => cache.put(request, clone));
+      }
+      return response;
+    }).catch(() => {
+      return caches.match(request);
+    })
+  );
+});
+
+// Background sync for offline actions
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-mining') {
+    console.log('[SW] Syncing mining data...');
+  }
+});
+
+// Push notifications support
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'NDOG Coin';
+  const options = {
+    body: data.body || 'New update available!',
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-72.png',
+    vibrate: [100, 50, 100],
+    data: { url: data.url || './' },
+    actions: data.actions || []
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || './';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});

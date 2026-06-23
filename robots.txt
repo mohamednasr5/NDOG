@@ -1,0 +1,37 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+# Sitemap
+Sitemap: https://ndogcoin.com/sitemap.xml
+
+# Crawl-delay (optional, for smaller servers)
+Crawl-delay: 1
+
+# AI Crawlers — explicit allow
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /

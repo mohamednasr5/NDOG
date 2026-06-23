@@ -933,49 +933,46 @@ function initAdminApp(){
   // Listeners for dynamic forms
   
 
-// ═══════ ONESIGNAL PUSH NOTIFICATION CONFIG ═══════
+// ═══════ ONESIGNAL PUSH NOTIFICATION CONFIG (via Cloudflare Worker) ═══════
 const ONESIGNAL_APP_ID = '84479925-fa80-47df-a5c8-599c56739791';
-const ONESIGNAL_REST_KEY = 'os_v2_app_qrdzsjp2qbd57joilgofm44xsevjuxlsp3tenafaex6pohnznvwspkdqlcmohxoeltbnmfnauxuz6x467d37on4kvs2pn4e6i4egx2a'; // Set your OneSignal REST API Key here (from OneSignal Dashboard > Keys & IDs)
+// ── Cloudflare Worker Proxy — REST API key is stored securely in Worker environment ──
+const WORKER_URL = 'https://ndog.ads4ads2029.workers.dev';  // ← Replace with your Worker URL after deployment
+const WORKER_SECRET = '521988';                  // ← Must match WORKER_SECRET in Worker env
 
-// Send push notification via OneSignal REST API
+// Send push notification via Cloudflare Worker (secure proxy to OneSignal)
 async function sendPushNotification(targetType, targetIds, title, message, data) {
-  if (!ONESIGNAL_REST_KEY) {
-    console.warn('[Admin] OneSignal REST API key not configured');
-    return { sent: 0, failed: 0, error: 'REST key not set' };
+  if (!WORKER_URL || WORKER_URL.includes('YOUR-WORKER')) {
+    console.warn('[Admin] Worker URL not configured');
+    return { sent: 0, failed: 0, error: 'Worker URL not set' };
   }
   try {
     const body = {
-      app_id: ONESIGNAL_APP_ID,
-      contents: { en: message, ar: message },
-      headings: { en: title, ar: title },
-      url: 'https://ndogcoin.com/',
-      icon: 'https://ndogcoin.com/icons/icon-192.png',
+      appId: ONESIGNAL_APP_ID,
+      title,
+      message,
+      targetType,
+      targetIds: targetIds || [],
       data: data || { source: 'ndog-admin' },
-      web_push_topic: 'ndog-notifications'
     };
 
-    if (targetType === 'all') {
-      body.included_segments = ['Subscribed Users'];
-    } else if (targetType === 'founders') {
-      // Target specific external_ids (OneSignal login IDs = Firebase UIDs)
-      body.include_external_user_ids = targetIds;
-    } else if (targetType === 'single') {
-      body.include_external_user_ids = targetIds;
-    }
-
-    const resp = await fetch('https://onesignal.com/api/v1/notifications', {
+    const resp = await fetch(WORKER_URL + '/send-push', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + btoa(ONESIGNAL_REST_KEY + ':')
+        'Authorization': 'Bearer ' + WORKER_SECRET,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
+
     const result = await resp.json();
-    console.log('[Admin] OneSignal response:', result);
-    return { sent: result.successful || 0, failed: result.failed || 0, id: result.id };
+    console.log('[Admin] Worker response:', result);
+
+    if (!resp.ok) {
+      return { sent: 0, failed: 0, error: result.error || 'Worker error' };
+    }
+    return { sent: result.sent || 0, failed: result.failed || 0, id: result.id };
   } catch(err) {
-    console.warn('[Admin] OneSignal push send error:', err);
+    console.warn('[Admin] Worker push send error:', err);
     return { sent: 0, failed: 0, error: err.message };
   }
 }

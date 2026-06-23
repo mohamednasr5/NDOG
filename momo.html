@@ -597,6 +597,7 @@ select.field-input{cursor:pointer}
             <textarea class="field-input" id="notifMessage" placeholder="اكتب نص الإشعار هنا..."></textarea>
           </div>
           <button class="btn btn-primary btn-full" onclick="sendNotification()">📤 إرسال الإشعار</button>
+          <div id="pushStatus" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:12px;text-align:center;"></div>
         </div>
 
         <div class="section-title">📋 الإشعارات المرسلة مؤخراً</div>
@@ -930,7 +931,62 @@ function initAdminApp(){
   startAdminClock();
   loadAllData();
   // Listeners for dynamic forms
-  document.getElementById("notifTarget").addEventListener("change", function(){
+  
+
+// ═══════ FCM PUSH NOTIFICATION CONFIG ═══════
+const FCM_WORKER_URL = 'https://YOUR-WORKER.your-subdomain.workers.dev';
+const WORKER_SECRET = 'YOUR_WORKER_SECRET';
+
+// Send push notification via Cloudflare Worker to all FCM tokens
+async function sendPushNotification(tokens, title, message, data) {
+  if (!tokens || tokens.length === 0) return { sent: 0, failed: 0 };
+  try {
+    const resp = await fetch(FCM_WORKER_URL + '/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + WORKER_SECRET,
+      },
+      body: JSON.stringify({
+        tokens: tokens,
+        title: title,
+        message: message,
+        data: data || { source: 'ndog-admin' },
+        icon: 'https://ndogcoin.com/icons/icon-192.png',
+        clickAction: 'https://ndogcoin.com/',
+      }),
+    });
+    return await resp.json();
+  } catch(err) {
+    console.warn('[Admin] Push send error:', err);
+    return { sent: 0, failed: tokens.length, error: err.message };
+  }
+}
+
+// Get all FCM tokens from RTDB
+async function getAllFCMTokens() {
+  try {
+    const snap = await db.ref('fcmTokens').once('value');
+    const data = snap.val() || {};
+    return Object.values(data).map(t => t.token).filter(Boolean);
+  } catch(err) {
+    console.warn('[Admin] Failed to get FCM tokens:', err);
+    return [];
+  }
+}
+
+// Get FCM token for specific user
+async function getUserFCMToken(uid) {
+  try {
+    const snap = await db.ref('fcmTokens/' + uid).once('value');
+    const data = snap.val();
+    return data ? data.token : null;
+  } catch(err) {
+    return null;
+  }
+}
+
+document.getElementById("notifTarget").addEventListener("change", function(){
     document.getElementById("notifTargetGroup").style.display = this.value==="single" ? "block" : "none";
   });
   document.getElementById("giftTarget").addEventListener("change", function(){

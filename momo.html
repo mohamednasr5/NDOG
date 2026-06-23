@@ -923,25 +923,13 @@ function adminLogout(){
   auth.signOut().then(() => location.reload());
 }
 
-// ==================== ADMIN APP INIT ====================
-let allUsers = [];
-let allUsersData = {};
-
-function initAdminApp(){
-  startAdminClock();
-  loadAllData();
-  // Listeners for dynamic forms
-  
-
 // ═══════ ONESIGNAL PUSH NOTIFICATION CONFIG (via Cloudflare Worker) ═══════
 const ONESIGNAL_APP_ID = '84479925-fa80-47df-a5c8-599c56739791';
-// ── Cloudflare Worker Proxy — REST API key is stored securely in Worker environment ──
-const WORKER_URL = 'https://ndog.ads4ads2029.workers.dev';  // ← Replace with your Worker URL after deployment
-const WORKER_SECRET = '521988';                  // ← Must match WORKER_SECRET in Worker env
+const WORKER_URL = 'https://ndog.ads4ads2029.workers.dev';
+const WORKER_SECRET = 'CHANGE_ME_TO_A_STRONG_SECRET';  // ← Must match WORKER_SECRET in Worker env
 
-// Send push notification via Cloudflare Worker (secure proxy to OneSignal)
 async function sendPushNotification(targetType, targetIds, title, message, data) {
-  if (!WORKER_URL || WORKER_URL.includes('YOUR-WORKER')) {
+  if (!WORKER_URL) {
     console.warn('[Admin] Worker URL not configured');
     return { sent: 0, failed: 0, error: 'Worker URL not set' };
   }
@@ -954,7 +942,6 @@ async function sendPushNotification(targetType, targetIds, title, message, data)
       targetIds: targetIds || [],
       data: data || { source: 'ndog-admin' },
     };
-
     const resp = await fetch(WORKER_URL + '/send-push', {
       method: 'POST',
       headers: {
@@ -963,10 +950,8 @@ async function sendPushNotification(targetType, targetIds, title, message, data)
       },
       body: JSON.stringify(body),
     });
-
     const result = await resp.json();
     console.log('[Admin] Worker response:', result);
-
     if (!resp.ok) {
       return { sent: 0, failed: 0, error: result.error || 'Worker error' };
     }
@@ -977,7 +962,17 @@ async function sendPushNotification(targetType, targetIds, title, message, data)
   }
 }
 
-document.getElementById("notifTarget").addEventListener("change", function(){
+// ==================== ADMIN APP INIT ====================
+let allUsers = [];
+let allUsersData = {};
+
+function initAdminApp(){
+  startAdminClock();
+  loadAllData();
+  // Listeners for dynamic forms
+
+
+  document.getElementById("notifTarget").addEventListener("change", function(){
     document.getElementById("notifTargetGroup").style.display = this.value==="single" ? "block" : "none";
   });
   document.getElementById("giftTarget").addEventListener("change", function(){

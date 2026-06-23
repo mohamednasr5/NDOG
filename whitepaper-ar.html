@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1f44" />
+  <meta name="description" content="الورقة البيضاء الرسمية لـ NileDogs (NDOG). نظام مكافآت كريبتو مجتمعي بإمداد 1 مليار NDOG. إحالات ثلاثية المستويات، مستويات VIP، تحصيص. إطلاق 1 يناير 2028." />
+  <meta name="keywords" content="NDOG ورقة بيضاء, اقتصاد رموز NileDogs, منصة مكافآت كريبتو, رمز NDOG, مجتمع كريبتو, إحالة كريبتو, تحصيص كريبتو, مستويات VIP">
+  <link rel="canonical" href="https://ndogcoin.com/whitepaper-ar.html">
+  <meta name="robots" content="index, follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #070B14;
+      --surface: #0D1220;
+      --surface-2: #141826;
+      --surface-3: #1C2236;
+      --border: rgba(255, 255, 255, 0.07);
+      --border-2: rgba(255, 255, 255, 0.12);
+      --gold: #D4A017;
+      --gold-light: #F0C93A;
+      --gold-dark: #9B7210;
+      --gold-glow: rgba(212, 160, 23, 0.25);
+      --blue: #1A6BDB;
+      --blue-light: #3D8EF0;
+      --blue-glow: rgba(26, 107, 219, 0.2);
+      --text-1: #F0F4FF;
+      --text-2: #8B97B8;
+      --text-3: #4A5577;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --glass-bg: rgba(13, 18, 32, 0.7);
+      --glass-blur: blur(20px);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Tajawal', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      line-height: 1.8;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       ANIMATED BACKGROUND & EFFECTS
+       ═══════════════════════════════════════════════════════════════ */
+
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+    }
+
+    .orb--1 {
+      width: 500px;
+      height: 500px;
+      top: -100px;
+      right: -100px;
+      background: radial-gradient(circle, var(--gold-glow), transparent);
+      animation: orbFloat1 20s ease-in-out infinite;
+    }
+
+    .orb--2 {
+      width: 400px;
+      height: 400px;
+      bottom: -50px;
+      left: -50px;
+      background: radial-gradient(circle, var(--blue-glow), transparent);
+      animation: orbFloat2 25s ease-in-out infinite;
+    }
+
+    @keyframes orbFloat1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-30px, 40px) scale(1.1); }
+    }
+
+    @keyframes orbFloat2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(40px, -30px) scale(0.9); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       LAYOUT & CONTENT
+       ═══════════════════════════════════════════════════════════════ */
+
+    .wp-container {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 100px 30px 80px;
+    }
+
+    /* Language Switcher */
+    .wp-lang-switcher {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      z-index: 50;
+      display: flex;
+      gap: 12px;
+      animation: slideInLeft 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .lang-btn {
+      padding: 10px 18px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .lang-btn:hover {
+      background: var(--blue-light);
+      color: white;
+      border-color: var(--blue);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 48px var(--blue-glow);
+    }
+
+    .lang-btn.active {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: #0a0800;
+      border-color: var(--gold);
+      box-shadow: 0 12px 48px var(--gold-glow);
+    }
+
+    /* Home Button */
+    .wp-home-btn {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      z-index: 50;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      animation: slideInRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .wp-home-btn:hover {
+      background: var(--blue-light);
+      color: white;
+      border-color: var(--blue);
+      transform: scale(1.1);
+      box-shadow: 0 12px 48px var(--blue-glow);
+    }
+
+    /* Cover Section */
+    .wp-cover {
+      text-align: center;
+      padding: 80px 40px;
+      margin-bottom: 50px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .wp-cover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--gold-glow), transparent, var(--blue-glow));
+      opacity: 0;
+      animation: shimmer 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 0.3; }
+    }
+
+    .wp-cover__content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .wp-cover__logo {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .wp-cover__title {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--gold), var(--blue-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+    }
+
+    .wp-cover__subtitle {
+      font-size: 16px;
+      color: var(--text-2);
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+    }
+
+    .wp-cover__meta {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      flex-wrap: wrap;
+      font-size: 14px;
+      color: var(--text-2);
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s both;
+    }
+
+    .wp-cover__meta strong {
+      color: var(--gold-light);
+      font-weight: 600;
+    }
+
+    /* Navigation */
+    .wp-nav {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      margin: 0 -30px 40px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .wp-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .wp-nav a {
+      padding: 8px 16px;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 1px solid transparent;
+    }
+
+    .wp-nav a:hover {
+      background: var(--gold-glow);
+      color: var(--gold-light);
+      border-color: var(--gold);
+    }
+
+    /* Sections */
+    .wp-section {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      margin-bottom: 30px;
+      scroll-margin-top: 100px;
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: all 0.4s ease;
+    }
+
+    .wp-section:hover {
+      border-color: var(--border-2);
+      box-shadow: 0 12px 48px rgba(212, 160, 23, 0.08);
+    }
+
+    .wp-section h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--gold-glow);
+      background: linear-gradient(135deg, var(--gold), var(--blue-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .wp-section h3 {
+      font-size: 18px;
+      color: var(--blue-light);
+      margin: 25px 0 12px;
+      font-weight: 600;
+    }
+
+    .wp-section p {
+      font-size: 15px;
+      line-height: 2;
+      color: var(--text-2);
+      margin-bottom: 15px;
+    }
+
+    .wp-section p strong {
+      color: var(--gold-light);
+      font-weight: 600;
+    }
+
+    .wp-section ul, .wp-section ol {
+      margin-right: 25px;
+      margin-bottom: 15px;
+    }
+
+    .wp-section li {
+      font-size: 15px;
+      line-height: 2;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+
+    .wp-section code {
+      font-family: 'Space Mono', monospace;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--gold-light);
+      border: 1px solid var(--gold-glow);
+    }
+
+    .wp-section table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+      overflow-x: auto;
+    }
+
+    .wp-section table thead {
+      background: var(--surface-3);
+    }
+
+    .wp-section th, .wp-section td {
+      padding: 12px 16px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .wp-section th {
+      color: var(--gold-light);
+      font-weight: 700;
+      background: linear-gradient(135deg, rgba(212, 160, 23, 0.1), rgba(26, 107, 219, 0.1));
+    }
+
+    .wp-section td {
+      color: var(--text-2);
+    }
+
+    .wp-section blockquote {
+      border-right: 4px solid var(--gold);
+      padding: 15px 20px;
+      background: rgba(212, 160, 23, 0.08);
+      margin: 20px 0;
+      font-style: italic;
+      color: var(--text-1);
+      border-radius: 8px 0 0 8px;
+    }
+
+    .wp-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 12px;
+      background: var(--blue-glow);
+      color: var(--blue-light);
+      margin: 3px;
+      border: 1px solid var(--blue);
+    }
+
+    /* Footer */
+    .wp-footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-3);
+      font-size: 13px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+    }
+
+    .wp-footer a {
+      color: var(--gold-light);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .wp-footer a:hover {
+      color: var(--gold);
+      text-decoration: underline;
+    }
+
+    /* Scroll to top button */
+    .wp-scroll-top {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      z-index: 40;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .wp-scroll-top:hover {
+      background: var(--gold);
+      color: #0a0800;
+      border-color: var(--gold);
+      transform: scale(1.1);
+      box-shadow: 0 12px 48px var(--gold-glow);
+    }
+
+    .wp-scroll-top.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .wp-container {
+        padding: 80px 20px 60px;
+      }
+
+      .wp-cover {
+        padding: 50px 30px;
+      }
+
+      .wp-cover__title {
+        font-size: 36px;
+      }
+
+      .wp-section {
+        padding: 30px 20px;
+      }
+
+      .wp-section h2 {
+        font-size: 24px;
+      }
+
+      .wp-section table {
+        font-size: 12px;
+      }
+
+      .wp-section th, .wp-section td {
+        padding: 8px 10px;
+      }
+
+      .wp-lang-switcher, .wp-home-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+      }
+
+      .wp-nav {
+        margin: 0 -20px 30px;
+        padding: 10px 15px;
+      }
+    }
+  </style>
+
+  <title>NileDogs (NDOG) — الورقة البيضاء الرسمية | اقتصاد الرمز وخارطة الطريق</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "name": "NileDogs (NDOG) الورقة البيضاء",
+    "description": "الورقة البيضاء الرسمية لمنصة مكافآت الكريبتو المجتمعية NileDogs. إمداد مليار NDOG، إطلاق 1 يناير 2028.",
+    "url": "https://ndogcoin.com/whitepaper-ar.html",
+    "datePublished": "2026-01-01",
+    "dateModified": "2026-06-22",
+    "author": { "@type": "Organization", "name": "NileDogs Community" },
+    "inLanguage": "ar"
+  }
+  </script>
+</head>
+<body>
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb--1"></span>
+    <span class="orb orb--2"></span>
+  </div>
+
+  <!-- Home Button -->
+  <button class="wp-home-btn" onclick="goHome()" title="العودة للرئيسية">🏠</button>
+
+  <!-- Language Switcher -->
+  <div class="wp-lang-switcher">
+    <button class="lang-btn" onclick="setLanguage('en')" title="English">🇬🇧 EN</button>
+    <button class="lang-btn active" onclick="setLanguage('ar')" title="العربية">🇪🇬 عربي</button>
+  </div>
+
+  <div class="wp-container">
+
+    <div class="wp-cover">
+      <div class="wp-cover__content">
+        <div class="wp-cover__logo">🐕</div>
+        <div class="wp-cover__title">NileDogs</div>
+        <div class="wp-cover__subtitle">$NDOG · الورقة البيضاء الإصدار 1.0</div>
+        <div class="wp-cover__meta">
+          <span>الإطلاق: <strong>1 يناير 2028</strong></span>
+          <span>الشبكة: <strong>مكافآت مجتمعية</strong></span>
+          <span>الإصدار: <strong>1.0</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="wp-nav">
+      <a href="#overview">نظرة عامة</a>
+      <a href="#economy">الاقتصاد</a>
+      <a href="#mechanics">الآليات</a>
+      <a href="#referrals">الإحالات</a>
+      <a href="#rewards">المكافآت</a>
+      <a href="#security">الأمان</a>
+      <a href="#roadmap">خارطة الطريق</a>
+      <a href="#governance">الحوكمة</a>
+      <a href="#legal">القانوني</a>
+      <a href="#team">الفريق</a>
+    </nav>
+
+    <section class="wp-section" id="overview">
+      <h2>1. نظرة عامة</h2>
+      <p><strong>NileDogs (NDOG)</strong> هي منصة مكافآت كريبتو مجتمعية تنطلق في 1 يناير 2028. يكسب الأعضاء رموز <strong>NDOG</strong> من خلال المطالبات اليومية والإحالات والمهام وعجلة الدوران والصناديق الحظية وإنجازات لوحة المتصدرين.</p>
+      <p>تؤكد المنصة على <strong>الوصول والشفافية والاقتصاد العادل</strong> — لا توجد عروض خاصة، لا تخصيصات مخفية، لا تعدين مؤسس مسبق. كل مطالبة وإحالة وإنجاز يساهم نحو الإطلاق الرئيسي وإدراج البورصة.</p>
+      <h3>النقاط الرئيسية</h3>
+      <ul>
+        <li><strong>1 مليار NDOG</strong> إمداد (ثابت).</li>
+        <li><strong>مرحلة ما قبل الإطلاق:</strong> اكسب نقاط الولاء، شارات المتبنين المبكرين، حالة المؤسس، والأولوية في إدراجات البورصة.</li>
+        <li><strong>لا توجد محفظة مطلوبة:</strong> سجل دخول باستخدام Google؛ الرموز تهاجر إلى محافظ الشبكة الرئيسية في 1 يناير 2028.</li>
+        <li><strong>نظام إحالة ثلاثي المستويات:</strong> اكسب من الإحالات المباشرة وإحالاتهم والإحالات من المستوى الثالث.</li>
+        <li><strong>مستويات VIP ولوحات المتصدرين:</strong> تنافس على مكافآت أسبوعية/شهرية وامتيازات المجتمع حصرية.</li>
+        <li><strong>منع الاحتيال:</strong> بصمة الجهاز، تقييد المعدلات، التحقق من جهة الخادم.</li>
+      </ul>
+    </section>
+
+    <section class="wp-section" id="economy">
+      <h2>2. اقتصاد الرمز</h2>
+      <h3>2.1 الإمداد والتخصيص</h3>
+      <table>
+        <thead><tr><th>التخصيص</th><th>الكمية (NDOG)</th><th>النسبة المئوية</th></tr></thead>
+        <tbody>
+          <tr><td>مكافآت ما قبل الإطلاق (المستخدمون)</td><td>500,000,000</td><td>50%</td></tr>
+          <tr><td>التحصيص والحوافز</td><td>200,000,000</td><td>20%</td></tr>
+          <tr><td>الشراكات والنظام البيئي</td><td>150,000,000</td><td>15%</td></tr>
+          <tr><td>العمليات والتطوير</td><td>100,000,000</td><td>10%</td></tr>
+          <tr><td>الاحتياطي (الحوكمة)</td><td>50,000,000</td><td>5%</td></tr>
+        </tbody>
+      </table>
+      <h3>2.2 اقتصاديات الإطلاق (1 يناير 2028)</h3>
+      <p>عند إطلاق الشبكة الرئيسية، تنتقل المنصة من نقاط الولاء إلى رموز البلوكتشين المباشرة. تهاجر أرصدة NDOG المتراكمة للمستخدمين إلى محافظ الحفظ الذاتي. يصبح الرمز قابلاً للتداول في البورصات، مما يفتح القيمة الاقتصادية الحقيقية.</p>
+    </section>
+
+    <section class="wp-section" id="mechanics">
+      <h2>3. الآليات الأساسية</h2>
+      <h3>3.1 المطالبات اليومية</h3>
+      <p>كل مستخدم يطالب <strong>10 NDOG/يوم</strong> كمبلغ أساسي. تُضرب المطالبات بـ:</p>
+      <ul>
+        <li><strong>مكافأة السلسلة:</strong> حتى 3.0× للمطالبات اليومية المتتالية (الحد الأقصى 30 يوماً).</li>
+        <li><strong>مكافأة الإحالة:</strong> حتى 1.25× بناءً على عدد الإحالات النشطة.</li>
+        <li><strong>شارة المؤسس:</strong> مكافآت +50% (دائمة) للمتبنين المبكرين في ما قبل الإطلاق.</li>
+      </ul>
+      <p>الحد الأقصى النظري اليومي: <strong>10 × 3.0 × 1.25 × 1.5 = 56 NDOG/يوم</strong>.</p>
+
+      <h3>3.2 عجلة الدوران</h3>
+      <p>يدور المستخدمون مرة واحدة يومياً للفوز بـ NDOG مكافأة إضافية. تتراوح النتائج من +5 NDOG (شائع) إلى +100 NDOG (نادر). يتم التحقق من نتائج الدوران من جهة الخادم لمنع التلاعب.</p>
+
+      <h3>3.3 الصندوق الحظي</h3>
+      <p>كل 6 ساعات، يمكن للمستخدمين فتح صندوق حظي للحصول على فرصة الحصول على رموز مكافآة (+10 إلى +50 NDOG) أو امتدادات السلسلة. يشجع التفاعل دون إرهاق المكافآت.</p>
+
+      <h3>3.4 لوحات المتصدرين</h3>
+      <p>تتبع لوحات المتصدرين العالمية والإقليمية الرابحين الأفضل أسبوعياً وشهرياً. يحصل أفضل 10 رابحين في كل فترة على شارات حصرية وألعاب مكافآت إضافية.</p>
+
+      <h3>3.5 المهام والمحاولات</h3>
+      <p>مهام مجتمعية دورية (مثل "شارك على تويتر" و"انضم إلى ديسكورد" و"أحل 5 أصدقاء") فتح NDOG مكافأة إضافية. تعزز المهام النمو العضوي والتفاعل.</p>
+    </section>
+
+    <section class="wp-section" id="referrals">
+      <h2>4. نظام الإحالة ثلاثي المستويات</h2>
+      <table>
+        <thead><tr><th>المستوى</th><th>المستقبل</th><th>المكافأة</th></tr></thead>
+        <tbody>
+          <tr><td>المستوى 1</td><td>الإحالة المباشرة</td><td>+50 NDOG</td></tr>
+          <tr><td>المستوى 2</td><td>إحالة الإحالة</td><td>+20 NDOG</td></tr>
+          <tr><td>المستوى 3</td><td>إحالة إحالة الإحالة</td><td>+10 NDOG</td></tr>
+        </tbody>
+      </table>
+      <p>تُطلق المكافآت بمجرد أن ينهي المستخدم الجديد طلبه الأول. تُحسب الإحالات النشطة (تلك التي تطالب مرة واحدة على الأقل) نحو مكافآت الإحالة في المطالبات اليومية.</p>
+    </section>
+
+    <section class="wp-section" id="rewards">
+      <h2>5. المكافآت وبرنامج المتبني المبكر</h2>
+      <h3>5.1 فوائد المتبني المبكر (ما قبل الإطلاق فقط)</h3>
+      <ul>
+        <li><strong>شارة المؤسس:</strong> جائزة ملف دائمة.</li>
+        <li><strong>حالة المتبني المبكر:</strong> مرئية على لوحات المتصدرين.</li>
+        <li><strong>مكافآت الأولوية:</strong> الوصول الأول للأحداث المحدودة والرياح.</li>
+        <li><strong>مكافآت مضاعفة +50%:</strong> تُطبق على كل مطالبة للأبد.</li>
+        <li><strong>امتيازات المستقبل الحصرية:</strong> وزن الحوكمة، الهبات NFT، ميزات بيتا.</li>
+      </ul>
+
+      <h3>5.2 مستويات المكافآت</h3>
+      <p>خمسة مستويات — البرونزية والفضية والذهبية والماسية والأسطورية — تُفتح بالوصول إلى عتبات الرصيد التراكمي. تفتح المستويات الأعلى أحداث حصرية وسعي إضافي ومضاعفات محدودة الوقت.</p>
+    </section>
+
+    <section class="wp-section" id="security">
+      <h2>6. الأمان ومنع الاحتيال</h2>
+      <h3>6.1 المصادقة</h3>
+      <p>تسجيل دخول آمن OAuth 2.0 عبر Google. استمرار الجلسة يبقي المستخدمين مسجلين عبر إعادات تشغيل المتصفح. تسجيل خروج بنقرة واحدة متاح.</p>
+
+      <h3>6.2 منع الحسابات المتعددة</h3>
+      <p>عند تسجيل الدخول الأول، ينشئ العميل بصمة جهاز تجمع بين وكيل المستخدم واللغة دقة الشاشة والمنطقة الزمنية ورمز عشوائي محفوظ في localStorage. إذا حاول معرف مستخدم مختلف إعادة استخدام نفس البصمة، يتم تعليم الحساب لمراجعة المسؤول.</p>
+
+      <h3>6.3 تقييد المعدلات</h3>
+      <ul>
+        <li>المطالبة اليومية: 1 لكل 24 ساعة لكل حساب.</li>
+        <li>عجلة الدوران: 1 لكل 24 ساعة لكل حساب.</li>
+        <li>الصندوق الحظي: 1 لكل 6 ساعات لكل حساب.</li>
+        <li>إسناد الإحالة: 1 لكل مستخدم جديد (غير قابل للتغيير).</li>
+      </ul>
+
+      <h3>6.4 نظام مراجعة المسؤول</h3>
+      <p>تظهر الحسابات المعلمة في لوحة تحكم المسؤول. يمكن للمسؤولين تعليق أو معاقبة أو حذف الحسابات التي تنتهك قواعد المجتمع أو تحاول استغلال نظام المكافآت.</p>
+
+      <h3>6.5 خصوصية البيانات</h3>
+      <p>يجمع NileDogs فقط البيانات المرتجعة من Google (الاسم والبريد الإلكتروني والصورة الشخصية) بالإضافة إلى المنطقة الزمنية وبصمة الجهاز لمنع الاحتيال. لا توجد ملفات تعريف الارتباط الخاصة بالطرف الثالث أو شبكات تحليلات أو إعلانات. لا تُشارك بيانات المستخدم أبداً.</p>
+
+      <h3>6.6 أمان النقل</h3>
+      <p>جميع الاتصالات تستخدم HTTPS. خدام العمال تخزن الأصول الثابتة فقط؛ البيانات المباشرة تُجلب دائماً بشكل جديد للدقة والأمان.</p>
+    </section>
+
+    <section class="wp-section" id="roadmap">
+      <h2>7. خارطة الطريق</h2>
+      <table>
+        <thead><tr><th>المرحلة</th><th>الفترة الزمنية</th><th>المعالم</th></tr></thead>
+        <tbody>
+          <tr><td>الربع الأول 2026</td><td>الآن</td><td>إطلاق PWA · مطالبات يومية · إحالات · لوحات متصدرين</td></tr>
+          <tr><td>الربع الثاني 2026</td><td>أبريل–يونيو</td><td>المهام · عجلة الدوران · الصندوق الحظي · لوحة المسؤول</td></tr>
+          <tr><td>الربع الثالث 2026</td><td>يوليو–سبتمبر</td><td>الإشعارات الفورية · لوحات البلدان · سفراء البلدان</td></tr>
+          <tr><td>الربع الرابع 2026</td><td>أكتوبر–ديسمبر</td><td>شارات الإنجاز · تحديات مجتمعية · لوحة تدقيق عامة</td></tr>
+          <tr><td>2027</td><td>السنة كاملة</td><td>توسع متعدد اللغات · شارات NFT · تكاملات التاجر · API للشركاء</td></tr>
+          <tr><td>الربع الأول 2028</td><td><strong>1 يناير</strong></td><td><strong>إطلاق الشبكة الرئيسية · TGE · هجرة الرموز · إدراج البورصة</strong></td></tr>
+          <tr><td>الربع الثاني 2028+</td><td>بعد الإطلاق</td><td>حوكمة على السلسلة · تحصيص · تطبيقات محمول أصلية</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="wp-section" id="governance">
+      <h2>8. الحوكمة</h2>
+      <p>خلال مرحلة ما قبل الإطلاق، الحوكمة مركزية مع فريق التأسيس للتكرار السريع. بعد TGE يناير 2028، ينتقل NileDogs إلى حوكمة مجتمعية حيث يقترح حاملو NDOG ويصوتون على:</p>
+      <ul>
+        <li>تعديلات معاملات المكافآت (المطالبات الأساسية والمضاعفات ومستويات الإحالة).</li>
+        <li>أنواع مهام جديدة وتنسيقات الأحداث.</li>
+        <li>تخصيصات الشراكات من الاحتياطي.</li>
+        <li>هجرات السلسلة المستقبلية والترقيات التقنية.</li>
+      </ul>
+      <p>يتم تحديد وزن التصويت برصيد NDOG وحالة المؤسس، مع مكون تربيعي لمنع هيمنة الحيتان.</p>
+    </section>
+
+    <section class="wp-section" id="legal">
+      <h2>9. القانوني والامتثال</h2>
+      <h3>9.1 طبيعة NDOG (ما قبل الإطلاق)</h3>
+      <p>خلال مرحلة ما قبل الإطلاق، NDOG هي <strong>نقطة ولاء</strong> قابلة للاسترجاع مقابل فوائد في التطبيق والوصول المبكر والسمعة. ليست ورقة مالية أو أداة دين أو عقد مالي. ستمتثل هجرة الرموز بعد الإطلاق للولايات القضائية المعمول بها.</p>
+
+      <h3>9.2 أهلية المستخدم</h3>
+      <p>يجب أن يكون المستخدمون 13 سنة على الأقل ولديهم حساب Google صالح. المستخدمون في الولايات القضائية الخاضعة للعقوبات غير مسموح لهم.</p>
+
+      <h3>9.3 الخصوصية</h3>
+      <p>يجمع NileDogs فقط البيانات المرتجعة من Google عند تسجيل الدخول (الاسم والبريد والصورة) بالإضافة إلى المنطقة الزمنية وبصمة الجهاز لمنع الاحتيال. لا توجد عمليات تحليلات SDK أو إعلانات طرف ثالث.</p>
+
+      <h3>9.4 إنهاء الحساب</h3>
+      <p>يمكن للمسؤولين حظر أو حذف الحسابات التي تنتهك قواعد المجتمع أو تحاول استغلال نظام المكافآت أو تنشئ حسابات متعددة من نفس الجهاز. يفقد المستخدمون المحظورون المكافآت غير المطالب بها.</p>
+
+      <h3>9.5 إخلاء المسؤولية</h3>
+      <p>يُقدم NileDogs "كما هو" دون ضمان. الفريق غير مسؤول عن المكافآت المفقودة بسبب انقطاعات الخدمة أو حظر الحساب أو تغييرات البروتوكول المستقبلية.</p>
+    </section>
+
+    <section class="wp-section" id="team">
+      <h2>10. الفريق والمجتمع</h2>
+      <p>مبني NileDogs بواسطة مجتمع مستقل من المطورين وعشاق الكريبتو الملتزمين بمكافآت عادلة وشفافة وميسورة. المشروع منفتح حول خارطة طريقه واقتصاد رموزه وقواعده — لا تخصيصات مخفية ولا عروض خاصة مسبقة.</p>
+      <p>المجتمع هو الفريق. كل إحالة وكل مطالبة وكل مركز على لوحة المتصدرين هو مساهمة في الشبكة. المؤسسون الذين ينضمون قبل 1 يناير 2028 سيُعترف بهم علناً في إعلان الإطلاق وسيُمنحون شارة المؤسس مدى الحياة.</p>
+      <blockquote>
+        انضم إلى القطيع. ابنِ النيل. اكسب مكانك.
+      </blockquote>
+    </section>
+
+    <div class="wp-footer">
+      <p>NileDogs (NDOG) · الورقة البيضاء الإصدار 1.0 · نُشِرت 2026 · الإطلاق 1 يناير 2028</p>
+      <p style="margin-top: 15px;">
+        <a href="javascript:goHome()">← العودة للتطبيق</a> · 
+        <a href="./whitepaper-en.html">English</a>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Scroll to Top Button -->
+  <button class="wp-scroll-top" onclick="scrollToTop()" title="الأعلى">↑</button>
+
+  <script>
+    function goHome() {
+      window.location.href = 'https://ndogcoin.com/';
+    }
+
+    function setLanguage(lang) {
+      if (lang === 'ar') {
+        window.location.href = './whitepaper-ar.html';
+      } else {
+        window.location.href = './whitepaper-en.html';
+      }
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Show/hide scroll to top button
+    window.addEventListener('scroll', function() {
+      const btn = document.querySelector('.wp-scroll-top');
+      if (window.pageYOffset > 300) {
+        btn.classList.add('show');
+      } else {
+        btn.classList.remove('show');
+      }
+    });
+
+    // Particle animation background
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+
+    function resizeCanvas() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      particles = Array.from({ length: Math.min(50, Math.floor(w * h / 24000)) }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.5 + 0.3,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        hue: Math.random() < 0.6 ? 205 : 48
+      }));
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, 0.6)`;
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animateParticles();
+  </script>
+</body>
+</html>

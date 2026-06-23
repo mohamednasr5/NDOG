@@ -1955,3 +1955,156 @@ html[dir="ltr"] .level-threshold { font-family: var(--font-mono); }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 0; }
+
+/* ── PWA INSTALL BANNER ───────────────────────────────────── */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 480px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(212,160,23,0.15), 0 0 0 1px rgba(212,160,23,0.08);
+  z-index: 1000;
+  animation: pwaSlideUp 0.5s cubic-bezier(0.16,1,0.3,1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@keyframes pwaSlideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.pwa-install-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+[dir="rtl"] .pwa-install-close { right: auto; left: 8px; }
+.pwa-install-close:hover { color: var(--text-1); }
+
+.pwa-install-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212,160,23,0.1);
+  border-radius: 12px;
+}
+
+.pwa-install-text { flex: 1; min-width: 0; }
+
+.pwa-install-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 2px;
+}
+
+.pwa-install-sub {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.pwa-install-btn {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 12px rgba(212,160,23,0.3);
+}
+.pwa-install-btn:active { transform: scale(0.96); }
+.pwa-install-btn:hover { box-shadow: 0 6px 20px rgba(212,160,23,0.4); }
+
+@media (min-width: 768px) {
+  .pwa-install-banner { display: none !important; }
+}
+
+/* ── REFERRAL TREE LIST ───────────────────────────────────── */
+.referral-tree-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ref-tree-empty,
+.ref-tree-loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.ref-tree-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--surface-3);
+  border-radius: var(--radius-sm);
+  gap: 10px;
+  transition: background 0.2s;
+}
+.ref-tree-item:hover { background: rgba(212,160,23,0.05); }
+
+.ref-tree-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ref-tree-item-email {
+  font-size: 13px;
+  color: var(--text-1);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ref-tree-item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.ref-tree-item-bonus {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ref-tree-item-date {
+  font-size: 10px;
+  color: var(--text-3);
+}

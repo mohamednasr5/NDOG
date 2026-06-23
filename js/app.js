@@ -213,6 +213,7 @@ function showApp() {
   loadAirdropInfo();
   loadStakingContracts();
   loadReferralCount();
+  loadReferralTree();
   buildWheel();
   initBgCanvas();
   updateMiningUI();
@@ -873,11 +874,63 @@ function loadLeaderboard() {
 // ── 17. REFERRAL ─────────────────────────────────────────────
 function loadReferralCount() {
   if (!currentUser) return;
-  db.ref('referrals/'+currentUser.uid).once('value').then(snap => setEl('referralCount', snap.numChildren()));
+  db.ref('referrals/'+currentUser.uid).once('value').then(snap => {
+    const data = snap.val() || {};
+    const l1Count = Object.keys(data).filter(k => data[k].level === 1 || !data[k].level).length;
+    setEl('referralCount', l1Count);
+  });
+}
+
+function loadReferralTree() {
+  if (!currentUser) return;
+  const container = document.getElementById('referralTreeList');
+  if (!container) return;
+  container.innerHTML = '<div class="ref-tree-loading">' + t('جارٍ التحميل...','Loading...') + '</div>';
+
+  db.ref('referrals/'+currentUser.uid).once('value').then(snap => {
+    const refs = snap.val() || {};
+    const entries = Object.entries(refs).sort((a,b) => (b[1].referredAt||0) - (a[1].referredAt||0));
+
+    if (entries.length === 0) {
+      container.innerHTML = '<div class="ref-tree-empty">' + t('لا توجد إحالات بعد','No referrals yet') + '</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    entries.forEach(([uid, data]) => {
+      const level = data.level || 1;
+      const levelLabel = level === 1 ? 'L1' : level === 2 ? 'L2' : 'L3';
+      const levelBonus = REF_BONUSES[level] || 0;
+
+      const item = document.createElement('div');
+      item.className = 'ref-tree-item';
+      item.innerHTML = `
+        <div class="ref-tree-item-info">
+          <span class="ref-tree-item-level tier-badge">${levelLabel}</span>
+          <span class="ref-tree-item-email">${data.email || t('مستخدم','User')}</span>
+        </div>
+        <div class="ref-tree-item-meta">
+          <span class="ref-tree-item-bonus tier-reward">+${levelBonus} NDOG</span>
+          <span class="ref-tree-item-date">${data.referredAt ? new Date(data.referredAt).toLocaleDateString() : '—'}</span>
+        </div>`;
+
+      // Try to load display name
+      db.ref('users/'+uid+'/displayName').once('value').then(nameSnap => {
+        const name = nameSnap.val();
+        if (name) {
+          const emailEl = item.querySelector('.ref-tree-item-email');
+          if (emailEl) emailEl.textContent = name;
+        }
+      });
+
+      container.appendChild(item);
+    });
+  });
 }
 
 function applyReferralCode(code) {
   if (!currentUser || !code) return Promise.reject('no code');
+  code = code.toUpperCase();
   return db.ref('referralCodes/'+code).once('value').then(snap => {
     if (!snap.exists()) { showToast(t('كود غير صالح','Invalid code'), 'error'); return; }
     const ref = snap.val();
@@ -887,10 +940,12 @@ function applyReferralCode(code) {
       const now = Date.now();
       const upd = {};
       upd['users/'+currentUser.uid+'/referredBy'] = ref.uid;
-      upd['referrals/'+ref.uid+'/'+currentUser.uid] = { referredAt:now, email:currentUser.email||'' };
+      upd['referrals/'+ref.uid+'/'+currentUser.uid] = { referredAt:now, email:currentUser.email||'', level:1 };
       return db.ref().update(upd).then(() => {
         referralChain(ref.uid, currentUser.uid, now, 1);
-        showToast(t('✅ كود مطبّق! +50 NDOG','✅ Code applied! +50 NDOG'), 'success');
+        showToast(t('✅ كود مطبّق! +50 NDOG للمحيل','✅ Code applied! +50 NDOG to referrer'), 'success');
+        loadReferralTree();
+        loadReferralCount();
       });
     });
   }).catch(err => console.error(err));
@@ -899,8 +954,24 @@ function applyReferralCode(code) {
 function referralChain(refUid, newUid, now, level) {
   if (level > 3 || !REF_BONUSES[level]) return;
   const bonus = REF_BONUSES[level];
-  db.ref('users/'+refUid).transaction(d => { if (!d) return d; d.balance = (Number(d.balance)||0) + bonus; return d; });
-  db.ref('users/'+refUid+'/referredBy').once('value').then(s => { if (s.exists()) referralChain(s.val(), newUid, now, level+1); });
+  // Give balance bonus (field-specific transaction for safety)
+  db.ref('users/'+refUid+'/balance').transaction(b => (b||0) + bonus);
+  // Track referralEarnings separately
+  db.ref('users/'+refUid+'/referralEarnings').transaction(b => (b||0) + bonus);
+  // Write referral record for L2 and L3
+  if (level >= 2) {
+    db.ref('users/'+newUid+'/email').once('value').then(emailSnap => {
+      db.ref('referrals/'+refUid+'/'+newUid).set({
+        referredAt: now,
+        email: emailSnap.val() || '',
+        level: level
+      });
+    });
+  }
+  // Climb up the chain
+  db.ref('users/'+refUid+'/referredBy').once('value').then(s => {
+    if (s.exists()) referralChain(s.val(), newUid, now, level+1);
+  });
 }
 
 function shareReferral(platform) {
@@ -1054,7 +1125,59 @@ function detectRefFromUrl() {
   }
 }
 
-// ── 24. EVENT WIRING ─────────────────────────────────────────
+// ── 24. PWA INSTALL BANNER ──────────────────────────────────
+let deferredPrompt = null;
+
+function initPwaInstall() {
+  // Don't show if already in standalone mode
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
+  // Don't show if dismissed recently (within 3 days)
+  const dismissed = parseInt(localStorage.getItem('ndog_install_dismissed') || '0');
+  if (dismissed && Date.now() - dismissed < 3 * 24 * 60 * 60 * 1000) return;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Show banner after a short delay so it doesn't flash immediately
+    setTimeout(() => {
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.style.display = 'flex';
+    }, 3000);
+  });
+
+  const installBtn = document.getElementById('pwaInstallBtn');
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        showToast(t('✅ جاري التثبيت!','✅ Installing!'), 'success');
+      }
+      deferredPrompt = null;
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.style.display = 'none';
+    });
+  }
+
+  const closeBtn = document.getElementById('pwaInstallClose');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.style.display = 'none';
+      localStorage.setItem('ndog_install_dismissed', Date.now().toString());
+    });
+  }
+
+  // Hide banner after successful install
+  window.addEventListener('appinstalled', () => {
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner) banner.style.display = 'none';
+    deferredPrompt = null;
+  });
+}
+
+// ── 25. EVENT WIRING ─────────────────────────────────────────
 function wireEvents() {
   // Login
   q('googleSignInBtn')?.addEventListener('click', loginGoogle);
@@ -1146,6 +1269,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLang();
   detectRefFromUrl();
   wireEvents();
+  initPwaInstall();
   initBgCanvas();
   showLoading();
 });

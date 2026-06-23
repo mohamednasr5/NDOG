@@ -938,7 +938,7 @@ function loadAirdropInfo() {
 function loadNews() {
   const el = document.getElementById('newsList');
   if (!el) return;
-  db.ref('news').orderByChild('date').once('value').then(snap => {
+  db.ref('news').orderByChild('createdAt').once('value').then(snap => {
     const arts = [];
     snap.forEach(c => arts.push({ ...c.val(), id:c.key }));
     arts.reverse();
@@ -947,10 +947,13 @@ function loadNews() {
     arts.forEach(a => {
       const title   = currentLang === 'ar' ? (a.title_ar||a.title) : (a.title_en||a.title);
       const content = currentLang === 'ar' ? (a.content_ar||a.content) : (a.content_en||a.content);
-      const date    = a.date ? new Date(a.date).toLocaleDateString(currentLang==='ar'?'ar-EG':'en-US') : '';
+      const newsDate = a.createdAt || a.date || a.publishedAt;
+      const date    = newsDate ? new Date(newsDate).toLocaleDateString(currentLang==='ar'?'ar-EG':'en-US') : '';
+      const time    = newsDate ? new Date(newsDate).toLocaleTimeString(currentLang==='ar'?'ar-EG':'en-US', {hour:'2-digit',minute:'2-digit'}) : '';
+      const dateTimeStr = date + (time ? '  ' + time : '');
       const div = document.createElement('div');
       div.className = 'news-item';
-      div.innerHTML = `<div class="news-title">${title}</div>${date?`<div class="news-date">${date}</div>`:''}<div class="news-body">${content}</div>`;
+      div.innerHTML = `<div class="news-title">${title}</div>${dateTimeStr?`<div class="news-date">${dateTimeStr}</div>`:''}<div class="news-body">${content}</div>`;
       el.appendChild(div);
     });
   });

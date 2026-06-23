@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070B14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NDOG">
+  <meta name="description" content="NDOG Coin — Premium Crypto Mining & Rewards Platform">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23D4A017'/><text y='.9em' font-size='60' x='20' fill='%23070B14'>🐕</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23D4A017'/><text y='.9em' font-size='60' x='20' fill='%23070B14'>🐕</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Primary SEO Meta -->
+  <meta name="keywords" content="NDOG, NileDogs, NDOG Coin, NileDogs crypto, crypto rewards, earn crypto, free crypto, mining app, crypto token, NDOG token, meme coin, doge coin alternative, crypto community, daily crypto rewards, crypto PWA, crypto airdrop, refer and earn crypto, staking rewards, VIP crypto tiers, crypto leaderboard">
+  <meta name="author" content="NileDogs Community">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://ndogcoin.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="NileDogs">
+  <meta property="og:title" content="NDOG Coin — Mine. Earn. Win. | NileDogs Community Rewards">
+  <meta property="og:description" content="Join NileDogs — the #1 community-driven crypto rewards platform. Earn NDOG tokens daily through mining, referrals, and missions. 1B total supply. Launching Jan 1, 2028.">
+  <meta property="og:url" content="https://ndogcoin.com/">
+  <meta property="og:image" content="https://ndogcoin.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ar_EG">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NDOG Coin — Mine. Earn. Win.">
+  <meta name="twitter:description" content="Community-driven crypto rewards. Earn NDOG daily. 1B supply. Join before launch Jan 2028.">
+  <meta name="twitter:image" content="https://ndogcoin.com/og-image.png">
+
+  <!-- Geo -->
+  <meta name="geo.region" content="EG">
+  <meta name="geo.placename" content="Egypt">
+
+  <!-- AI Search Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "NileDogs — NDOG Coin",
+    "description": "Community-driven crypto rewards platform. Earn NDOG tokens daily through mining, referrals, missions, and staking. 1 billion total supply, launching January 1, 2028.",
+    "url": "https://ndogcoin.com",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web, Android, iOS (PWA)",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free to join and earn NDOG tokens"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "NileDogs Community",
+      "url": "https://ndogcoin.com"
+    },
+    "featureList": [
+      "Daily crypto mining rewards",
+      "Three-tier referral system (L1:50, L2:20, L3:10 NDOG)",
+      "Spin wheel and lucky box games",
+      "VIP tier system (Bronze to Diamond)",
+      "Staking with 5-25% APR",
+      "Real-time leaderboards",
+      "PWA installable on any device",
+      "Arabic and English bilingual support"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is NDOG Coin?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "NDOG (NileDogs) is a community-driven crypto rewards token with 1 billion total supply. Users earn NDOG daily through mining, referrals, missions, staking, and games. The platform launches on January 1, 2028."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I earn NDOG tokens?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can earn NDOG by: daily mining claims (10 NDOG base), three-tier referral system (50/20/10 NDOG per level), completing missions, spinning the wheel, lucky boxes, scratch cards, and staking with 5-25% APR."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are NDOG VIP levels?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "NDOG has 5 VIP levels: Bronze (0 NDOG, 1x), Silver (1,000 NDOG, 1.2x), Gold (5,000 NDOG, 1.5x), Platinum (20,000 NDOG, 2x), Diamond (100,000 NDOG, 3x). Higher levels give bigger reward multipliers."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "When does NDOG launch?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "NDOG officially launches on January 1, 2028. All users who join before launch receive Founder status with a lifetime 1.5x reward multiplier."
+        }
+      }
+    ]
+  }
+  </script>
+  <link rel="stylesheet" href="./css/styles.css">
+  <title>NDOG Coin — Mine. Earn. Win. | NileDogs Community Crypto Rewards Platform</title>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     AMBIENT BACKGROUND
+══════════════════════════════════════════ -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="ambient-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div id="loginScreen" class="screen login-screen">
+  <div class="login-inner">
+    <!-- Brand -->
+    <div class="login-brand">
+      <div class="login-coin">
+        <span class="coin-emoji">🐕</span>
+        <div class="coin-ring ring-1"></div>
+        <div class="coin-ring ring-2"></div>
+        <div class="coin-glow"></div>
+      </div>
+      <h1 class="login-title">NDOG<span class="login-title-accent">Coin</span></h1>
+      <p class="login-tagline" data-ar="عمل — اكسب — انتصر" data-en="Mine. Earn. Win.">Mine. Earn. Win.</p>
+    </div>
+
+    <!-- Stats row -->
+    <div class="login-stats">
+      <div class="login-stat">
+        <span class="login-stat-val">1B</span>
+        <span class="login-stat-label" data-ar="إجمالي الرموز" data-en="Total Supply">Total Supply</span>
+      </div>
+      <div class="login-stat-divider"></div>
+      <div class="login-stat">
+        <span class="login-stat-val">60%</span>
+        <span class="login-stat-label" data-ar="مكافآت المجتمع" data-en="Community">Community</span>
+      </div>
+      <div class="login-stat-divider"></div>
+      <div class="login-stat">
+        <span class="login-stat-val">∞</span>
+        <span class="login-stat-label" data-ar="ربح يومي" data-en="Daily Earning">Daily Earning</span>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <button id="googleSignInBtn" class="btn-google" type="button">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      <span data-ar="الدخول بـ Google" data-en="Continue with Google">Continue with Google</span>
+    </button>
+
+    <!-- Lang toggle -->
+    <button id="langBtnLogin" class="btn-lang" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      <span id="langTextLogin" data-ar="English" data-en="العربية">العربية</span>
+    </button>
+
+    <!-- Token distribution -->
+    <div class="tokenomics">
+      <div class="tokenomics-title" data-ar="توزيع الرموز" data-en="Token Distribution">Token Distribution</div>
+      <div class="token-bar">
+        <div class="token-seg" style="width:60%;background:var(--gold);" title="Community 60%"></div>
+        <div class="token-seg" style="width:15%;background:var(--blue);" title="Staking 15%"></div>
+        <div class="token-seg" style="width:10%;background:#7C3AED;" title="Team 10%"></div>
+        <div class="token-seg" style="width:10%;background:#059669;" title="Airdrop 10%"></div>
+        <div class="token-seg" style="width:5%;background:#DC2626;" title="Liquidity 5%"></div>
+      </div>
+      <div class="token-legend">
+        <span><i style="background:var(--gold)"></i><span data-ar="مجتمع 60%" data-en="Community 60%">Community 60%</span></span>
+        <span><i style="background:var(--blue)"></i><span data-ar="ستيكينغ 15%" data-en="Staking 15%">Staking 15%</span></span>
+        <span><i style="background:#7C3AED"></i><span data-ar="فريق 10%" data-en="Team 10%">Team 10%</span></span>
+        <span><i style="background:#059669"></i><span data-ar="إسقاط 10%" data-en="Airdrop 10%">Airdrop 10%</span></span>
+        <span><i style="background:#DC2626"></i><span data-ar="سيولة 5%" data-en="Liquidity 5%">Liquidity 5%</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APPLICATION
+══════════════════════════════════════════ -->
+<div id="mainApp" class="app" style="display:none;">
+
+  <!-- Toast container -->
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+
+  <!-- Loading overlay -->
+  <div id="globalLoading" class="loading-overlay" style="display:none;">
+    <div class="loading-coin">🐕</div>
+    <div class="loading-bar"><div class="loading-progress"></div></div>
+  </div>
+
+  <!-- ── STATUS BAR SPACER ── -->
+  <div class="status-bar-spacer"></div>
+
+  <!-- ══════ TAB VIEWS ══════ -->
+  <main class="app-main" id="appMain">
+
+    <!-- ─────────────────────────────────────────
+         HOME TAB
+    ───────────────────────────────────────── -->
+    <section id="tabHome" class="tab-view active" data-tab="home">
+
+      <!-- Header -->
+      <header class="home-header">
+        <div class="home-header-left">
+          <div class="avatar-wrap" id="userAvatar">
+            <img id="avatarImg" src="" alt="" style="display:none;">
+            <span id="avatarFallback">🐕</span>
+          </div>
+          <div class="home-user-info">
+            <span class="home-greeting" data-ar="مرحباً" data-en="Hello">Hello</span>
+            <span class="home-username" id="headerName">—</span>
+          </div>
+        </div>
+        <div class="home-header-right">
+          <button class="icon-btn" id="langBtnApp" title="Language" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+          </button>
+          <button class="icon-btn" id="logoutBtn" title="Logout" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Balance Hero Card -->
+      <div class="balance-card">
+        <div class="balance-card-bg"></div>
+        <div class="balance-label" data-ar="رصيد NDOG" data-en="NDOG Balance">NDOG Balance</div>
+        <div class="balance-amount" id="dashBalance">0</div>
+        <div class="balance-unit">NDOG</div>
+        <div class="balance-badges" id="balanceBadges">
+          <span id="dashVip" class="badge badge-vip" style="display:none;"></span>
+          <span id="dashFounder" class="badge badge-founder" style="display:none;" data-ar="مؤسس 🚀" data-en="Founder 🚀">Founder 🚀</span>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="quick-stats">
+        <div class="quick-stat">
+          <div class="quick-stat-icon">🔥</div>
+          <div class="quick-stat-val" id="dashStreak">0</div>
+          <div class="quick-stat-label" data-ar="السلسلة" data-en="Streak">Streak</div>
+        </div>
+        <div class="quick-stat">
+          <div class="quick-stat-icon">💰</div>
+          <div class="quick-stat-val" id="dashTotal">0</div>
+          <div class="quick-stat-label" data-ar="المكتسب" data-en="Earned">Earned</div>
+        </div>
+        <div class="quick-stat">
+          <div class="quick-stat-icon">⚡</div>
+          <div class="quick-stat-val" id="dashMult">×1.0</div>
+          <div class="quick-stat-label" data-ar="المضاعف" data-en="Multiplier">Multiplier</div>
+        </div>
+      </div>
+
+      <!-- Daily Claim Card -->
+      <div class="glass-card claim-card">
+        <div class="claim-card-top">
+          <div class="claim-card-label">
+            <span class="claim-icon">🎁</span>
+            <span data-ar="المكافأة اليومية" data-en="Daily Reward">Daily Reward</span>
+          </div>
+          <div class="claim-cooldown-badge" id="claimCooldownBadge" style="display:none;">
+            <span id="claimTimer">--:--:--</span>
+          </div>
+        </div>
+        <div class="streak-track">
+          <div class="streak-days">
+            <div class="streak-day" data-day="1">1</div>
+            <div class="streak-day" data-day="2">2</div>
+            <div class="streak-day" data-day="3">3</div>
+            <div class="streak-day" data-day="4">4</div>
+            <div class="streak-day" data-day="5">5</div>
+            <div class="streak-day" data-day="6">6</div>
+            <div class="streak-day streak-day-special" data-day="7">7🌟</div>
+          </div>
+        </div>
+        <button id="claimBtn" class="btn-primary" type="button">
+          <span data-ar="اجمع الآن" data-en="Claim Now">Claim Now</span>
+        </button>
+        <div id="claimMessage" class="claim-msg" style="display:none;"></div>
+      </div>
+
+      <!-- Spin Wheel -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">🎰</span>
+          <span class="card-header-title" data-ar="عجلة الحظ" data-en="Spin Wheel">Spin Wheel</span>
+          <span class="card-header-badge" data-ar="مرة/يوم" data-en="1×/day">1×/day</span>
+        </div>
+        <div class="wheel-wrap">
+          <div class="wheel-pointer-wrap" aria-hidden="true">
+            <div class="wheel-pointer">▼</div>
+          </div>
+          <canvas id="wheel-canvas" width="260" height="260" aria-label="Prize wheel"></canvas>
+        </div>
+        <button id="spinBtn" class="btn-secondary" type="button">
+          <span data-ar="لفّ العجلة" data-en="Spin Wheel">Spin Wheel</span>
+        </button>
+        <div id="spinResult" class="spin-result-msg" style="display:none;"></div>
+      </div>
+
+      <!-- Mini Games -->
+      <div class="mini-games">
+        <div class="glass-card mini-game-card" id="luckyBoxCard">
+          <div class="mini-game-icon">📦</div>
+          <div class="mini-game-info">
+            <div class="mini-game-title" data-ar="صندوق الحظ" data-en="Lucky Box">Lucky Box</div>
+            <div class="mini-game-range">5 – 100 NDOG</div>
+          </div>
+          <button id="luckyBoxBtn" class="btn-mini" type="button" data-ar="افتح" data-en="Open">Open</button>
+        </div>
+        <div class="glass-card mini-game-card" id="scratchCardCard">
+          <div class="mini-game-icon">🃏</div>
+          <div class="mini-game-info">
+            <div class="mini-game-title" data-ar="بطاقة الخدش" data-en="Scratch Card">Scratch Card</div>
+            <div class="mini-game-range">5 – 200 NDOG</div>
+          </div>
+          <button id="scratchBtn" class="btn-mini" type="button" data-ar="اخدش" data-en="Scratch">Scratch</button>
+        </div>
+      </div>
+
+      <!-- Level Progress -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">⭐</span>
+          <span class="card-header-title" data-ar="مستوى VIP" data-en="VIP Level">VIP Level</span>
+        </div>
+        <div class="level-row">
+          <div class="level-badge-item level-bronze" data-threshold="0">🥉<span data-ar="برونزي" data-en="Bronze">Bronze</span><small class="level-threshold" data-ar="0 NDOG" data-en="0 NDOG">0 NDOG</small></div>
+          <div class="level-connector"></div>
+          <div class="level-badge-item level-silver" data-threshold="1000">🥈<span data-ar="فضي" data-en="Silver">Silver</span><small class="level-threshold" data-ar="1,000 NDOG" data-en="1,000 NDOG">1,000 NDOG</small></div>
+          <div class="level-connector"></div>
+          <div class="level-badge-item level-gold" data-threshold="5000">🥇<span data-ar="ذهبي" data-en="Gold">Gold</span><small class="level-threshold" data-ar="5,000 NDOG" data-en="5,000 NDOG">5,000 NDOG</small></div>
+          <div class="level-connector"></div>
+          <div class="level-badge-item level-plat" data-threshold="20000">💎<span data-ar="بلاتيني" data-en="Plat">Plat</span><small class="level-threshold" data-ar="20,000 NDOG" data-en="20,000 NDOG">20,000 NDOG</small></div>
+          <div class="level-connector"></div>
+          <div class="level-badge-item level-diamond" data-threshold="100000">💠<span data-ar="ألماسي" data-en="Diamond">Diamond</span><small class="level-threshold" data-ar="100,000 NDOG" data-en="100,000 NDOG">100,000 NDOG</small></div>
+        </div>
+        <div class="level-next-label" id="levelNextLabel"></div>
+      </div>
+
+      <!-- Referral Quick -->
+      <div class="glass-card referral-quick-card">
+        <div class="card-header">
+          <span class="card-header-icon">👥</span>
+          <span class="card-header-title" data-ar="ادعُ أصدقاءك" data-en="Invite Friends">Invite Friends</span>
+        </div>
+        <div class="referral-code-display">
+          <span class="referral-code-val mono" id="quickReferralCode">—</span>
+          <button class="btn-copy" data-copy="code" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span data-ar="نسخ" data-en="Copy">Copy</span>
+          </button>
+        </div>
+        <div class="share-row">
+          <button class="share-btn share-wa" data-platform="whatsapp" type="button">WhatsApp</button>
+          <button class="share-btn share-tg" data-platform="telegram" type="button">Telegram</button>
+          <button class="share-btn share-x" data-platform="x" type="button">X</button>
+          <button class="share-btn share-fb" data-platform="facebook" type="button">FB</button>
+        </div>
+      </div>
+
+      <!-- Early adopter banner -->
+      <div class="founder-banner" id="earlyAdopterBanner" style="display:none;">
+        <span>🚀</span>
+        <p data-ar="أنت من مؤسسي NDOG! مكافآت حصرية تنتظرك." data-en="You're an NDOG Founder! Exclusive rewards await you.">You're an NDOG Founder! Exclusive rewards await you.</p>
+      </div>
+
+      <div class="home-bottom-spacer"></div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+         MINING TAB
+    ───────────────────────────────────────── -->
+    <section id="tabMining" class="tab-view" data-tab="mining">
+      <div class="mining-header">
+        <h2 class="page-title" data-ar="التعدين" data-en="Mining">Mining</h2>
+      </div>
+
+      <!-- Mining Core -->
+      <div class="mining-core-wrap">
+        <div class="mining-energy-ring ring-a" aria-hidden="true"></div>
+        <div class="mining-energy-ring ring-b" aria-hidden="true"></div>
+        <div class="mining-energy-ring ring-c" aria-hidden="true"></div>
+        <div class="mining-btn-wrap">
+          <button id="miningBtn" class="mining-btn" type="button" aria-label="Mine NDOG">
+            <div class="mining-btn-inner">
+              <span class="mining-btn-emoji">🐕</span>
+              <span class="mining-btn-label" data-ar="تعدين" data-en="MINE">MINE</span>
+            </div>
+            <div class="mining-btn-glow"></div>
+          </button>
+        </div>
+        <div class="mining-particles" id="miningParticles" aria-hidden="true"></div>
+      </div>
+
+      <!-- Mining Status -->
+      <div class="mining-status" id="miningStatus">
+        <div class="mining-status-state" id="miningStateLabel" data-ar="اضغط للتعدين" data-en="Tap to Mine">Tap to Mine</div>
+        <div class="mining-progress-wrap" id="miningProgressWrap" style="display:none;">
+          <div class="mining-progress-bar">
+            <div class="mining-progress-fill" id="miningProgressFill"></div>
+          </div>
+          <div class="mining-progress-vals">
+            <span id="miningProgressEarned">0</span>
+            <span>NDOG</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boost Button -->
+      <div class="glass-card boost-card">
+        <div class="boost-card-left">
+          <div class="boost-icon">⚡</div>
+          <div>
+            <div class="boost-title" data-ar="تعزيز التعدين" data-en="Mining Boost">Mining Boost</div>
+            <div class="boost-desc" data-ar="شاهد إعلاناً لمضاعفة السرعة ×2" data-en="Watch an ad to get ×2 speed">Watch an ad to get ×2 speed</div>
+          </div>
+        </div>
+        <button id="boostBtn" class="btn-boost" type="button">
+          <span data-ar="تعزيز" data-en="Boost">Boost</span>
+        </button>
+      </div>
+      <div class="boost-timer-wrap" id="boostTimerWrap" style="display:none;">
+        <div class="boost-active-label">
+          <span class="boost-active-dot"></span>
+          <span data-ar="التعزيز نشط" data-en="Boost Active">Boost Active</span>
+        </div>
+        <div class="boost-countdown" id="boostCountdown">30:00</div>
+      </div>
+
+      <!-- Mining Stats -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">📊</span>
+          <span class="card-header-title" data-ar="إحصائيات التعدين" data-en="Mining Stats">Mining Stats</span>
+        </div>
+        <div class="mining-stats-grid">
+          <div class="mstat">
+            <span class="mstat-label" data-ar="السرعة الحالية" data-en="Current Rate">Current Rate</span>
+            <span class="mstat-val" id="miningRate">10 NDOG/hr</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label" data-ar="معدل الإكمال" data-en="Session Reward">Session Reward</span>
+            <span class="mstat-val" id="miningSessionReward">0 NDOG</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label" data-ar="المكتسب اليوم" data-en="Earned Today">Earned Today</span>
+            <span class="mstat-val" id="miningEarnedToday">0 NDOG</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label" data-ar="الجلسات الكلية" data-en="Total Sessions">Total Sessions</span>
+            <span class="mstat-val" id="miningSessions">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-bottom-spacer"></div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+         WALLET TAB
+    ───────────────────────────────────────── -->
+    <section id="tabWallet" class="tab-view" data-tab="wallet">
+      <div class="page-header">
+        <h2 class="page-title" data-ar="المحفظة" data-en="Wallet">Wallet</h2>
+      </div>
+
+      <!-- Wallet Card -->
+      <div class="wallet-card">
+        <div class="wallet-card-bg"></div>
+        <div class="wallet-label" data-ar="الرصيد الكلي" data-en="Total Balance">Total Balance</div>
+        <div class="wallet-amount" id="walletBalance">0</div>
+        <div class="wallet-unit">NDOG</div>
+        <div class="wallet-actions">
+          <button class="wallet-action-btn" id="walletSendBtn" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span data-ar="إرسال" data-en="Send">Send</span>
+          </button>
+          <button class="wallet-action-btn" id="walletReceiveBtn" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+            <span data-ar="استقبال" data-en="Receive">Receive</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Staking Panel -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">📈</span>
+          <span class="card-header-title" data-ar="الستيكينغ" data-en="Staking">Staking</span>
+        </div>
+        <div class="stake-avail-row">
+          <span data-ar="الرصيد المتاح" data-en="Available">Available</span>
+          <span class="stake-avail-val" id="stakingAvail">0 NDOG</span>
+        </div>
+        <!-- Plan selector -->
+        <div class="plan-grid" id="planGrid">
+          <label class="plan-card active-plan" data-plan="7_days">
+            <input type="radio" name="stakePlan" value="7" checked>
+            <div class="plan-days" data-ar="7 أيام" data-en="7 Days">7 Days</div>
+            <div class="plan-apr">5% APR</div>
+            <div class="plan-min" data-ar="حد أدنى 100" data-en="Min 100">Min 100</div>
+          </label>
+          <label class="plan-card" data-plan="30_days">
+            <input type="radio" name="stakePlan" value="30">
+            <div class="plan-days" data-ar="30 يوم" data-en="30 Days">30 Days</div>
+            <div class="plan-apr">10% APR</div>
+            <div class="plan-min" data-ar="حد أدنى 500" data-en="Min 500">Min 500</div>
+          </label>
+          <label class="plan-card" data-plan="90_days">
+            <input type="radio" name="stakePlan" value="90">
+            <div class="plan-days" data-ar="90 يوم" data-en="90 Days">90 Days</div>
+            <div class="plan-apr">18% APR</div>
+            <div class="plan-min" data-ar="حد أدنى 1000" data-en="Min 1K">Min 1K</div>
+          </label>
+          <label class="plan-card" data-plan="180_days">
+            <input type="radio" name="stakePlan" value="180">
+            <div class="plan-days" data-ar="180 يوم" data-en="180 Days">180 Days</div>
+            <div class="plan-apr">25% APR</div>
+            <div class="plan-min" data-ar="حد أدنى 2000" data-en="Min 2K">Min 2K</div>
+          </label>
+        </div>
+        <div class="stake-input-row">
+          <input class="stake-input" type="number" id="stakeAmount" min="1" placeholder="0" inputmode="decimal">
+          <button class="btn-max" id="stakeMaxBtn" type="button" data-ar="الكل" data-en="Max">Max</button>
+        </div>
+        <button class="btn-primary" id="stakeBtn" type="button">
+          <span data-ar="إيداع" data-en="Stake">Stake</span>
+        </button>
+      </div>
+
+      <!-- Active contracts -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">📋</span>
+          <span class="card-header-title" data-ar="العقود النشطة" data-en="Active Contracts">Active Contracts</span>
+        </div>
+        <div id="contractsList" class="contracts-list"></div>
+      </div>
+
+      <!-- Transaction history placeholder -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">🕐</span>
+          <span class="card-header-title" data-ar="السجل" data-en="History">History</span>
+        </div>
+        <div class="tx-empty" data-ar="السجل فارغ" data-en="No transactions yet">No transactions yet</div>
+      </div>
+
+      <div class="home-bottom-spacer"></div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+         REWARDS TAB
+    ───────────────────────────────────────── -->
+    <section id="tabRewards" class="tab-view" data-tab="rewards">
+      <div class="page-header">
+        <h2 class="page-title" data-ar="المكافآت" data-en="Rewards">Rewards</h2>
+      </div>
+
+      <!-- Missions -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">🎯</span>
+          <span class="card-header-title" data-ar="المهام اليومية" data-en="Daily Missions">Daily Missions</span>
+        </div>
+        <div id="dailyMissionsList" class="mission-list"></div>
+      </div>
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">📅</span>
+          <span class="card-header-title" data-ar="المهام الأسبوعية" data-en="Weekly Missions">Weekly Missions</span>
+        </div>
+        <div id="weeklyMissionsList" class="mission-list"></div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">🏆</span>
+          <span class="card-header-title" data-ar="المتصدرون" data-en="Leaderboard">Leaderboard</span>
+        </div>
+        <div id="topBalanceList" class="leader-list"></div>
+      </div>
+
+      <!-- Airdrop -->
+      <div class="airdrop-card glass-card">
+        <div class="airdrop-icon-wrap">
+          <span class="airdrop-icon">🎁</span>
+          <div class="airdrop-glow"></div>
+        </div>
+        <h3 class="airdrop-title" data-ar="الإسقاط الجوي" data-en="Airdrop">Airdrop</h3>
+        <p class="airdrop-desc" data-ar="انضم مبكراً واحصل على مكافآت حصرية" data-en="Join early and claim exclusive NDOG rewards">Join early and claim exclusive NDOG rewards</p>
+        <button id="airdropClaimBtn" class="btn-primary" type="button">
+          <span data-ar="اجمع الإسقاط" data-en="Claim Airdrop">Claim Airdrop</span>
+        </button>
+        <div id="airdropStatus" class="airdrop-status"></div>
+      </div>
+
+      <!-- News -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">📰</span>
+          <span class="card-header-title" data-ar="آخر الأخبار" data-en="Latest News">Latest News</span>
+        </div>
+        <div id="newsList" class="news-list"></div>
+      </div>
+
+      <div class="home-bottom-spacer"></div>
+    </section>
+
+    <!-- ─────────────────────────────────────────
+         PROFILE TAB
+    ───────────────────────────────────────── -->
+    <section id="tabProfile" class="tab-view" data-tab="profile">
+      <div class="page-header">
+        <h2 class="page-title" data-ar="الملف الشخصي" data-en="Profile">Profile</h2>
+      </div>
+
+      <!-- Profile card -->
+      <div class="profile-card glass-card">
+        <div class="profile-avatar-lg" id="profileAvatarLg">
+          <img id="profileAvatarImg" src="" alt="" style="display:none;">
+          <span id="profileAvatarFallback">🐕</span>
+        </div>
+        <div class="profile-name" id="profileName">—</div>
+        <div class="profile-email" id="profileEmail">—</div>
+        <div class="profile-badges" id="profileBadges"></div>
+      </div>
+
+      <!-- Referral section -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">🔗</span>
+          <span class="card-header-title" data-ar="الإحالة" data-en="Referral">Referral</span>
+        </div>
+        <div class="referral-label" data-ar="كود الإحالة" data-en="Your Code">Your Code</div>
+        <div class="referral-box">
+          <code class="referral-code mono" id="referralCodeDisplay">—</code>
+          <button class="btn-copy" data-copy="referralCode" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span data-ar="نسخ" data-en="Copy">Copy</span>
+          </button>
+        </div>
+        <div class="referral-label" data-ar="رابط الإحالة" data-en="Your Link">Your Link</div>
+        <div class="referral-box">
+          <code class="referral-link mono" id="referralLinkDisplay">—</code>
+          <button class="btn-copy" data-copy="referralLink" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span data-ar="نسخ" data-en="Copy">Copy</span>
+          </button>
+        </div>
+        <div class="referral-count-row">
+          <span data-ar="عدد الإحالات" data-en="Total Referrals">Total Referrals</span>
+          <span class="referral-count-val" id="referralCount">0</span>
+        </div>
+        <div class="card-header" style="margin-top:16px;">
+          <span class="card-header-title" data-ar="أدخل كود إحالة" data-en="Enter Referral Code">Enter Referral Code</span>
+        </div>
+        <div class="stake-input-row">
+          <input class="stake-input" type="text" id="referralCodeInput" maxlength="10" placeholder="XXXXX" autocomplete="off">
+          <button class="btn-primary btn-sm" id="applyReferralBtn" type="button">
+            <span data-ar="تطبيق" data-en="Apply">Apply</span>
+          </button>
+        </div>
+        <div class="tier-list">
+          <div class="tier-item">
+            <span class="tier-badge">L1</span>
+            <span data-ar="مباشر" data-en="Direct">Direct</span>
+            <span class="tier-reward">+50 NDOG</span>
+          </div>
+          <div class="tier-item">
+            <span class="tier-badge">L2</span>
+            <span data-ar="مستوى 2" data-en="Level 2">Level 2</span>
+            <span class="tier-reward">+20 NDOG</span>
+          </div>
+          <div class="tier-item">
+            <span class="tier-badge">L3</span>
+            <span data-ar="مستوى 3" data-en="Level 3">Level 3</span>
+            <span class="tier-reward">+10 NDOG</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Referral Tree (names list) -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">👥</span>
+          <span class="card-header-title" data-ar="المحيلين لديك" data-en="Your Referrals">Your Referrals</span>
+        </div>
+        <div id="referralTreeList" class="referral-tree-list"></div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="glass-card">
+        <div class="card-header">
+          <span class="card-header-icon">❓</span>
+          <span class="card-header-title" data-ar="الأسئلة الشائعة" data-en="FAQ">FAQ</span>
+        </div>
+        <div id="faqList" class="faq-list"></div>
+      </div>
+
+      <!-- Logout -->
+      <button class="btn-logout-full" id="logoutBtnFull" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        <span data-ar="تسجيل الخروج" data-en="Sign Out">Sign Out</span>
+      </button>
+
+      <div class="home-bottom-spacer"></div>
+    </section>
+
+  </main><!-- /app-main -->
+
+  <!-- ══════════════════════════════════════════
+       BOTTOM NAVIGATION
+  ══════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       PWA INSTALL BANNER (mobile)
+══════════════════════════════════════════ -->
+<div id="pwaInstallBanner" class="pwa-install-banner" style="display:none;" role="dialog" aria-label="Install app">
+  <button class="pwa-install-close" id="pwaInstallClose" type="button" aria-label="Close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+  <div class="pwa-install-icon">🐕</div>
+  <div class="pwa-install-text">
+    <div class="pwa-install-title" data-ar="ثبّت NDOG على جهازك!" data-en="Install NDOG on your device!">Install NDOG on your device!</div>
+    <div class="pwa-install-sub" data-ar="تطبيق مستقل — أسرع وأسهل" data-en="Standalone app — faster & easier">Standalone app — faster & easier</div>
+  </div>
+  <button class="pwa-install-btn" id="pwaInstallBtn" type="button">
+    <span data-ar="تثبيت" data-en="Install">Install</span>
+  </button>
+</div>
+
+  <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <div class="bottom-nav-inner">
+      <button class="nav-item active" data-tab="home" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 10.5L12 3l9 7.5V20a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 20V10.5z"/>
+          <path d="M9 21.5V13.5h6v8"/>
+        </svg>
+        <span class="nav-label" data-ar="الرئيسية" data-en="Home">Home</span>
+        <div class="nav-indicator"></div>
+      </button>
+
+      <button class="nav-item" data-tab="mining" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          <line x1="7" y1="9" x2="5" y2="9" opacity="0.5"/>
+          <line x1="6" y1="12" x2="4" y2="12" opacity="0.5"/>
+        </svg>
+        <span class="nav-label" data-ar="التعدين" data-en="Mine">Mine</span>
+        <div class="nav-indicator"></div>
+      </button>
+
+      <!-- CENTER MINING BUTTON PLACEHOLDER (spacer) -->
+      <div class="nav-center-spacer"></div>
+
+      <button class="nav-item" data-tab="rewards" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/>
+          <path d="M2 8h20l-1.5 4H3.5L2 8z"/>
+          <circle cx="12" cy="4" r="2"/>
+          <path d="M12 6v2"/>
+          <line x1="10" y1="14" x2="14" y2="14" opacity="0.5"/>
+          <line x1="10" y1="17" x2="14" y2="17" opacity="0.5"/>
+        </svg>
+        <span class="nav-label" data-ar="المكافآت" data-en="Rewards">Rewards</span>
+        <div class="nav-indicator"></div>
+      </button>
+
+      <button class="nav-item" data-tab="profile" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
+          <circle cx="12" cy="8" r="7" stroke-dasharray="3 2" opacity="0.3"/>
+        </svg>
+        <span class="nav-label" data-ar="الملف" data-en="Profile">Profile</span>
+        <div class="nav-indicator"></div>
+      </button>
+    </div>
+
+    <!-- FLOATING CENTER MINING BUTTON -->
+    <button class="nav-center-btn" id="navMineBtn" data-tab="mining" type="button" aria-label="Mine NDOG">
+      <span class="nav-center-btn-inner">
+        <span class="nav-center-emoji">🐕</span>
+      </span>
+      <div class="nav-center-pulse pulse-a"></div>
+      <div class="nav-center-pulse pulse-b"></div>
+    </button>
+  </nav>
+
+</div><!-- /mainApp -->
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+<!-- Wallet Send/Receive modal -->
+<div id="walletModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-content" id="walletModalContent"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="./js/firebase-config.js"></script>
+<script src="./js/app.js"></script>
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

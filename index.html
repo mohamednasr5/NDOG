@@ -941,6 +941,46 @@
             margin-bottom: 16px;
             position: relative;
         }
+        /* ---- Balance Eye Toggle ---- */
+        .balance-eye-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s, background 0.2s;
+            z-index: 2;
+        }
+        .balance-eye-btn:hover {
+            color: var(--gold-light);
+            background: rgba(212, 160, 23, 0.1);
+        }
+        .balance-eye-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        .balance-amount-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            margin-bottom: 4px;
+        }
+        .wallet-amount-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            margin-bottom: 4px;
+        }
+
         .balance-badges {
             display: flex;
             gap: 8px;
@@ -2738,6 +2778,10 @@
         html[dir="rtl"] .wallet-action-btn {
             flex-direction: column;
         }
+        html[dir="rtl"] .balance-eye-btn {
+            right: auto;
+            left: 0;
+        }
         html[dir="rtl"] .form-row-2 {
             direction: rtl;
         }
@@ -3870,7 +3914,12 @@
                 <div class="balance-card">
                     <div class="balance-card-bg"></div>
                     <div class="balance-label" data-ar="رصيد NDOG" data-en="NDOG Balance">NDOG Balance</div>
-                    <div class="balance-amount" id="dashBalance">0</div>
+                    <div class="balance-amount-wrap">
+                        <div class="balance-amount" id="dashBalance">0</div>
+                        <button class="balance-eye-btn" id="dashBalanceEye" type="button" aria-label="Toggle balance visibility">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                     <div class="balance-unit">NDOG</div>
                     <div class="balance-badges" id="balanceBadges">
                         <span id="dashVip" class="badge badge-vip" style="display:none;"></span>
@@ -4032,7 +4081,12 @@
                 <div class="wallet-card">
                     <div class="wallet-card-bg"></div>
                     <div class="wallet-label" data-ar="الرصيد الكلي" data-en="Total Balance">Total Balance</div>
-                    <div class="wallet-amount" id="walletBalance">0</div>
+                    <div class="wallet-amount-wrap">
+                        <div class="wallet-amount" id="walletBalance">0</div>
+                        <button class="balance-eye-btn" id="walletBalanceEye" type="button" aria-label="Toggle balance visibility">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                     <div class="wallet-unit">NDOG</div>
                     <div class="wallet-usd-price" id="walletUSD">≈ $0.00</div>
                     <div class="wallet-price-hint">
@@ -4773,7 +4827,23 @@
                     notifyButton: { enable: false },
                     allowLocalhostAsSecureOrigin: true,
                     serviceWorkerPath: './sw.js',
-                    serviceWorkerParam: { scope: './' }
+                    serviceWorkerParam: { scope: './' },
+                    autoPrompt: true,
+                    promptOptions: {
+                        slidedown: {
+                            prompts: [{
+                                type: "push",
+                                autoPrompt: true,
+                                text: {
+                                    actionMessage: currentLang === 'ar'
+                                        ? "يريد NDOG Coin إرسال إشعارات إليك"
+                                        : "NDOG Coin wants to send you notifications",
+                                    acceptButton: currentLang === 'ar' ? "سماح" : "Allow",
+                                    cancelButton: currentLang === 'ar' ? "لا، شكراً" : "No Thanks"
+                                }
+                            }]
+                        }
+                    }
                 });
 
                 OneSignal.login(currentUser.uid);
@@ -5811,11 +5881,33 @@
             setupNotificationListener();
             listenForNewNotifications();
 
+            // Request native notification permission (critical for Android background notifications)
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(() => {
+                    Notification.requestPermission().then(perm => {
+                        console.log('[NDOG] Notification permission:', perm);
+                    });
+                }, 2000); // 2s delay so the user sees the app first
+            }
+
             switchTab('home');
             renderDashboard();
             startCooldownTimer();
             loadNews();
             loadFaq();
+
+            // Real-time listener for new news articles (auto-refresh)
+            db.ref('news').orderByChild('createdAt').limitToLast(1).on('child_added', (snap) => {
+                const n = snap.val();
+                if (!n) return;
+                const age = Date.now() - (n.createdAt || 0);
+                // Only show notification for news published in the last 15 seconds
+                if (age < 15000) {
+                    loadNews(); // Refresh the news list
+                    showToast((n.icon || "📰") + " " + (n.title || ''), 'info');
+                }
+            });
+
             loadAirdropInfo();
             loadStakingContracts();
             loadReferralTree();
@@ -5862,6 +5954,79 @@
 
             loadNotificationsEnhanced();
         }
+
+        // ========== BALANCE VISIBILITY TOGGLE ==========
+        const EYE_OPEN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        const EYE_CLOSED_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+        function getBalanceHiddenKey() {
+            const uid = currentUser?.uid || 'guest';
+            return 'ndog_balance_hidden_' + uid;
+        }
+
+        function isBalanceHidden() {
+            return localStorage.getItem(getBalanceHiddenKey()) === 'true';
+        }
+
+        function setBalanceHidden(hidden) {
+            localStorage.setItem(getBalanceHiddenKey(), hidden ? 'true' : 'false');
+        }
+
+        function applyBalanceVisibility() {
+            const hidden = isBalanceHidden();
+            const dashBal = document.getElementById('dashBalance');
+            const walletBal = document.getElementById('walletBalance');
+            const walletUSD = document.getElementById('walletUSD');
+
+            if (dashBal) {
+                if (hidden && !dashBal.dataset.realValue && dashBal.textContent !== '*******') {
+                    dashBal.dataset.realValue = dashBal.textContent;
+                }
+                if (hidden) {
+                    dashBal.textContent = '*******';
+                } else if (dashBal.dataset.realValue) {
+                    dashBal.textContent = dashBal.dataset.realValue;
+                    delete dashBal.dataset.realValue;
+                }
+            }
+            if (walletBal) {
+                if (hidden && !walletBal.dataset.realValue && walletBal.textContent !== '*******') {
+                    walletBal.dataset.realValue = walletBal.textContent;
+                }
+                if (hidden) {
+                    walletBal.textContent = '*******';
+                } else if (walletBal.dataset.realValue) {
+                    walletBal.textContent = walletBal.dataset.realValue;
+                    delete walletBal.dataset.realValue;
+                }
+            }
+            if (walletUSD) {
+                if (hidden && !walletUSD.dataset.realValue && walletUSD.textContent !== '*******') {
+                    walletUSD.dataset.realValue = walletUSD.textContent;
+                }
+                if (hidden) {
+                    walletUSD.textContent = '*******';
+                } else if (walletUSD.dataset.realValue) {
+                    walletUSD.textContent = walletUSD.dataset.realValue;
+                    delete walletUSD.dataset.realValue;
+                }
+            }
+
+            // Update all eye button icons
+            document.querySelectorAll('.balance-eye-btn').forEach(btn => {
+                btn.innerHTML = hidden ? EYE_CLOSED_SVG : EYE_OPEN_SVG;
+            });
+        }
+
+        function toggleBalanceVisibility() {
+            const currentlyHidden = isBalanceHidden();
+            setBalanceHidden(!currentlyHidden);
+            applyBalanceVisibility();
+        }
+
+        // Bind click events for eye buttons
+        document.getElementById('dashBalanceEye')?.addEventListener('click', toggleBalanceVisibility);
+        document.getElementById('walletBalanceEye')?.addEventListener('click', toggleBalanceVisibility);
 
         // ========== DASHBOARD ==========
         function renderDashboard() {
@@ -5969,6 +6134,9 @@
             if (earlyBanner) earlyBanner.style.display = userData.founder ? 'flex' : 'none';
 
             loadAirdropInfo();
+
+            // Apply balance visibility (hidden/shown) from saved state
+            applyBalanceVisibility();
         }
 
         function renderStreakDays(streak) {

@@ -5517,6 +5517,12 @@
             modal.style.display = 'flex';
             // Pre-fill name and email from Google
             document.getElementById('compName').value = user.displayName || '';
+            // Pre-fill referral code from URL (saved in localStorage by detectRefFromUrl)
+            const savedRef = localStorage.getItem('ndog_ref');
+            if (savedRef) {
+                document.getElementById('compReferralCode').value = savedRef;
+                localStorage.removeItem('ndog_ref');
+            }
             // Set country and dial code lists
             populateCompCountries();
             // Store user reference for completion
@@ -5592,58 +5598,74 @@
             updates['users/' + uid] = profile;
             updates['referralCodes/' + code] = { uid: uid, createdAt: ts };
 
-            // Process referral if provided
-            if (referralCode && referralCode.toUpperCase() !== 'NDOGS') {
-                const refCode = referralCode.toUpperCase();
-                db.ref('referralCodes/' + refCode).once('value').then(snap => {
-                    if (snap.exists()) {
-                        const refData = snap.val();
-                        const refUid = refData.uid;
-                        if (refUid && refUid !== uid) {
-                            updates['users/' + uid + '/referredBy'] = refUid;
-                            updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email,
-                                level: 1 };
-                            // L1 bonus
-                            db.ref('users/' + refUid + '/balance').transaction(b => (b || 0) + 50);
-                            db.ref('users/' + refUid + '/referralEarnings').transaction(b => (b || 0) + 50);
-                            // L2
-                            db.ref('users/' + refUid + '/referredBy').once('value').then(s2 => {
-                                if (s2.exists()) {
-                                    const l2Uid = s2.val();
-                                    db.ref('users/' + l2Uid + '/balance').transaction(b => (b || 0) + 20);
-                                    db.ref('users/' + l2Uid + '/referralEarnings').transaction(b => (b || 0) +
-                                        20);
-                                    db.ref('referrals/' + l2Uid + '/' + uid).set({ referredAt: ts,
-                                        email: currentUser.email, level: 2 });
-                                    // L3
-                                    db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
-                                        if (s3.exists()) {
-                                            const l3Uid = s3.val();
-                                            db.ref('users/' + l3Uid + '/balance').transaction(b =>
-                                                (b || 0) + 10);
-                                            db.ref('users/' + l3Uid + '/referralEarnings')
-                                                .transaction(b => (b || 0) + 10);
-                                            db.ref('referrals/' + l3Uid + '/' + uid)
-                                                .set({ referredAt: ts, email: currentUser.email,
-                                                    level: 3 });
-                                        }
-                                    });
-                                }
-                            });
-                        }
+            // Process referral if provided — MUST complete before writing profile
+            const processReferral = () => {
+                return new Promise((resolve) => {
+                    if (!referralCode || referralCode.toUpperCase() === 'NDOGS') {
+                        resolve(null);
+                        return;
                     }
+                    const refCode = referralCode.toUpperCase();
+                    db.ref('referralCodes/' + refCode).once('value').then(snap => {
+                        if (snap.exists()) {
+                            const refData = snap.val();
+                            const refUid = refData.uid;
+                            if (refUid && refUid !== uid) {
+                                // Set referredBy INSIDE updates BEFORE writing
+                                updates['users/' + uid + '/referredBy'] = refUid;
+                                updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email,
+                                    level: 1 };
+                                resolve(refUid);
+                                return;
+                            }
+                        }
+                        resolve(null);
+                    }).catch(() => resolve(null));
                 });
-            }
+            };
 
-            db.ref().update(updates).then(() => {
-                hideLoading();
-                modal.style.display = 'none';
-                userData = { ...profile, uid: uid };
-                showApp();
-                showToast(t('✅ تم إنشاء الحساب بنجاح!', '✅ Account created successfully!'), 'success');
-            }).catch(err => {
-                hideLoading();
-                showToast(t('فشل إنشاء الحساب: ' + err.message, 'Failed to create account'), 'error');
+            processReferral().then(refUid => {
+                // NOW write the user profile (with referredBy already in updates)
+                db.ref().update(updates).then(() => {
+                    hideLoading();
+                    modal.style.display = 'none';
+                    userData = { ...profile, uid: uid };
+                    if (refUid) {
+                        userData.referredBy = refUid;
+                    }
+                    showApp();
+                    showToast(t('✅ تم إنشاء الحساب بنجاح!', '✅ Account created successfully!'), 'success');
+
+                    // Give referral bonuses AFTER profile is written
+                    if (refUid) {
+                        // L1 bonus to referrer
+                        db.ref('users/' + refUid + '/balance').transaction(b => (b || 0) + 50);
+                        db.ref('users/' + refUid + '/referralEarnings').transaction(b => (b || 0) + 50);
+                        // L2 bonus
+                        db.ref('users/' + refUid + '/referredBy').once('value').then(s2 => {
+                            if (s2.exists()) {
+                                const l2Uid = s2.val();
+                                db.ref('users/' + l2Uid + '/balance').transaction(b => (b || 0) + 20);
+                                db.ref('users/' + l2Uid + '/referralEarnings').transaction(b => (b || 0) + 20);
+                                db.ref('referrals/' + l2Uid + '/' + uid).set({ referredAt: ts,
+                                    email: currentUser.email, level: 2 });
+                                // L3 bonus
+                                db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
+                                    if (s3.exists()) {
+                                        const l3Uid = s3.val();
+                                        db.ref('users/' + l3Uid + '/balance').transaction(b => (b || 0) + 10);
+                                        db.ref('users/' + l3Uid + '/referralEarnings').transaction(b => (b || 0) + 10);
+                                        db.ref('referrals/' + l3Uid + '/' + uid).set({ referredAt: ts,
+                                            email: currentUser.email, level: 3 });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }).catch(err => {
+                    hideLoading();
+                    showToast(t('فشل إنشاء الحساب: ' + err.message, 'Failed to create account'), 'error');
+                });
             });
         }
 
@@ -5847,8 +5869,12 @@
             setEl('miningSessions', userData.miningSessionsTotal || 0);
             setEl('miningTotalMined', fmt(userData.miningEarnings || 0) + ' NDOG');
 
-            const refs = userData.referredUsers ? Object.keys(userData.referredUsers).length : 0;
-            setEl('refTotalCount', refs);
+            // Fetch referral count from referrals/{uid} node (not from a non-existent field)
+            db.ref('referrals/' + currentUser.uid).once('value').then(refSnap => {
+                const refData = refSnap.val() || {};
+                const refCount = Object.keys(refData).filter(k => refData[k].level === 1).length;
+                setEl('refTotalCount', refCount);
+            });
             setEl('refEarnings', fmt(userData.referralEarnings || 0));
 
             const earlyBanner = document.getElementById('earlyAdopterBanner');

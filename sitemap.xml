@@ -1,29 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?> 
+<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
-
   <url>
     <loc>https://ndogcoin.com/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://ndogcoin.com/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://ndogcoin.com/?lang=ar"/>
+    <lastmod>2026-06-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <lastmod>2026-06-23</lastmod>
   </url>
-
   <url>
-    <loc>https://ndogcoin.com/?lang=ar</loc>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://ndogcoin.com/?lang=ar"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://ndogcoin.com/"/>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-    <lastmod>2026-06-23</lastmod>
-  </url>
-
-  <url>
-    <loc>https://ndogcoin.com/manifest.json</loc>
+    <loc>https://ndogcoin.com/whitepaper-en.html</loc>
+    <lastmod>2026-06-22</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ndogcoin.com/whitepaper-ar.html</loc>
+    <lastmod>2026-06-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ndogcoin.com/admin.html</loc>
+    <lastmod>2026-06-22</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.3</priority>
   </url>
-
 </urlset>

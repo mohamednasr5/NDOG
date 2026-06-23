@@ -302,4 +302,16 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+
+  // Clear all IndexedDB notifications (per-user clear request from main page)
+  if (event.data && event.data.type === 'CLEAR_IDB_NOTIFICATIONS') {
+    openDB().then(db => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.clear();
+      console.log('[NDOG SW] IndexedDB notifications cleared per user request');
+    }).catch(err => {
+      console.warn('[NDOG SW] Failed to clear IndexedDB notifications:', err);
+    });
+  }
 });

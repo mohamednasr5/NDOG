@@ -1034,6 +1034,26 @@
             color: var(--gold);
             font-weight: 600;
         }
+        .card-header-clear {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 99px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: none;
+        }
+        .card-header-clear:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+        .card-header-clear:active {
+            transform: scale(0.95);
+        }
 
         .claim-card-top {
             display: flex;
@@ -4416,6 +4436,7 @@
                     <div class="card-header">
                         <span class="card-header-icon">📰</span>
                         <span class="card-header-title" data-ar="آخر الأخبار" data-en="Latest News">Latest News</span>
+                        <button type="button" class="card-header-clear" id="clearNewsBtn" data-ar="مسح الكل" data-en="Clear All">Clear All</button>
                     </div>
                     <div id="newsList" class="news-list"></div>
                 </div>
@@ -4489,6 +4510,7 @@
                     <div class="card-header">
                         <span class="card-header-icon">🔔</span>
                         <span class="card-header-title" data-ar="الإشعارات" data-en="Notifications">Notifications</span>
+                        <button type="button" class="card-header-clear" id="clearNotifsProfileBtn" data-ar="مسح الكل" data-en="Clear All">Clear All</button>
                     </div>
                     <div id="notificationsList" class="notif-list">
                         <div class="notif-empty" data-ar="لا توجد إشعارات" data-en="No notifications">No notifications</div>
@@ -4650,6 +4672,9 @@
         <div class="modal-sheet">
             <div class="modal-handle"></div>
             <div class="modal-title" data-ar="الإشعارات" data-en="Notifications">Notifications</div>
+            <div style="padding:0 20px 10px;display:flex;justify-content:flex-end;">
+                <button type="button" class="card-header-clear" id="clearNotifsPanelBtn" data-ar="مسح الكل" data-en="Clear All">Clear All</button>
+            </div>
             <div id="notifPanelList" class="notif-list" style="padding:0 20px;"></div>
         </div>
     </div>
@@ -4943,6 +4968,98 @@
                     badge.style.display = 'none';
                 }
             }
+
+            // Show/hide clear buttons based on whether there are notifications
+            const clearBtns = [document.getElementById('clearNotifsProfileBtn'), document.getElementById('clearNotifsPanelBtn')];
+            clearBtns.forEach(btn => { if (btn) btn.style.display = notifs.length > 0 ? 'inline-block' : 'none'; });
+        }
+
+        // Clear all notifications for the CURRENT USER only
+        function clearAllNotifications() {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+
+            // 1. Remove all notifications from Firebase RTDB for this user
+            db.ref('notifications/' + uid).remove().then(() => {
+                // 2. Clear IndexedDB notifications (via Service Worker message)
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_IDB_NOTIFICATIONS' });
+                } else {
+                    // Fallback: clear directly
+                    clearIndexedDBNotifications();
+                }
+
+                // 3. Update UI immediately
+                const list = document.getElementById('notificationsList');
+                const panelList = document.getElementById('notifPanelList');
+                const badge = document.getElementById('notifBadge');
+                const emptyHTML = '<div class="notif-empty" data-ar="لا توجد إشعارات" data-en="No notifications">No notifications</div>';
+                if (list) list.innerHTML = emptyHTML;
+                if (panelList) panelList.innerHTML = emptyHTML;
+                if (badge) badge.style.display = 'none';
+
+                // Hide clear buttons
+                const clearBtns = [document.getElementById('clearNotifsProfileBtn'), document.getElementById('clearNotifsPanelBtn')];
+                clearBtns.forEach(btn => { if (btn) btn.style.display = 'none'; });
+
+                showToast(t('تم مسح الإشعارات', 'Notifications cleared'), 'success');
+            }).catch(err => {
+                console.warn('[NDOG] Failed to clear notifications:', err);
+                showToast(t('فشل مسح الإشعارات', 'Failed to clear notifications'), 'error');
+            });
+        }
+
+        // Clear IndexedDB notifications directly (fallback if SW not available)
+        function clearIndexedDBNotifications() {
+            try {
+                const request = indexedDB.open('ndog-notifications', 1);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('notifications')) {
+                        db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    try {
+                        const tx = db.transaction('notifications', 'readwrite');
+                        const store = tx.objectStore('notifications');
+                        store.clear();
+                    } catch(e) { /* ignore */ }
+                };
+            } catch(e) { /* ignore */ }
+        }
+
+        // Clear all news for the CURRENT USER (hides them, doesn't delete global news)
+        function clearAllNews() {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+
+            // Get all current news IDs and save them as dismissed for this user
+            db.ref('news').once('value').then(snap => {
+                const newsIds = [];
+                snap.forEach(c => newsIds.push(c.key));
+
+                if (newsIds.length === 0) return;
+
+                // Save dismissed news IDs under the user's node
+                const dismissed = {};
+                newsIds.forEach(id => { dismissed[id] = true; });
+                db.ref('dismissedNews/' + uid).set(dismissed).then(() => {
+                    // Update UI immediately
+                    const el = document.getElementById('newsList');
+                    if (el) {
+                        el.innerHTML = '<div class="news-item" style="color:var(--text-3);text-align:center;">' + t('لا توجد أخبار', 'No news') + '</div>';
+                    }
+                    const clearBtn = document.getElementById('clearNewsBtn');
+                    if (clearBtn) clearBtn.style.display = 'none';
+
+                    showToast(t('تم مسح الأخبار', 'News cleared'), 'success');
+                }).catch(err => {
+                    console.warn('[NDOG] Failed to dismiss news:', err);
+                    showToast(t('فشل مسح الأخبار', 'Failed to clear news'), 'error');
+                });
+            });
         }
 
         // Real-time listener for new RTDB notifications (from admin panel)
@@ -6722,6 +6839,10 @@
                     if (unread > 0) { badge.style.display = 'flex';
                         badge.textContent = unread; } else { badge.style.display = 'none'; }
                 }
+
+                // Show/hide clear buttons based on whether there are notifications
+                const clearBtns = [document.getElementById('clearNotifsProfileBtn'), document.getElementById('clearNotifsPanelBtn')];
+                clearBtns.forEach(btn => { if (btn) btn.style.display = notifs.length > 0 ? 'inline-block' : 'none'; });
             });
         }
 
@@ -6789,42 +6910,57 @@
         function loadNews() {
             const el = document.getElementById('newsList');
             if (!el) return;
-            db.ref('news').orderByChild('createdAt').once('value').then(snap => {
-                const arts = [];
-                snap.forEach(c => arts.push({ ...c.val(), id: c.key }));
-                arts.reverse();
-                el.innerHTML = '';
-                if (!arts.length) { el.innerHTML =
-                    `<div class="news-item" style="color:var(--text-3);text-align:center;">${t('لا توجد أخبار', 'No news')}</div>`; return; }
-                arts.slice(0, 10).forEach(a => {
-                    const title = currentLang === 'ar' ? (a.title_ar || a.title) : (a.title_en || a.title);
-                    const content = currentLang === 'ar' ? (a.content_ar || a.content) : (a.content_en || a.content);
-                    const newsDate = a.createdAt || a.publishedAt || a.date;
-                    const date = newsDate ? new Date(newsDate).toLocaleDateString(currentLang ===
-                        'ar' ? 'ar-EG' : 'en-US') : '';
-                    const div = document.createElement('div');
-                    div.className = 'news-item';
-                    div.innerHTML =
-                        `<div class="news-title">${title}</div>${date?`<div class="news-date">${date}</div>`:''}<div class="news-body">${content}</div>`;
-                    el.appendChild(div);
-                });
-            }).catch(() => {
-                // Fallback: try publishedAt
-                db.ref('news').orderByChild('publishedAt').once('value').then(snap => {
+
+            // First, load user's dismissed news IDs
+            const dismissedPromise = currentUser
+                ? db.ref('dismissedNews/' + currentUser.uid).once('value').then(s => s.val() || {})
+                : Promise.resolve({});
+
+            dismissedPromise.then(dismissed => {
+                const dismissedSet = new Set(Object.keys(dismissed));
+
+                db.ref('news').orderByChild('createdAt').once('value').then(snap => {
                     const arts = [];
-                    snap.forEach(c => arts.push({ ...c.val(), id: c.key }));
+                    snap.forEach(c => { if (!dismissedSet.has(c.key)) arts.push({ ...c.val(), id: c.key }); });
                     arts.reverse();
                     el.innerHTML = '';
-                    if (!arts.length) { el.innerHTML = `<div class="news-item" style="color:var(--text-3);text-align:center;">${t('لا توجد أخبار', 'No news')}</div>`; return; }
+                    if (!arts.length) { el.innerHTML =
+                        `<div class="news-item" style="color:var(--text-3);text-align:center;">${t('لا توجد أخبار', 'No news')}</div>`;
+                        const clearBtn = document.getElementById('clearNewsBtn'); if (clearBtn) clearBtn.style.display = 'none';
+                        return; }
+                    const clearBtn = document.getElementById('clearNewsBtn'); if (clearBtn) clearBtn.style.display = 'inline-block';
                     arts.slice(0, 10).forEach(a => {
                         const title = currentLang === 'ar' ? (a.title_ar || a.title) : (a.title_en || a.title);
                         const content = currentLang === 'ar' ? (a.content_ar || a.content) : (a.content_en || a.content);
                         const newsDate = a.createdAt || a.publishedAt || a.date;
-                        const date = newsDate ? new Date(newsDate).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
+                        const date = newsDate ? new Date(newsDate).toLocaleDateString(currentLang ===
+                            'ar' ? 'ar-EG' : 'en-US') : '';
                         const div = document.createElement('div');
                         div.className = 'news-item';
-                        div.innerHTML = `<div class="news-title">${title}</div>${date?`<div class="news-date">${date}</div>`:''}<div class="news-body">${content}</div>`;
+                        div.innerHTML =
+                            `<div class="news-title">${title}</div>${date?`<div class="news-date">${date}</div>`:''}<div class="news-body">${content}</div>`;
                         el.appendChild(div);
+                    });
+                }).catch(() => {
+                    // Fallback: try publishedAt
+                    db.ref('news').orderByChild('publishedAt').once('value').then(snap => {
+                        const arts = [];
+                        snap.forEach(c => { if (!dismissedSet.has(c.key)) arts.push({ ...c.val(), id: c.key }); });
+                        arts.reverse();
+                        el.innerHTML = '';
+                        if (!arts.length) { el.innerHTML = `<div class="news-item" style="color:var(--text-3);text-align:center;">${t('لا توجد أخبار', 'No news')}</div>`;
+                            const clearBtn = document.getElementById('clearNewsBtn'); if (clearBtn) clearBtn.style.display = 'none'; return; }
+                        const clearBtn = document.getElementById('clearNewsBtn'); if (clearBtn) clearBtn.style.display = 'inline-block';
+                        arts.slice(0, 10).forEach(a => {
+                            const title = currentLang === 'ar' ? (a.title_ar || a.title) : (a.title_en || a.title);
+                            const content = currentLang === 'ar' ? (a.content_ar || a.content) : (a.content_en || a.content);
+                            const newsDate = a.createdAt || a.publishedAt || a.date;
+                            const date = newsDate ? new Date(newsDate).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
+                            const div = document.createElement('div');
+                            div.className = 'news-item';
+                            div.innerHTML = `<div class="news-title">${title}</div>${date?`<div class="news-date">${date}</div>`:''}<div class="news-body">${content}</div>`;
+                            el.appendChild(div);
+                        });
                     });
                 });
             });
@@ -7113,6 +7249,15 @@
                     loadNotificationsEnhanced();
                 }
             });
+
+            // Clear notifications — Profile tab
+            document.getElementById('clearNotifsProfileBtn').addEventListener('click', clearAllNotifications);
+
+            // Clear notifications — Panel modal
+            document.getElementById('clearNotifsPanelBtn').addEventListener('click', clearAllNotifications);
+
+            // Clear news
+            document.getElementById('clearNewsBtn').addEventListener('click', clearAllNews);
 
             // Modal close on overlay click
             document.querySelectorAll('.modal-overlay').forEach(modal => {

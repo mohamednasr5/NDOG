@@ -12,6 +12,7 @@
   "lang": "en",
   "categories": ["finance", "utilities"],
   "prefer_related_applications": false,
+  "gcm_sender_id": "829364393352",
   "icons": [
     {
       "src": "./icons/favicon-16.png",

@@ -4705,6 +4705,8 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js">
     </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js">
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
     </script>
 
@@ -4727,6 +4729,293 @@
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
+
+        // ========== FIREBASE MESSAGING (FCM) ==========
+        let fcmSupported = false;
+        try {
+            const messaging = firebase.messaging();
+            fcmSupported = true;
+        } catch(e) {
+            console.warn('[NDOG] Firebase Messaging not available:', e);
+        }
+
+        // Cloudflare Worker URL for sending push notifications from admin
+        const FCM_WORKER_URL = 'https://ndog.ads4ads2029.workers.dev';
+        const WORKER_SECRET = '521988';
+
+        // Request notification permission & save FCM token
+        async function initFCMToken() {
+            if (!fcmSupported || !currentUser) return;
+            if (!('Notification' in window)) {
+                console.log('[NDOG] Browser does not support notifications');
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('[NDOG] Notification permission granted');
+                    const messaging = firebase.messaging();
+                    const token = await messaging.getToken({
+                        vapidKey: 'BIpysHV_SXtjWgrQVXpbbXpJIDwjcKrZzmEHI3RntqRvfEhHBTL9nIzU4YbA47IcZdEydznDKxO1mUL70Dwr0Pw'
+                    });
+
+                    if (token) {
+                        await db.ref('fcmTokens/' + currentUser.uid).set({
+                            token: token,
+                            platform: getPlatform(),
+                            updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                            userAgent: navigator.userAgent.substring(0, 200)
+                        });
+                        console.log('[NDOG] FCM token saved to database');
+
+                        messaging.onTokenRefresh(async () => {
+                            try {
+                                const newToken = await messaging.getToken();
+                                await db.ref('fcmTokens/' + currentUser.uid).set({
+                                    token: newToken,
+                                    platform: getPlatform(),
+                                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                                    userAgent: navigator.userAgent.substring(0, 200)
+                                });
+                                console.log('[NDOG] FCM token refreshed');
+                            } catch(err) {
+                                console.warn('[NDOG] Token refresh failed:', err);
+                            }
+                        });
+                    }
+                } else {
+                    console.log('[NDOG] Notification permission denied:', permission);
+                }
+            } catch(err) {
+                console.warn('[NDOG] FCM init error:', err);
+            }
+        }
+
+        function getPlatform() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) return 'android';
+            if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+            if (/windows/i.test(ua)) return 'windows';
+            if (/macintosh|mac os/i.test(ua)) return 'mac';
+            if (/linux/i.test(ua)) return 'linux';
+            return 'web';
+        }
+
+        // Handle foreground FCM messages (app is open)
+        function setupFCMForegroundListener() {
+            if (!fcmSupported) return;
+            try {
+                const messaging = firebase.messaging();
+                messaging.onMessage((payload) => {
+                    console.log('[NDOG] Foreground FCM message:', payload);
+                    const title = (payload.notification && payload.notification.title) || 'NDOG Coin';
+                    const body = (payload.notification && payload.notification.body) || '';
+                    const data = payload.data || {};
+
+                    // 1. Save to in-app notifications (RTDB)
+                    if (currentUser) {
+                        db.ref('notifications/' + currentUser.uid).push({
+                            title: title,
+                            message: body,
+                            icon: (payload.notification && payload.notification.icon) || '',
+                            ts: parseInt(data.timestamp) || Date.now(),
+                            source: data.source || 'fcm-foreground',
+                            read: false
+                        });
+                    }
+
+                    // 2. Save to IndexedDB as backup
+                    saveToIndexedDB({
+                        title: title,
+                        message: body,
+                        ts: parseInt(data.timestamp) || Date.now(),
+                        source: 'fcm-foreground',
+                        read: false
+                    });
+
+                    // 3. Show system notification (even in foreground)
+                    if (Notification.permission === 'granted') {
+                        const notif = new Notification(title, {
+                            body: body,
+                            icon: (payload.notification && payload.notification.icon) || './icons/icon-192.png',
+                            badge: './icons/icon-72.png',
+                            tag: 'ndog-fg-' + Date.now(),
+                            requireInteraction: false,
+                        });
+                        notif.onclick = function() {
+                            window.focus();
+                            notif.close();
+                            loadNotificationsEnhanced();
+                        };
+                    }
+
+                    // 4. In-app toast
+                    if (typeof showToast === 'function') {
+                        showToast('🔔 ' + body, 'info');
+                    }
+
+                    // 5. Refresh notifications list
+                    loadNotificationsEnhanced();
+                });
+                console.log('[NDOG] FCM foreground listener ready');
+            } catch(err) {
+                console.warn('[NDOG] FCM foreground listener error:', err);
+            }
+        }
+
+        // IndexedDB helper for notifications
+        function saveToIndexedDB(notification) {
+            try {
+                const request = indexedDB.open('ndog-notifications', 1);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('notifications')) {
+                        const store = db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('ts', 'ts', { unique: false });
+                    }
+                };
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    try {
+                        const tx = db.transaction('notifications', 'readwrite');
+                        const store = tx.objectStore('notifications');
+                        store.put({
+                            ...notification,
+                            id: notification.id || Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+                        });
+                    } catch(e) {}
+                };
+            } catch(e) {}
+        }
+
+        // Load notifications from BOTH RTDB and IndexedDB (merge)
+        function loadNotificationsEnhanced() {
+            if (!currentUser) return;
+            db.ref('notifications/' + currentUser.uid).orderByChild('ts').limitToLast(30).once('value').then(snap => {
+                const notifs = [];
+                snap.forEach(c => notifs.push({ ...c.val(), id: c.key, source: c.val().source || 'rtdb' }));
+                notifs.reverse();
+                loadFromIndexedDB().then(idbNotifs => {
+                    const allNotifs = [...notifs];
+                    const existingTs = new Set(notifs.map(n => String(n.ts)));
+                    idbNotifs.forEach(n => {
+                        if (!existingTs.has(String(n.ts))) {
+                            allNotifs.push(n);
+                            existingTs.add(String(n.ts));
+                        }
+                    });
+                    allNotifs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+                    renderNotifications(allNotifs.slice(0, 30));
+                });
+            });
+        }
+
+        function loadFromIndexedDB() {
+            return new Promise((resolve) => {
+                try {
+                    const request = indexedDB.open('ndog-notifications', 1);
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('notifications')) {
+                            db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+                        }
+                    };
+                    request.onsuccess = (event) => {
+                        const db = event.target.result;
+                        try {
+                            const tx = db.transaction('notifications', 'readonly');
+                            const store = tx.objectStore('notifications');
+                            const getAllRequest = store.getAll();
+                            getAllRequest.onsuccess = () => resolve(getAllRequest.result || []);
+                            getAllRequest.onerror = () => resolve([]);
+                        } catch(e) { resolve([]); }
+                    };
+                    request.onerror = () => resolve([]);
+                } catch(e) { resolve([]); }
+            });
+        }
+
+        function renderNotifications(notifs) {
+            const list = document.getElementById('notificationsList');
+            const panelList = document.getElementById('notifPanelList');
+            const badge = document.getElementById('notifBadge');
+
+            if (list) {
+                list.innerHTML = '';
+                if (notifs.length === 0) {
+                    list.innerHTML = '<div class="notif-empty" data-ar="لا توجد إشعارات" data-en="No notifications">No notifications</div>';
+                } else {
+                    notifs.forEach(n => {
+                        const div = document.createElement('div');
+                        div.className = 'notif-item' + (n.read ? '' : ' unread');
+                        div.innerHTML = '<div class="notif-title">' + (n.title || '') + '</div>'
+                            + '<div class="notif-message">' + (n.message || '') + '</div>'
+                            + '<div class="notif-time">' + (n.ts ? new Date(n.ts).toLocaleDateString() : '') + '</div>';
+                        list.appendChild(div);
+                    });
+                }
+            }
+
+            if (panelList) {
+                panelList.innerHTML = '';
+                if (notifs.length === 0) {
+                    panelList.innerHTML = '<div class="notif-empty" data-ar="لا توجد إشعارات" data-en="No notifications">No notifications</div>';
+                } else {
+                    notifs.forEach(n => {
+                        const div = document.createElement('div');
+                        div.className = 'notif-item' + (n.read ? '' : ' unread');
+                        div.innerHTML = '<div class="notif-title">' + (n.title || '') + '</div>'
+                            + '<div class="notif-message">' + (n.message || '') + '</div>'
+                            + '<div class="notif-time">' + (n.ts ? new Date(n.ts).toLocaleDateString() : '') + '</div>';
+                        div.addEventListener('click', () => {
+                            if (!n.read && n.id) {
+                                db.ref('notifications/' + currentUser.uid + '/' + n.id + '/read').set(true);
+                                div.classList.remove('unread');
+                            }
+                        });
+                        panelList.appendChild(div);
+                        if (!n.read && n.id && n.source !== 'fcm-foreground') {
+                            db.ref('notifications/' + currentUser.uid + '/' + n.id + '/read').set(true);
+                        }
+                    });
+                }
+            }
+
+            const unread = notifs.filter(n => !n.read).length;
+            if (badge) {
+                if (unread > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = unread > 99 ? '99+' : unread;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        // Real-time listener for new RTDB notifications (from admin panel)
+        function listenForNewNotifications() {
+            if (!currentUser) return;
+            db.ref('notifications/' + currentUser.uid).orderByChild('ts').limitToLast(1).on('child_added', (snap) => {
+                const n = snap.val();
+                if (!n) return;
+                const age = Date.now() - (n.ts || 0);
+                if (age < 10000 && !n.read) {
+                    if (typeof showToast === 'function') {
+                        showToast('🔔 ' + (n.title || '') + ': ' + (n.message || ''), 'info');
+                    }
+                    if (Notification.permission === 'granted') {
+                        new Notification(n.title || 'NDOG Coin', {
+                            body: n.message || '',
+                            icon: './icons/icon-192.png',
+                            badge: './icons/icon-72.png',
+                            tag: 'ndog-rtdb-' + Date.now(),
+                        });
+                    }
+                    loadNotificationsEnhanced();
+                }
+            });
+        }
 
         // ========== I18N (minimal) ==========
         const I18N = {
@@ -5412,6 +5701,10 @@
             document.getElementById('authScreens').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('notifBellBtn').style.display = 'flex';
+            // Initialize FCM push notifications
+            initFCMToken();
+            setupFCMForegroundListener();
+            listenForNewNotifications();
 
             switchTab('home');
             renderDashboard();
@@ -5462,7 +5755,7 @@
                 }
             });
 
-            loadNotifications();
+            loadNotificationsEnhanced();
         }
 
         // ========== DASHBOARD ==========
@@ -6779,7 +7072,7 @@
                 const panel = document.getElementById('notifPanel');
                 if (panel) {
                     panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
-                    loadNotifications();
+                    loadNotificationsEnhanced();
                 }
             });
 
@@ -7038,9 +7331,11 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).then((reg) => {
-                    console.log('[NDOG] SW registered:', reg.scope);
+                    console.log('[NDOG] SW registered with FCM:', reg.scope);
+
                     // Check for updates every 60 minutes
                     setInterval(() => reg.update(), 60 * 60 * 1000);
+
                     // Listen for updates
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -7049,8 +7344,22 @@
                                 if (typeof showToast === 'function') {
                                     showToast('✅ تم تحديث التطبيق بنجاح', 'success');
                                 }
+                                // Re-init FCM after SW update
+                                if (fcmSupported && currentUser) {
+                                    initFCMToken();
+                                }
                             }
                         });
+                    });
+
+                    // Listen for messages from Service Worker
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        if (event.data && event.data.type === 'SW_NOTIFICATION') {
+                            loadNotificationsEnhanced();
+                            if (typeof showToast === 'function') {
+                                showToast('🔔 ' + (event.data.title || 'New notification'), 'info');
+                            }
+                        }
                     });
                 }).catch((err) => {
                     console.warn('[NDOG] SW registration failed:', err);

@@ -4705,10 +4705,11 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js">
     </script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js">
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
     </script>
+
+    <!-- ONESIGNAL WEB SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
     <!-- ============================================================= -->
     <!-- FIREBASE CONFIG & APP LOGIC -->
@@ -4730,65 +4731,68 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // ========== FIREBASE MESSAGING (FCM) ==========
-        let fcmSupported = false;
-        try {
-            const messaging = firebase.messaging();
-            fcmSupported = true;
-        } catch(e) {
-            console.warn('[NDOG] Firebase Messaging not available:', e);
-        }
+        // ========== ONESIGNAL PUSH NOTIFICATIONS ==========
+        let oneSignalInitialized = false;
 
-        // Cloudflare Worker URL for sending push notifications from admin
-        const FCM_WORKER_URL = 'https://ndog.ads4ads2029.workers.dev';
-        const WORKER_SECRET = '521988';
-
-        // Request notification permission & save FCM token
-        async function initFCMToken() {
-            if (!fcmSupported || !currentUser) return;
-            if (!('Notification' in window)) {
-                console.log('[NDOG] Browser does not support notifications');
-                return;
-            }
-
+        async function initOneSignal() {
+            if (oneSignalInitialized || !currentUser) return;
             try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    console.log('[NDOG] Notification permission granted');
-                    const messaging = firebase.messaging();
-                    const token = await messaging.getToken({
-                        vapidKey: 'BIpysHV_SXtjWgrQVXpbbXpJIDwjcKrZzmEHI3RntqRvfEhHBTL9nIzU4YbA47IcZdEydznDKxO1mUL70Dwr0Pw'
-                    });
+                if (typeof OneSignal === 'undefined') {
+                    console.warn('[NDOG] OneSignal SDK not loaded yet, retrying...');
+                    setTimeout(initOneSignal, 1000);
+                    return;
+                }
 
-                    if (token) {
-                        await db.ref('fcmTokens/' + currentUser.uid).set({
-                            token: token,
-                            platform: getPlatform(),
-                            updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                            userAgent: navigator.userAgent.substring(0, 200)
+                OneSignal.init({
+                    appId: '84479925-fa80-47df-a5c8-599c56739791',
+                    notifyButton: { enable: false },
+                    allowLocalhostAsSecureOrigin: true,
+                    serviceWorkerPath: './sw.js',
+                    serviceWorkerParam: { scope: './' }
+                });
+
+                OneSignal.login(currentUser.uid);
+
+                // Save OneSignal external ID to Firebase for admin targeting
+                OneSignal.User.PushSubscription.getIdAsync().then(id => {
+                    if (id) {
+                        const platform = getPlatform();
+                        db.ref('onesignalIds/' + currentUser.uid).set({
+                            subscriptionId: id,
+                            platform: platform,
+                            updatedAt: firebase.database.ServerValue.TIMESTAMP
                         });
-                        console.log('[NDOG] FCM token saved to database');
+                        console.log('[NDOG] OneSignal subscription saved:', id);
+                    }
+                });
 
-                        messaging.onTokenRefresh(async () => {
-                            try {
-                                const newToken = await messaging.getToken();
-                                await db.ref('fcmTokens/' + currentUser.uid).set({
-                                    token: newToken,
-                                    platform: getPlatform(),
-                                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                                    userAgent: navigator.userAgent.substring(0, 200)
-                                });
-                                console.log('[NDOG] FCM token refreshed');
-                            } catch(err) {
-                                console.warn('[NDOG] Token refresh failed:', err);
-                            }
+                // Handle foreground notifications from OneSignal
+                OneSignal.Notifications.addEventListener('click', (event) => {
+                    console.log('[NDOG] OneSignal notification clicked:', event);
+                    loadNotificationsEnhanced();
+                });
+
+                OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
+                    console.log('[NDOG] OneSignal foreground notification:', event);
+                    const notif = event.notification;
+                    if (notif && currentUser) {
+                        db.ref('notifications/' + currentUser.uid).push({
+                            title: notif.title || 'NDOG Coin',
+                            message: notif.body || '',
+                            icon: '',
+                            ts: Date.now(),
+                            createdAt: Date.now(),
+                            source: 'onesignal-foreground',
+                            read: false
                         });
                     }
-                } else {
-                    console.log('[NDOG] Notification permission denied:', permission);
-                }
+                    loadNotificationsEnhanced();
+                });
+
+                oneSignalInitialized = true;
+                console.log('[NDOG] OneSignal initialized for user:', currentUser.uid);
             } catch(err) {
-                console.warn('[NDOG] FCM init error:', err);
+                console.warn('[NDOG] OneSignal init error:', err);
             }
         }
 
@@ -4802,65 +4806,10 @@
             return 'web';
         }
 
-        // Handle foreground FCM messages (app is open)
-        function setupFCMForegroundListener() {
-            if (!fcmSupported) return;
-            try {
-                const messaging = firebase.messaging();
-                messaging.onMessage((payload) => {
-                    console.log('[NDOG] Foreground FCM message:', payload);
-                    const title = (payload.notification && payload.notification.title) || 'NDOG Coin';
-                    const body = (payload.notification && payload.notification.body) || '';
-                    const data = payload.data || {};
-
-                    // 1. Save to in-app notifications (RTDB)
-                    if (currentUser) {
-                        db.ref('notifications/' + currentUser.uid).push({
-                            title: title,
-                            message: body,
-                            icon: (payload.notification && payload.notification.icon) || '',
-                            ts: parseInt(data.timestamp) || Date.now(),
-                            source: data.source || 'fcm-foreground',
-                            read: false
-                        });
-                    }
-
-                    // 2. Save to IndexedDB as backup
-                    saveToIndexedDB({
-                        title: title,
-                        message: body,
-                        ts: parseInt(data.timestamp) || Date.now(),
-                        source: 'fcm-foreground',
-                        read: false
-                    });
-
-                    // 3. Show system notification (even in foreground)
-                    if (Notification.permission === 'granted') {
-                        const notif = new Notification(title, {
-                            body: body,
-                            icon: (payload.notification && payload.notification.icon) || './icons/icon-192.png',
-                            badge: './icons/icon-72.png',
-                            tag: 'ndog-fg-' + Date.now(),
-                            requireInteraction: false,
-                        });
-                        notif.onclick = function() {
-                            window.focus();
-                            notif.close();
-                            loadNotificationsEnhanced();
-                        };
-                    }
-
-                    // 4. In-app toast
-                    if (typeof showToast === 'function') {
-                        showToast('🔔 ' + body, 'info');
-                    }
-
-                    // 5. Refresh notifications list
-                    loadNotificationsEnhanced();
-                });
-                console.log('[NDOG] FCM foreground listener ready');
-            } catch(err) {
-                console.warn('[NDOG] FCM foreground listener error:', err);
+        // Handle foreground notifications fallback (for in-app display)
+        function setupNotificationListener() {
+            if (typeof showToast === 'function') {
+                // OneSignal handles system notifications; we just update in-app list
             }
         }
 
@@ -4892,21 +4841,24 @@
         // Load notifications from BOTH RTDB and IndexedDB (merge)
         function loadNotificationsEnhanced() {
             if (!currentUser) return;
-            db.ref('notifications/' + currentUser.uid).orderByChild('ts').limitToLast(30).once('value').then(snap => {
+            db.ref('notifications/' + currentUser.uid).orderByChild('createdAt').limitToLast(30).once('value').then(snap => {
                 const notifs = [];
-                snap.forEach(c => notifs.push({ ...c.val(), id: c.key, source: c.val().source || 'rtdb' }));
+                snap.forEach(c => { const n = c.val(); notifs.push({ ...n, id: c.key, source: n.source || 'rtdb', ts: n.ts || n.createdAt || 0 }); });
                 notifs.reverse();
-                loadFromIndexedDB().then(idbNotifs => {
-                    const allNotifs = [...notifs];
-                    const existingTs = new Set(notifs.map(n => String(n.ts)));
-                    idbNotifs.forEach(n => {
-                        if (!existingTs.has(String(n.ts))) {
-                            allNotifs.push(n);
-                            existingTs.add(String(n.ts));
-                        }
+                renderNotifications(notifs.slice(0, 30));
+            }).catch(() => {
+                // Fallback: try ordering by 'ts'
+                db.ref('notifications/' + currentUser.uid).orderByChild('ts').limitToLast(30).once('value').then(snap => {
+                    const notifs = [];
+                    snap.forEach(c => { const n = c.val(); notifs.push({ ...n, id: c.key, source: n.source || 'rtdb', ts: n.ts || n.createdAt || 0 }); });
+                    notifs.reverse();
+                    loadFromIndexedDB().then(idbNotifs => {
+                        const allNotifs = [...notifs];
+                        const existingTs = new Set(notifs.map(n => String(n.ts)));
+                        idbNotifs.forEach(n => { if (!existingTs.has(String(n.ts))) { allNotifs.push(n); existingTs.add(String(n.ts)); } });
+                        allNotifs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+                        renderNotifications(allNotifs.slice(0, 30));
                     });
-                    allNotifs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-                    renderNotifications(allNotifs.slice(0, 30));
                 });
             });
         }
@@ -4996,11 +4948,12 @@
         // Real-time listener for new RTDB notifications (from admin panel)
         function listenForNewNotifications() {
             if (!currentUser) return;
-            db.ref('notifications/' + currentUser.uid).orderByChild('ts').limitToLast(1).on('child_added', (snap) => {
+            db.ref('notifications/' + currentUser.uid).orderByChild('createdAt').limitToLast(1).on('child_added', (snap) => {
                 const n = snap.val();
                 if (!n) return;
-                const age = Date.now() - (n.ts || 0);
-                if (age < 10000 && !n.read) {
+                const nTs = n.ts || n.createdAt || 0;
+                const age = Date.now() - nTs;
+                if (age < 10000 && !(n.read)) {
                     if (typeof showToast === 'function') {
                         showToast('🔔 ' + (n.title || '') + ': ' + (n.message || ''), 'info');
                     }
@@ -5638,23 +5591,36 @@
 
                     // Give referral bonuses AFTER profile is written
                     if (refUid) {
-                        // L1 bonus to referrer
-                        db.ref('users/' + refUid + '/balance').transaction(b => (b || 0) + 50);
-                        db.ref('users/' + refUid + '/referralEarnings').transaction(b => (b || 0) + 50);
+                        // L1 bonus to referrer (balance + referralEarnings in single transaction)
+                        db.ref('users/' + refUid).transaction(d => {
+                            if (!d) return d;
+                            d.balance = (Number(d.balance) || 0) + 50;
+                            d.referralEarnings = (Number(d.referralEarnings) || 0) + 50;
+                            return d;
+                        }).then(r => { console.log('[NDOG] L1 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
+
                         // L2 bonus
                         db.ref('users/' + refUid + '/referredBy').once('value').then(s2 => {
                             if (s2.exists()) {
                                 const l2Uid = s2.val();
-                                db.ref('users/' + l2Uid + '/balance').transaction(b => (b || 0) + 20);
-                                db.ref('users/' + l2Uid + '/referralEarnings').transaction(b => (b || 0) + 20);
+                                db.ref('users/' + l2Uid).transaction(d => {
+                                    if (!d) return d;
+                                    d.balance = (Number(d.balance) || 0) + 20;
+                                    d.referralEarnings = (Number(d.referralEarnings) || 0) + 20;
+                                    return d;
+                                }).then(r => { console.log('[NDOG] L2 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                 db.ref('referrals/' + l2Uid + '/' + uid).set({ referredAt: ts,
                                     email: currentUser.email, level: 2 });
                                 // L3 bonus
                                 db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
                                     if (s3.exists()) {
                                         const l3Uid = s3.val();
-                                        db.ref('users/' + l3Uid + '/balance').transaction(b => (b || 0) + 10);
-                                        db.ref('users/' + l3Uid + '/referralEarnings').transaction(b => (b || 0) + 10);
+                                        db.ref('users/' + l3Uid).transaction(d => {
+                                            if (!d) return d;
+                                            d.balance = (Number(d.balance) || 0) + 10;
+                                            d.referralEarnings = (Number(d.referralEarnings) || 0) + 10;
+                                            return d;
+                                        }).then(r => { console.log('[NDOG] L3 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                         db.ref('referrals/' + l3Uid + '/' + uid).set({ referredAt: ts,
                                             email: currentUser.email, level: 3 });
                                     }
@@ -5723,9 +5689,9 @@
             document.getElementById('authScreens').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('notifBellBtn').style.display = 'flex';
-            // Initialize FCM push notifications
-            initFCMToken();
-            setupFCMForegroundListener();
+            // Initialize OneSignal push notifications
+            initOneSignal();
+            setupNotificationListener();
             listenForNewNotifications();
 
             switchTab('home');
@@ -5869,11 +5835,16 @@
             setEl('miningSessions', userData.miningSessionsTotal || 0);
             setEl('miningTotalMined', fmt(userData.miningEarnings || 0) + ' NDOG');
 
-            // Fetch referral count from referrals/{uid} node (not from a non-existent field)
+            // Fetch referral stats from referrals/{uid} node
             db.ref('referrals/' + currentUser.uid).once('value').then(refSnap => {
                 const refData = refSnap.val() || {};
-                const refCount = Object.keys(refData).filter(k => refData[k].level === 1).length;
-                setEl('refTotalCount', refCount);
+                const allRefs = Object.keys(refData);
+                const l1Count = allRefs.filter(k => refData[k].level === 1).length;
+                const l2Count = allRefs.filter(k => refData[k].level === 2).length;
+                const l3Count = allRefs.filter(k => refData[k].level === 3).length;
+                setEl('refTotalCount', l1Count);
+                setEl('refActiveCount', l1Count);
+                setEl('refTeamSize', l1Count + l2Count + l3Count);
             });
             setEl('refEarnings', fmt(userData.referralEarnings || 0));
 
@@ -6628,11 +6599,14 @@
             db.ref('referrals/' + currentUser.uid).once('value').then(snap => {
                 const refs = snap.val() || {};
                 const l1 = [];
+                const l2 = [];
                 for (const uid in refs) {
                     const data = refs[uid];
                     if (data.level === 1) l1.push(uid);
+                    else if (data.level === 2) l2.push(uid);
                 }
 
+                // Level 1: show names
                 const el1 = document.getElementById('refTreeL1');
                 if (el1) {
                     if (l1.length === 0) el1.innerHTML =
@@ -6650,25 +6624,44 @@
                     }
                 }
 
-                let l2Count = 0;
-                l1.forEach(uid => {
-                    db.ref('referrals/' + uid).once('value').then(s => {
-                        const children = s.val() || {};
-                        for (const cid in children) {
-                            if (children[cid].level === 1) l2Count++;
-                        }
-                        const el2 = document.getElementById('refTreeL2');
-                        if (el2) {
-                            el2.innerHTML =
-                            `<span class="ref-tree-member" style="color:var(--text-3);">${l2Count} ${t('مستخدم', 'users')}</span>`;
-                        }
-                    });
-                });
+                // Level 2: show names (already stored in referrals/{myUid} with level:2)
+                const el2 = document.getElementById('refTreeL2');
+                if (el2) {
+                    if (l2.length === 0) el2.innerHTML =
+                        `<span class="ref-tree-member" style="color:var(--text-3);font-size:11px;">${t('لا توجد إحالات مستوى 2', 'No L2 referrals yet')}</span>`;
+                    else {
+                        l2.forEach(uid => {
+                            db.ref('users/' + uid + '/displayName').once('value').then(s => {
+                                const name = s.val() || uid.slice(0, 8);
+                                const m = document.createElement('span');
+                                m.className = 'ref-tree-member';
+                                m.textContent = name;
+                                el2.appendChild(m);
+                            });
+                        });
+                    }
+                }
 
+                // Level 3: check if any L3 referrals exist
                 const el3 = document.getElementById('refTreeL3');
+                const l3uids = [];
+                for (const uid in refs) {
+                    if (refs[uid].level === 3) l3uids.push(uid);
+                }
                 if (el3) {
-                    el3.innerHTML =
-                    `<span class="ref-tree-member" style="color:var(--text-3);font-size:11px;">${t('المستوى 3 غير متاح حالياً', 'Level 3 not available yet')}</span>`;
+                    if (l3uids.length === 0) el3.innerHTML =
+                        `<span class="ref-tree-member" style="color:var(--text-3);font-size:11px;">${t('لا توجد إحالات مستوى 3', 'No L3 referrals yet')}</span>`;
+                    else {
+                        l3uids.forEach(uid => {
+                            db.ref('users/' + uid + '/displayName').once('value').then(s => {
+                                const name = s.val() || uid.slice(0, 8);
+                                const m = document.createElement('span');
+                                m.className = 'ref-tree-member';
+                                m.textContent = name;
+                                el3.appendChild(m);
+                            });
+                        });
+                    }
                 }
             });
         }
@@ -6796,7 +6789,7 @@
         function loadNews() {
             const el = document.getElementById('newsList');
             if (!el) return;
-            db.ref('news').orderByChild('publishedAt').once('value').then(snap => {
+            db.ref('news').orderByChild('createdAt').once('value').then(snap => {
                 const arts = [];
                 snap.forEach(c => arts.push({ ...c.val(), id: c.key }));
                 arts.reverse();
@@ -6805,15 +6798,34 @@
                     `<div class="news-item" style="color:var(--text-3);text-align:center;">${t('لا توجد أخبار', 'No news')}</div>`; return; }
                 arts.slice(0, 10).forEach(a => {
                     const title = currentLang === 'ar' ? (a.title_ar || a.title) : (a.title_en || a.title);
-                    const content = currentLang === 'ar' ? (a.content_ar || a.content) : (a.content_en || a
-                        .content);
-                    const date = a.publishedAt ? new Date(a.publishedAt).toLocaleDateString(currentLang ===
+                    const content = currentLang === 'ar' ? (a.content_ar || a.content) : (a.content_en || a.content);
+                    const newsDate = a.createdAt || a.publishedAt || a.date;
+                    const date = newsDate ? new Date(newsDate).toLocaleDateString(currentLang ===
                         'ar' ? 'ar-EG' : 'en-US') : '';
                     const div = document.createElement('div');
                     div.className = 'news-item';
                     div.innerHTML =
                         `<div class="news-title">${title}</div>${date?`<div class="news-date">${date}</div>`:''}<div class="news-body">${content}</div>`;
                     el.appendChild(div);
+                });
+            }).catch(() => {
+                // Fallback: try publishedAt
+                db.ref('news').orderByChild('publishedAt').once('value').then(snap => {
+                    const arts = [];
+                    snap.forEach(c => arts.push({ ...c.val(), id: c.key }));
+                    arts.reverse();
+                    el.innerHTML = '';
+                    if (!arts.length) { el.innerHTML = `<div class="news-item" style="color:var(--text-3);text-align:center;">${t('لا توجد أخبار', 'No news')}</div>`; return; }
+                    arts.slice(0, 10).forEach(a => {
+                        const title = currentLang === 'ar' ? (a.title_ar || a.title) : (a.title_en || a.title);
+                        const content = currentLang === 'ar' ? (a.content_ar || a.content) : (a.content_en || a.content);
+                        const newsDate = a.createdAt || a.publishedAt || a.date;
+                        const date = newsDate ? new Date(newsDate).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : '';
+                        const div = document.createElement('div');
+                        div.className = 'news-item';
+                        div.innerHTML = `<div class="news-title">${title}</div>${date?`<div class="news-date">${date}</div>`:''}<div class="news-body">${content}</div>`;
+                        el.appendChild(div);
+                    });
                 });
             });
         }
@@ -7176,24 +7188,35 @@
                     upd['referrals/' + ref.uid + '/' + currentUser.uid] = { referredAt: now, email: currentUser
                             .email || '', level: 1 };
                     return db.ref().update(upd).then(() => {
-                        db.ref('users/' + ref.uid + '/balance').transaction(b => (b || 0) + 50);
-                        db.ref('users/' + ref.uid + '/referralEarnings').transaction(b => (b || 0) + 50);
+                        db.ref('users/' + ref.uid).transaction(d => {
+                            if (!d) return d;
+                            d.balance = (Number(d.balance) || 0) + 50;
+                            d.referralEarnings = (Number(d.referralEarnings) || 0) + 50;
+                            return d;
+                        });
                         db.ref('users/' + ref.uid + '/referredBy').once('value').then(s2 => {
                             if (s2.exists()) {
                                 const l2Uid = s2.val();
-                                db.ref('users/' + l2Uid + '/balance').transaction(b => (b || 0) +
-                                    20);
-                                db.ref('users/' + l2Uid + '/referralEarnings').transaction(b => (b ||
-                                    0) + 20);
+                                db.ref('users/' + l2Uid).transaction(d => {
+                                    if (!d) return d;
+                                    d.balance = (Number(d.balance) || 0) +
+                                        20;
+                                    d.referralEarnings = (Number(d.referralEarnings) ||
+                                        0) + 20;
+                                    return d;
+                                });
                                 db.ref('referrals/' + l2Uid + '/' + currentUser.uid).set({ referredAt: now,
                                         email: currentUser.email || '', level: 2 });
                                 db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
                                     if (s3.exists()) {
                                         const l3Uid = s3.val();
-                                        db.ref('users/' + l3Uid + '/balance').transaction(b =>
-                                            (b || 0) + 10);
-                                        db.ref('users/' + l3Uid + '/referralEarnings')
-                                            .transaction(b => (b || 0) + 10);
+                                        db.ref('users/' + l3Uid).transaction(d =>
+                                            {
+                                            if (!d) return d;
+                                            d.balance = (Number(d.balance) || 0) + 10;
+                                            d.referralEarnings = (Number(d.referralEarnings) || 0) + 10;
+                                            return d;
+                                        });
                                         db.ref('referrals/' + l3Uid + '/' + currentUser
                                             .uid).set({ referredAt: now,
                                                 email: currentUser.email || '',
@@ -7370,9 +7393,10 @@
                                 if (typeof showToast === 'function') {
                                     showToast('✅ تم تحديث التطبيق بنجاح', 'success');
                                 }
-                                // Re-init FCM after SW update
-                                if (fcmSupported && currentUser) {
-                                    initFCMToken();
+                                // Re-init OneSignal after SW update
+                                if (currentUser) {
+                                    oneSignalInitialized = false;
+                                    initOneSignal();
                                 }
                             }
                         });

@@ -1,10 +1,10 @@
 // ═══════════════════════════════════════════════════════ 
-// NDOG Coin — Service Worker v3.0 (FCM + Push + In-App)
+// NDOG Coin — Service Worker v3.1 (OneSignal + Push + In-App)
 // ═══════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ndog-v3.0.0';
-const STATIC_CACHE = 'ndog-static-v3.0.0';
-const DYNAMIC_CACHE = 'ndog-dynamic-v3.0.0';
+const CACHE_NAME = 'ndog-v3.1.0';
+const STATIC_CACHE = 'ndog-static-v3.1.0';
+const DYNAMIC_CACHE = 'ndog-dynamic-v3.1.0';
 const GOOGLE_FONTS_CACHE = 'ndog-fonts-v1';
 
 // Static assets to pre-cache for instant offline loading
@@ -26,81 +26,14 @@ const CDN_CACHE_URLS = [
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js',
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js',
   'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 ];
 
 // ═══════════════════════════════════════════════════════
-// FIREBASE MESSAGING — Background Push Handler
+// IMPORT ONESIGNAL SERVICE WORKER
 // ═══════════════════════════════════════════════════════
 
-// Import Firebase Messaging scripts via importScripts
-importScripts(
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js'
-);
-
-// Initialize Firebase in Service Worker
-firebase.initializeApp({
-  apiKey: "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
-  authDomain: "ndog-a3265.firebaseapp.com",
-  databaseURL: "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "ndog-a3265",
-  storageBucket: "ndog-a3265.firebasestorage.app",
-  messagingSenderId: "829364393352",
-  appId: "1:829364393352:web:82d0d0a99a3b3f2200163d",
-  measurementId: "G-YF7HC7T8M0"
-});
-
-const messaging = firebase.messaging();
-
-// Handle background push messages (app closed or in background)
-messaging.onBackgroundMessage((payload) => {
-  console.log('[NDOG SW] Background push received:', payload);
-
-  const title = (payload.notification && payload.notification.title) || 'NDOG Coin';
-  const body = (payload.notification && payload.notification.body) || 'New update!';
-  const icon = (payload.notification && payload.notification.icon) || './icons/icon-192.png';
-  const badge = (payload.notification && payload.notification.badge) || './icons/icon-72.png';
-  const clickAction = (payload.data && payload.data.click_action) ||
-                      (payload.notification && payload.notification.click_action) || './';
-  const data = payload.data || {};
-
-  const notificationOptions = {
-    body: body,
-    icon: icon,
-    badge: badge,
-    vibrate: [100, 50, 100, 50, 100],
-    data: {
-      url: clickAction,
-      source: data.source || 'fcm',
-      title: title,
-      body: body,
-      timestamp: data.timestamp || Date.now().toString()
-    },
-    actions: [
-      { action: 'open', title: 'فتح' },
-      { action: 'dismiss', title: 'إغلاق' }
-    ],
-    tag: data.tag || 'ndog-notification-' + Date.now(),
-    renotify: true,
-    requireInteraction: false,
-    silent: false,
-  };
-
-  // Also save to IndexedDB for in-app notifications when user opens app
-  saveNotificationToIndexedDB({
-    title: title,
-    message: body,
-    icon: (payload.notification && payload.notification.icon) || '',
-    ts: parseInt(data.timestamp) || Date.now(),
-    source: data.source || 'fcm',
-    read: false,
-    data: data
-  });
-
-  self.registration.showNotification(title, notificationOptions);
-});
+importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.worker.js');
 
 // ═══════════════════════════════════════════════════════
 // INDEXED DB — Store notifications for in-app display
@@ -177,20 +110,20 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ═══════════════════════════════════════════════════════
-// PUSH EVENT HANDLER (fallback for raw Web Push)
+// PUSH EVENT HANDLER (OneSignal delegates to this)
 // ═══════════════════════════════════════════════════════
 
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || 'NDOG Coin';
   const options = {
-    body: data.body || 'New update available!',
+    body: data.body || data.alert && data.alert.body || 'New update available!',
     icon: data.icon || './icons/icon-192.png',
     badge: './icons/icon-72.png',
     vibrate: [100, 50, 100],
     data: {
       url: data.url || data.click_action || './',
-      source: data.source || 'push',
+      source: data.source || 'onesignal',
       title: title,
       body: data.body || ''
     },
@@ -204,7 +137,7 @@ self.addEventListener('push', (event) => {
     message: options.body,
     icon: options.icon,
     ts: data.timestamp || Date.now(),
-    source: data.source || 'push',
+    source: data.source || 'onesignal',
     read: false
   });
 
@@ -258,6 +191,12 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http(s)
   if (!url.protocol.startsWith('http')) return;
 
+  // OneSignal: network-only
+  if (url.hostname.includes('onesignal.com')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   // Firebase Realtime Database: network-only (must be fresh)
   if (url.hostname === 'ndog-coin-default-rtdb.firebaseio.com' ||
       url.hostname.endsWith('.firebaseio.com')) {
@@ -278,12 +217,6 @@ self.addEventListener('fetch', (event) => {
         headers: { 'Content-Type': 'application/json' }
       });
     }));
-    return;
-  }
-
-  // FCM endpoint: network-only
-  if (url.hostname.includes('firebaseio.com') || url.hostname.includes('googleapis.com') && url.pathname.includes('fcm')) {
-    event.respondWith(fetch(request));
     return;
   }
 

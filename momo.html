@@ -933,56 +933,50 @@ function initAdminApp(){
   // Listeners for dynamic forms
   
 
-// ═══════ FCM PUSH NOTIFICATION CONFIG ═══════
-const FCM_WORKER_URL = 'https://YOUR-WORKER.your-subdomain.workers.dev';
-const WORKER_SECRET = 'YOUR_WORKER_SECRET';
+// ═══════ ONESIGNAL PUSH NOTIFICATION CONFIG ═══════
+const ONESIGNAL_APP_ID = '84479925-fa80-47df-a5c8-599c56739791';
+const ONESIGNAL_REST_KEY = 'os_v2_app_qrdzsjp2qbd57joilgofm44xsevjuxlsp3tenafaex6pohnznvwspkdqlcmohxoeltbnmfnauxuz6x467d37on4kvs2pn4e6i4egx2a'; // Set your OneSignal REST API Key here (from OneSignal Dashboard > Keys & IDs)
 
-// Send push notification via Cloudflare Worker to all FCM tokens
-async function sendPushNotification(tokens, title, message, data) {
-  if (!tokens || tokens.length === 0) return { sent: 0, failed: 0 };
+// Send push notification via OneSignal REST API
+async function sendPushNotification(targetType, targetIds, title, message, data) {
+  if (!ONESIGNAL_REST_KEY) {
+    console.warn('[Admin] OneSignal REST API key not configured');
+    return { sent: 0, failed: 0, error: 'REST key not set' };
+  }
   try {
-    const resp = await fetch(FCM_WORKER_URL + '/send', {
+    const body = {
+      app_id: ONESIGNAL_APP_ID,
+      contents: { en: message, ar: message },
+      headings: { en: title, ar: title },
+      url: 'https://ndogcoin.com/',
+      icon: 'https://ndogcoin.com/icons/icon-192.png',
+      data: data || { source: 'ndog-admin' },
+      web_push_topic: 'ndog-notifications'
+    };
+
+    if (targetType === 'all') {
+      body.included_segments = ['Subscribed Users'];
+    } else if (targetType === 'founders') {
+      // Target specific external_ids (OneSignal login IDs = Firebase UIDs)
+      body.include_external_user_ids = targetIds;
+    } else if (targetType === 'single') {
+      body.include_external_user_ids = targetIds;
+    }
+
+    const resp = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + WORKER_SECRET,
+        'Authorization': 'Basic ' + btoa(ONESIGNAL_REST_KEY + ':')
       },
-      body: JSON.stringify({
-        tokens: tokens,
-        title: title,
-        message: message,
-        data: data || { source: 'ndog-admin' },
-        icon: 'https://ndogcoin.com/icons/icon-192.png',
-        clickAction: 'https://ndogcoin.com/',
-      }),
+      body: JSON.stringify(body)
     });
-    return await resp.json();
+    const result = await resp.json();
+    console.log('[Admin] OneSignal response:', result);
+    return { sent: result.successful || 0, failed: result.failed || 0, id: result.id };
   } catch(err) {
-    console.warn('[Admin] Push send error:', err);
-    return { sent: 0, failed: tokens.length, error: err.message };
-  }
-}
-
-// Get all FCM tokens from RTDB
-async function getAllFCMTokens() {
-  try {
-    const snap = await db.ref('fcmTokens').once('value');
-    const data = snap.val() || {};
-    return Object.values(data).map(t => t.token).filter(Boolean);
-  } catch(err) {
-    console.warn('[Admin] Failed to get FCM tokens:', err);
-    return [];
-  }
-}
-
-// Get FCM token for specific user
-async function getUserFCMToken(uid) {
-  try {
-    const snap = await db.ref('fcmTokens/' + uid).once('value');
-    const data = snap.val();
-    return data ? data.token : null;
-  } catch(err) {
-    return null;
+    console.warn('[Admin] OneSignal push send error:', err);
+    return { sent: 0, failed: 0, error: err.message };
   }
 }
 
@@ -1303,10 +1297,13 @@ function sendNotification(){
   const icon = document.getElementById("notifIcon").value.trim() || "🔔";
   if(!title||!message){showToast("العنوان والرسالة مطلوبان","error");return;}
 
-  const notif = {title, message, icon, createdAt: Date.now(), readBy:{}};
+  const notif = {title, message, icon, createdAt: Date.now(), ts: Date.now(), readBy:{}};
   showLoader();
 
   const doSend = async ()=>{
+    let pushTargetType = target;
+    let pushTargetIds = [];
+
     if(target==="all"){
       const updates = {};
       allUsers.forEach(u=>{ updates[`notifications/${u.uid}/${db.ref().push().key}`] = notif; });
@@ -1314,9 +1311,11 @@ function sendNotification(){
       await db.ref("admin_notifications").push({...notif, target:"all"});
     } else if(target==="founders"){
       const updates = {};
-      allUsers.filter(u=>u.founder).forEach(u=>{ updates[`notifications/${u.uid}/${db.ref().push().key}`] = notif; });
+      const founderUids = allUsers.filter(u=>u.founder);
+      founderUids.forEach(u=>{ updates[`notifications/${u.uid}/${db.ref().push().key}`] = notif; });
       await db.ref().update(updates);
       await db.ref("admin_notifications").push({...notif, target:"founders"});
+      pushTargetIds = founderUids.map(u=>u.uid);
     } else if(target==="single"){
       if(!targetUser){showToast("أدخل بيانات المستخدم","error");hideLoader();return;}
       let uid = allUsers.find(x=>(x.email||"").toLowerCase()===targetUser.toLowerCase())?.uid || 
@@ -1325,7 +1324,16 @@ function sendNotification(){
       if(!uid){showToast("لم يتم العثور على المستخدم","error");hideLoader();return;}
       await db.ref(`notifications/${uid}`).push(notif);
       await db.ref("admin_notifications").push({...notif, target:targetUser});
+      pushTargetIds = [uid];
     }
+
+    // Send push via OneSignal (non-blocking)
+    sendPushNotification(pushTargetType, pushTargetIds, title, message, { source: 'ndog-admin' })
+      .then(r => {
+        if (r.error) console.warn('[Admin] Push error:', r.error);
+        else console.log('[Admin] Push sent:', r.sent, 'successful');
+      });
+
     hideLoader(); showToast("تم إرسال الإشعار بنجاح 🔔","success");
     document.getElementById("notifTitle").value=""; document.getElementById("notifMessage").value="";
     loadNotifHistory();

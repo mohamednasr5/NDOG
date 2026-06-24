@@ -2433,6 +2433,66 @@
             font-weight: 700;
             color: var(--gold);
         }
+        .lb-reward-info {
+            background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(34,197,94,0.06));
+            border: 1px solid rgba(245,158,11,0.15);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            color: var(--text-2);
+            line-height: 1.7;
+        }
+        .lb-reward-info .lb-ri-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+        .lb-reward-info .lb-ri-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 3px;
+        }
+        .lb-reward-info .lb-ri-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .lb-reward-info strong {
+            color: var(--text-1);
+        }
+        .lb-streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 99px;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #22c55e;
+            margin-left: 6px;
+        }
+        .lb-my-rank {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .lb-my-rank .lb-mr-label {
+            color: var(--text-3);
+        }
+        .lb-my-rank .lb-mr-value {
+            font-weight: 700;
+            color: var(--gold);
+        }
 
         .lb-tabs {
             display: flex;
@@ -4711,6 +4771,21 @@
                     <div class="card-header">
                         <span class="card-header-icon">🏆</span>
                         <span class="card-header-title" data-ar="المتصدرون" data-en="Leaderboard">Leaderboard</span>
+                    </div>
+                    <div class="lb-reward-info">
+                        <div class="lb-ri-title" data-ar="🏆 مكافآت المتصدرين" data-en="🏆 Leaderboard Rewards">🏆 مكافآت المتصدرين</div>
+                        <div class="lb-ri-row">
+                            <span class="lb-ri-icon">🥇</span>
+                            <span data-ar="إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>7 أيام متتالية</strong> تحصل على <strong>7 عملات NDOG</strong> مكافأة" data-en="If you stay <strong>#1</strong> for <strong>7 consecutive days</strong> you get <strong>7 NDOG</strong> reward">إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>7 أيام متتالية</strong> تحصل على <strong>7 عملات NDOG</strong> مكافأة</span>
+                        </div>
+                        <div class="lb-ri-row">
+                            <span class="lb-ri-icon">👑</span>
+                            <span data-ar="إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>30 يوم متتالي</strong> تحصل على <strong>30 عملة NDOG</strong> مكافأة" data-en="If you stay <strong>#1</strong> for <strong>30 consecutive days</strong> you get <strong>30 NDOG</strong> reward">إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>30 يوم متتالي</strong> تحصل على <strong>30 عملة NDOG</strong> مكافأة</span>
+                        </div>
+                    </div>
+                    <div id="lbMyRank" class="lb-my-rank" style="display:none;">
+                        <span class="lb-mr-label" data-ar="ترتيبك" data-en="Your Rank">ترتيبك</span>
+                        <span class="lb-mr-value" id="lbMyRankVal">—</span>
                     </div>
                     <div class="lb-tabs">
                         <button class="lb-tab active" data-lb="alltime" type="button" data-ar="كل الأوقات" data-en="All Time">All Time</button>
@@ -7458,26 +7533,148 @@
         }
 
         // ========== LEADERBOARD ==========
+        var leaderboardCache = null; // cache sorted users
+
         function loadLeaderboard() {
-            const el = document.getElementById('topBalanceList');
+            var el = document.getElementById('topBalanceList');
             if (!el) return;
-            el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-3);">⏳</div>`;
-            db.ref('users').orderByChild('balance').limitToLast(20).once('value').then(snap => {
-                const users = [];
-                snap.forEach(c => users.push({ ...c.val(), uid: c.key }));
-                users.reverse();
-                el.innerHTML = '';
-                users.forEach((u, i) => {
-                    const rank = i + 1;
-                    const emoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-                    const isMe = currentUser && u.uid === currentUser.uid;
-                    const rankClass = rank <= 3 ? ' rank-' + rank : '';
-                    const div = document.createElement('div');
-                    div.className = 'leader-item' + rankClass + (isMe ? ' is-me' : '');
-                    div.innerHTML =
-                        `<span class="leader-rank">${emoji}</span><span class="leader-name${isMe?' is-me':''}">${u.displayName||t('مستخدم', 'User')}${isMe?' ⭐':''}</span><span class="leader-val">${fmt(u.balance||0)} NDOG</span>`;
-                    el.appendChild(div);
+            el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);">⏳ ' + t('جارٍ التحميل...', 'Loading...') + '</div>';
+
+            // Fetch all users and sort client-side (no Firebase index needed)
+            db.ref('users').once('value').then(function(snap) {
+                var users = [];
+                snap.forEach(function(c) { users.push({ ...c.val(), uid: c.key }); });
+
+                // Sort by balance descending
+                users.sort(function(a, b) { return (b.balance || 0) - (a.balance || 0); });
+                leaderboardCache = users;
+
+                renderLeaderboard(users);
+                checkAndAwardLeaderboardStreak(users);
+            }).catch(function(err) {
+                el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);">❌ ' + t('خطأ في التحميل', 'Load error') + '</div>';
+                console.error('[NDOG] Leaderboard error:', err);
+            });
+        }
+
+        function renderLeaderboard(users) {
+            var el = document.getElementById('topBalanceList');
+            if (!el) return;
+            var top = users.slice(0, 20);
+            el.innerHTML = '';
+
+            // Show "My Rank" card
+            var myRankDiv = document.getElementById('lbMyRank');
+            var myRankVal = document.getElementById('lbMyRankVal');
+            if (currentUser && myRankDiv && myRankVal) {
+                var myIdx = users.findIndex(function(u) { return u.uid === currentUser.uid; });
+                if (myIdx >= 0) {
+                    var myRankNum = myIdx + 1;
+                    var myEmoji = myRankNum === 1 ? '🥇' : myRankNum === 2 ? '🥈' : myRankNum === 3 ? '🥉' : '#' + myRankNum;
+                    myRankVal.innerHTML = myEmoji + ' ' + myRankNum + ' <span style="color:var(--text-3);font-weight:400">/ ' + users.length + '</span>';
+                    myRankDiv.style.display = 'flex';
+                } else {
+                    myRankDiv.style.display = 'none';
+                }
+            }
+
+            // Load current user's streak for display
+            if (currentUser) {
+                db.ref('lb_streak/' + currentUser.uid).once('value').then(function(s) {
+                    if (s.exists()) {
+                        var streakData = s.val();
+                        var streakDays = streakData.days || 0;
+                        if (streakDays > 0) {
+                            var firstName = top[0];
+                            if (firstName && firstName.uid === currentUser.uid) {
+                                // Show streak badge next to #1 name
+                                var firstItem = el.querySelector('.leader-item');
+                                if (firstItem) {
+                                    var nameSpan = firstItem.querySelector('.leader-name');
+                                    if (nameSpan && !nameSpan.querySelector('.lb-streak-badge')) {
+                                        var badge = document.createElement('span');
+                                        badge.className = 'lb-streak-badge';
+                                        badge.textContent = '🔥 ' + streakDays + ' ' + (currentLang === 'ar' ? 'يوم' : 'days');
+                                        nameSpan.appendChild(badge);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 });
+            }
+
+            top.forEach(function(u, i) {
+                var rank = i + 1;
+                var emoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+                var isMe = currentUser && u.uid === currentUser.uid;
+                var rankClass = rank <= 3 ? ' rank-' + rank : '';
+                var div = document.createElement('div');
+                div.className = 'leader-item' + rankClass + (isMe ? ' is-me' : '');
+                div.innerHTML =
+                    '<span class="leader-rank">' + emoji + '</span><span class="leader-name' + (isMe?' is-me':'') + '">' + (u.displayName || t('مستخدم', 'User')) + (isMe ? ' ⭐' : '') + '</span><span class="leader-val">' + fmt(u.balance || 0) + ' NDOG</span>';
+                el.appendChild(div);
+            });
+        }
+
+        function checkAndAwardLeaderboardStreak(sortedUsers) {
+            if (!currentUser || !sortedUsers || sortedUsers.length === 0) return;
+
+            var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            var topUser = sortedUsers[0];
+            if (!topUser || topUser.uid !== currentUser.uid) return; // Not #1
+
+            var streakRef = db.ref('lb_streak/' + currentUser.uid);
+            streakRef.once('value').then(function(snap) {
+                var data = snap.val() || {};
+                var lastDate = data.lastDate || '';
+                var days = data.days || 0;
+                var lastAward7 = data.lastAward7 || 0;
+                var lastAward30 = data.lastAward30 || 0;
+
+                // Check if already recorded today
+                if (lastDate === today) return; // Already processed today
+
+                // Calculate streak
+                var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                if (lastDate === yesterday) {
+                    days = days + 1;
+                } else if (lastDate !== today) {
+                    days = 1; // Reset streak (wasn't #1 yesterday)
+                }
+
+                // Update streak in Firebase
+                var updates = {
+                    lastDate: today,
+                    days: days,
+                    uid: currentUser.uid,
+                    displayName: userData.displayName || currentUser.displayName || ''
+                };
+
+                // Check 7-day award
+                if (days >= 7 && !lastAward7) {
+                    updates.lastAward7 = Date.now();
+                    addBalance(7, 'leaderboard_streak_7').then(function() {
+                        showToast(t('🏆 مكافأة التصدر 7 أيام! +7 NDOG', '🏆 7-day leaderboard streak! +7 NDOG'), 'success');
+                    });
+                }
+
+                // Check 30-day award
+                if (days >= 30 && !lastAward30) {
+                    updates.lastAward30 = Date.now();
+                    addBalance(30, 'leaderboard_streak_30').then(function() {
+                        showToast(t('👑 مكافأة التصدر 30 يوم! +30 NDOG', '👑 30-day leaderboard streak! +30 NDOG'), 'success');
+                    });
+                }
+
+                // Show streak milestone toasts
+                if (days === 7 && lastAward7) {
+                    // Already awarded before, just notify streak continues
+                } else if (days === 1 && lastDate !== yesterday) {
+                    showToast(t('🥇 أنت المتصدر الأول اليوم! استمر 7 أيام لمكافأة 7 NDOG', '🥇 You are #1 today! Keep it 7 days for 7 NDOG reward'), 'info');
+                }
+
+                streakRef.update(updates);
             });
         }
 

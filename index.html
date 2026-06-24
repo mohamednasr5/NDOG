@@ -1003,13 +1003,6 @@
             border: 1px solid rgba(139, 92, 246, 0.4);
             color: #C4B5FD;
         }
-        .badge-pro {
-            background: linear-gradient(135deg, #f59e0b, #ef4444);
-            color: #fff;
-            text-transform: uppercase;
-            font-weight: 800;
-            letter-spacing: 1px;
-        }
         .pro-label-inline {
             display: inline-block;
             font-size: 10px;
@@ -2403,6 +2396,24 @@
             background: rgba(212, 160, 23, 0.06);
             border: 1px solid rgba(212, 160, 23, 0.15);
         }
+        .leader-item.rank-1 {
+            background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,215,0,0.04));
+            border: 1px solid rgba(255,215,0,0.25);
+        }
+        .leader-item.rank-2 {
+            background: linear-gradient(135deg, rgba(192,192,192,0.1), rgba(192,192,192,0.03));
+            border: 1px solid rgba(192,192,192,0.2);
+        }
+        .leader-item.rank-3 {
+            background: linear-gradient(135deg, rgba(205,127,50,0.1), rgba(205,127,50,0.03));
+            border: 1px solid rgba(205,127,50,0.2);
+        }
+        .leader-item.rank-1 .leader-rank { font-size: 24px; }
+        .leader-item.rank-2 .leader-rank { font-size: 21px; }
+        .leader-item.rank-3 .leader-rank { font-size: 19px; }
+        .leader-item.rank-1 .leader-val { color: #FFD700; font-weight: 800; }
+        .leader-item.rank-2 .leader-val { color: #C0C0C0; font-weight: 700; }
+        .leader-item.rank-3 .leader-val { color: #CD7F32; font-weight: 700; }
         .leader-rank {
             font-size: 18px;
             min-width: 32px;
@@ -4493,7 +4504,7 @@
                         <div class="boost-icon">⚡</div>
                         <div>
                             <div class="boost-title" data-ar="تعزيز التعدين" data-en="Mining Boost">Mining Boost</div>
-                            <div class="boost-desc" data-ar="شاهد إعلاناً لمضاعفة السرعة ×2" data-en="Watch an ad to get ×2 speed">Watch an ad to get ×2 speed</div>
+                            <div class="boost-desc" id="boostDescText" data-ar="شاهد إعلاناً لزيادة السرعة (×1 → ×5)" data-en="Watch an ad to increase speed (×1 → ×5)">شاهد إعلاناً لزيادة السرعة (×1 → ×5)</div>
                         </div>
                     </div>
                     <button id="boostBtn" class="btn-boost" type="button">
@@ -4503,7 +4514,7 @@
                 <div class="boost-timer-wrap" id="boostTimerWrap" style="display:none;">
                     <div class="boost-active-label">
                         <span class="boost-active-dot"></span>
-                        <span data-ar="التعزيز نشط" data-en="Boost Active">Boost Active</span>
+                        <span id="boostActiveLabel" data-ar="التعزيز نشط" data-en="Boost Active">التعزيز نشط</span>
                     </div>
                     <div class="boost-countdown" id="boostCountdown">30:00</div>
                 </div>
@@ -5680,6 +5691,9 @@
         let boostActive = false;
         let boostEndTime = 0;
         let boostTimer = null;
+        let boostLevel = 0; // 0=not boosted, 1=x1, 2=x2, ..., 5=x5
+        const BOOST_MAX_LEVEL = 5;
+        const BOOST_PER_LEVEL_SECS = 30 * 60; // 30 min per boost level
 
         // ========== REWARD AD SYSTEM ==========
         const REWARD_AD_URL = 'https://pl29822341.effectivecpmnetwork.com/e9/23/c2/e923c23960923f40920a0e6dbcf0222f.js';
@@ -5763,20 +5777,7 @@
                 }
             }
 
-            var profBadges = document.getElementById('profileBadges');
-            if (profBadges) {
-                var existingProBadge = profBadges.querySelector('.badge-pro');
-                if (isPro) {
-                    if (!existingProBadge) {
-                        var pb = document.createElement('span');
-                        pb.className = 'badge badge-pro';
-                        pb.textContent = 'PRO';
-                        profBadges.appendChild(pb);
-                    }
-                } else {
-                    if (existingProBadge) existingProBadge.remove();
-                }
-            }
+            // PRO badge shown only next to name (pro-label-inline), not in badges area
         }
 
         function openProPaymentModal() {
@@ -6213,7 +6214,8 @@
         function logoutUser() {
             if (!confirm(t('هل تريد تسجيل الخروج؟', 'Sign out?'))) return;
             if (cooldownInterval) clearInterval(cooldownInterval);
-            if (miningInterval) clearInterval(miningInterval);
+            // Mining persists in Firebase — do NOT stop miningInterval here
+            // It will resume on next login via savedMiningStart
             if (boostInterval) clearInterval(boostInterval);
             if (boostTimer) clearInterval(boostTimer);
             auth.signOut();
@@ -6332,6 +6334,12 @@
                         showToast(t(`🏆 تعدين 24 ساعة مكتمل! +${MINING_REWARD_PER_SESSION} NDOG`, `🏆 24h mining complete! +${MINING_REWARD_PER_SESSION} NDOG`), 'success');
                     });
                 }
+            }
+
+            // Safety: ensure mining interval is running if isMining
+            if (isMining && !miningInterval) {
+                runMiningTick();
+                miningInterval = setInterval(runMiningTick, 1000);
             }
 
             db.ref('users/' + currentUser.uid).on('value', snap => {
@@ -6502,8 +6510,9 @@
             const usd = (bal * 0.9914).toFixed(2);
             setEl('walletUSD', '≈ $' + usd);
 
-            const mining_mult = vip.mult * (userData.founder ? 1.1 : 1) * (boostActive ? 2 : 1);
-            setEl('miningRate', fmt(MINING_RATE * mining_mult, 1) + ' NDOG/hr');
+            var boostMultCalc = boostActive ? boostLevel : 1; // boostLevel 1=x1, 2=x2, ..., 5=x5
+            var mining_mult = vip.mult * (userData.founder ? 1.1 : 1) * boostMultCalc;
+            setEl('miningRate', fmt(MINING_RATE * mining_mult, 1) + ' NDOG/hr' + (boostActive ? ' (×' + boostLevel + ')' : ''));
             setEl('miningSessions', userData.miningSessionsTotal || 0);
             setEl('miningTotalMined', fmt(userData.miningEarnings || 0) + ' NDOG');
 
@@ -6940,7 +6949,7 @@
             if (isMining) {
                 stopMining();
             } else {
-                showRewardAd(() => startMining());
+                startMining();
             }
         }
 
@@ -6968,14 +6977,16 @@
             miningInterval = setInterval(runMiningTick, 1000);
 
             showToast(t('بدأ التعدين! ⛏️ 24 ساعة', 'Mining started! ⛏️ 24 hours'), 'info');
+            updateBoostBtnUI();
         }
 
         function runMiningTick() {
             const elapsed = (Date.now() - miningStartTime) / 1000;
             const progress = Math.min(1, elapsed / MINING_SESSION_SECS);
 
-            // Fixed reward: 5 NDOG proportional to progress
-            miningEarned = +(MINING_REWARD_PER_SESSION * progress).toFixed(2);
+            // Reward based on boost level: 5 * boostMult
+            var currentBoostMult = boostActive ? boostLevel : 1;
+            miningEarned = +(MINING_REWARD_PER_SESSION * currentBoostMult * progress).toFixed(2);
 
             const fill = document.getElementById('miningProgressFill');
             if (fill) fill.style.width = (progress * 100) + '%';
@@ -6983,7 +6994,9 @@
             const earnedEl = document.getElementById('miningProgressEarned');
             if (earnedEl) earnedEl.textContent = fmt(miningEarned, 2);
 
-            setEl('miningSessionReward', fmt(miningEarned, 2) + ' / ' + MINING_REWARD_PER_SESSION + ' NDOG');
+            var currentBoostMult2 = boostActive ? boostLevel : 1;
+            var maxReward = MINING_REWARD_PER_SESSION * currentBoostMult2;
+            setEl('miningSessionReward', fmt(miningEarned, 2) + ' / ' + maxReward + ' NDOG');
 
             // Countdown in HH:MM:SS format
             const remaining = Math.max(0, MINING_SESSION_SECS - elapsed);
@@ -7002,6 +7015,11 @@
             isMining = false;
             if (miningInterval) clearInterval(miningInterval);
             miningInterval = null;
+            boostLevel = 0;
+            boostActive = false;
+            if (boostTimer) { clearInterval(boostTimer); boostTimer = null; }
+            var boostWrap = document.getElementById('boostTimerWrap');
+            if (boostWrap) boostWrap.style.display = 'none';
 
             const btn = document.getElementById('miningBtn');
             if (btn) btn.classList.remove('is-mining');
@@ -7024,8 +7042,10 @@
             miningInterval = null;
             isMining = false;
 
-            const reward = MINING_REWARD_PER_SESSION;
+            const reward = MINING_REWARD_PER_SESSION * (boostActive ? boostLevel : 1);
             miningEarned = 0;
+            boostLevel = 0;
+            boostActive = false;
 
             // Clear persisted mining start time
             if (currentUser) {
@@ -7056,7 +7076,8 @@
         }
 
         function updateMiningUI() {
-            setEl('miningRate', MINING_REWARD_PER_SESSION + ' NDOG / 24h');
+            var boostMultUI = boostActive ? boostLevel : 1;
+            setEl('miningRate', (MINING_REWARD_PER_SESSION * boostMultUI) + ' NDOG / 24h' + (boostActive ? ' (×' + boostLevel + ')' : ''));
             setEl('miningSessions', userData?.miningSessionsTotal || 0);
             setEl('miningStateLabel', t('اضغط للتعدين', 'Tap to Mine'));
             const fill = document.getElementById('miningProgressFill');
@@ -7064,7 +7085,8 @@
             const progressWrap = document.getElementById('miningProgressWrap');
             if (progressWrap) progressWrap.style.display = 'none';
             setEl('miningCountdownText', '24:00:00');
-            setEl('miningSessionReward', '0 / ' + MINING_REWARD_PER_SESSION + ' NDOG');
+            var bmUI = boostActive ? boostLevel : 1;
+            setEl('miningSessionReward', '0 / ' + (MINING_REWARD_PER_SESSION * bmUI) + ' NDOG');
         }
 
         function spawnMineParticle() {
@@ -7086,31 +7108,59 @@
 
         // ========== BOOST ==========
         function activateBoost() {
-            showRewardAd(() => {
+            if (boostLevel >= BOOST_MAX_LEVEL) {
+                showToast(t('وصلت للحد الأقصى ×5!', 'Max boost ×5 reached!'), 'warning');
+                return;
+            }
+            if (!isMining) {
+                showToast(t('ابدأ التعدين أولاً!', 'Start mining first!'), 'warning');
+                return;
+            }
+            var nextLevel = boostLevel + 1;
+            showRewardAd(function() {
+                boostLevel = nextLevel;
                 boostActive = true;
-                boostEndTime = Date.now() + BOOST_DURATION_SECS * 1000;
-                const wrap = document.getElementById('boostTimerWrap');
+                boostEndTime = Date.now() + BOOST_PER_LEVEL_SECS * 1000;
+                var wrap = document.getElementById('boostTimerWrap');
                 if (wrap) wrap.style.display = 'flex';
                 updateBoostTimer();
                 if (boostTimer) clearInterval(boostTimer);
                 boostTimer = setInterval(updateBoostTimer, 1000);
                 updateMiningUI();
-                showToast(t('⚡ التعزيز نشط! ×2', '⚡ Boost active! ×2'), 'success');
+                updateBoostBtnUI();
+                showToast(t('⚡ التعزيز ×' + boostLevel + ' نشط!', '⚡ Boost ×' + boostLevel + ' active!'), 'success');
             });
         }
 
         function updateBoostTimer() {
-            const remaining = Math.max(0, boostEndTime - Date.now());
-            const m = Math.floor(remaining / 60000);
-            const s = Math.floor((remaining % 60000) / 1000);
-            setEl('boostCountdown', `${pad(m)}:${pad(s)}`);
+            var remaining = Math.max(0, boostEndTime - Date.now());
+            var m = Math.floor(remaining / 60000);
+            var s = Math.floor((remaining % 60000) / 1000);
+            setEl('boostCountdown', '×' + boostLevel + '  ' + pad(m) + ':' + pad(s));
             if (remaining <= 0) {
+                boostLevel = 0;
                 boostActive = false;
                 if (boostTimer) clearInterval(boostTimer);
-                const wrap = document.getElementById('boostTimerWrap');
+                var wrap = document.getElementById('boostTimerWrap');
                 if (wrap) wrap.style.display = 'none';
                 updateMiningUI();
                 showToast(t('انتهى التعزيز', 'Boost ended'), 'info');
+            }
+        }
+
+        function updateBoostBtnUI() {
+            var btnText = document.getElementById('boostBtnText');
+            var descText = document.getElementById('boostDescText');
+            var activeLabel = document.getElementById('boostActiveLabel');
+            if (boostActive) {
+                if (activeLabel) activeLabel.textContent = currentLang === 'ar' ? 'التعزيز ×' + boostLevel + ' نشط' : 'Boost ×' + boostLevel + ' Active';
+            }
+            if (boostLevel >= BOOST_MAX_LEVEL) {
+                if (btnText) btnText.textContent = currentLang === 'ar' ? 'أقصى سرعة ×5' : 'Max ×5';
+                if (descText) descText.textContent = currentLang === 'ar' ? 'وصلت للحد الأقصى!' : 'Max speed reached!';
+            } else {
+                var nextLvl = boostLevel + 1;
+                if (btnText) btnText.textContent = currentLang === 'ar' ? 'تسريع ×' + nextLvl : 'Boost ×' + nextLvl;
             }
         }
 
@@ -7421,8 +7471,9 @@
                     const rank = i + 1;
                     const emoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
                     const isMe = currentUser && u.uid === currentUser.uid;
+                    const rankClass = rank <= 3 ? ' rank-' + rank : '';
                     const div = document.createElement('div');
-                    div.className = 'leader-item' + (isMe ? ' is-me' : '');
+                    div.className = 'leader-item' + rankClass + (isMe ? ' is-me' : '');
                     div.innerHTML =
                         `<span class="leader-rank">${emoji}</span><span class="leader-name${isMe?' is-me':''}">${u.displayName||t('مستخدم', 'User')}${isMe?' ⭐':''}</span><span class="leader-val">${fmt(u.balance||0)} NDOG</span>`;
                     el.appendChild(div);
@@ -7566,7 +7617,10 @@
                 loadAirdropInfo(); }
             if (tabName === 'wallet') { loadStakingContracts(); }
             if (tabName === 'profile') { loadFaq(); }
-            if (tabName === 'mining') { updateMiningUI(); }
+            if (tabName === 'mining') {
+                if (isMining) { runMiningTick(); }
+                else { updateMiningUI(); }
+            }
             if (tabName === 'referrals') { loadReferralTree(); }
         }
 

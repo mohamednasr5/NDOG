@@ -2,10 +2,8 @@
 <html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script src="https://quge5.com/88/tag.min.js" data-zone="252943" async data-cfasync="false"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script src="https://quge5.com/88/tag.min.js" data-zone="252943" async data-cfasync="false"></script>
     <!-- ═══ PWA / STANDALONE APP ═══ -->
     <meta name="theme-color" content="#070B14">
     <meta name="mobile-web-app-capable" content="yes">
@@ -1005,6 +1003,243 @@
             border: 1px solid rgba(139, 92, 246, 0.4);
             color: #C4B5FD;
         }
+        .badge-pro {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #fff;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        .pro-label-inline {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 99px;
+            margin-left: 6px;
+            vertical-align: middle;
+            letter-spacing: 1px;
+        }
+        /* -- Pro Payment Modal -- */
+        .pro-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .pro-modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .pro-modal-box {
+            background: linear-gradient(145deg, #131929 0%, #0a0e1a 100%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            transform: translateY(30px) scale(0.95);
+            transition: transform 0.3s;
+        }
+        .pro-modal-overlay.show .pro-modal-box {
+            transform: translateY(0) scale(1);
+        }
+        .pro-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: var(--text-3);
+            font-size: 22px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .pro-modal-close:hover { background: rgba(255,255,255,0.08); color: var(--text-1); }
+        .pro-modal-icon { font-size: 52px; margin-bottom: 12px; }
+        .pro-modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .pro-modal-subtitle {
+            font-size: 13px;
+            color: var(--text-3);
+            margin-bottom: 20px;
+        }
+        .pro-features-list {
+            text-align: left;
+            margin-bottom: 22px;
+            padding: 0;
+            list-style: none;
+        }
+        .pro-features-list li {
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .pro-features-list li:last-child { border-bottom: none; }
+        .pro-features-list li .feat-icon { font-size: 18px; flex-shrink: 0; }
+        .pro-price-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.15));
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 12px;
+            padding: 12px 24px;
+            margin-bottom: 18px;
+            font-size: 24px;
+            font-weight: 800;
+            color: #f59e0b;
+        }
+        .pro-price-tag small { font-size: 13px; color: var(--text-3); font-weight: 400; }
+        .pro-wallet-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .pro-wallet-label {
+            font-size: 11px;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .pro-wallet-addr {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--text-1);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            word-break: break-all;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            text-align: center;
+            user-select: all;
+        }
+        .pro-copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            justify-content: center;
+        }
+        .pro-copy-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .pro-copy-btn:active { transform: scale(0.97); }
+        .pro-network-warning {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 10px;
+            font-size: 12px;
+            color: #fca5a5;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .pro-network-warning strong { color: #ef4444; }
+        /* -- Block Ads Card in Profile -- */
+        .pro-card {
+            background: linear-gradient(145deg, rgba(245,158,11,0.08), rgba(239,68,68,0.06));
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-top: 14px;
+            margin-bottom: 14px;
+        }
+        .pro-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .pro-card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-1);
+        }
+        .pro-card-title .pro-icon { font-size: 22px; }
+        .pro-card-desc {
+            font-size: 12px;
+            color: var(--text-3);
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+        .pro-activate-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .pro-activate-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .pro-activate-btn:active { transform: scale(0.97); }
+        .pro-activate-btn:disabled {
+            background: rgba(100,116,139,0.3);
+            color: var(--text-3);
+            cursor: default;
+            transform: none;
+        }
+        .pro-active-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+            border: 1px solid rgba(34,197,94,0.3);
+            border-radius: 99px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #22c55e;
+        }
+
 
         .quick-stats {
             display: grid;
@@ -4516,6 +4751,23 @@
                     <div class="profile-badges" id="profileBadges"></div>
                 </div>
 
+
+                <!-- Block Ads / Pro Card -->
+                <div class="pro-card" id="proCard">
+                    <div class="pro-card-header">
+                        <div class="pro-card-title">
+                            <span class="pro-icon">🛡️</span>
+                            <span data-ar="إزالة الإعلانات نهائياً" data-en="Remove Ads Forever">إزالة الإعلانات نهائياً</span>
+                        </div>
+                        <span id="proStatusBadge" style="display:none;" class="pro-active-badge">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            <span data-ar="مفعّل" data-en="Active">مفعّل</span>
+                        </span>
+                    </div>
+                    <div class="pro-card-desc" data-ar="استمتع بتطبيق NDOG بدون أي إعلانات مزعجة. قم بالترقية إلى Pro واستخدم التطبيق بكل راحة وسلاسة." data-en="Enjoy NDOG app without any annoying ads. Upgrade to Pro and use the app with full comfort and smoothness.">استمتع بتطبيق NDOG بدون أي إعلانات مزعجة. قم بالترقية إلى Pro واستخدم التطبيق بكل راحة وسلاسة.</div>
+                    <button class="pro-activate-btn" id="proActivateBtn" type="button" data-ar="🛡️ تفعيل Pro — بدون إعلانات" data-en="🛡️ Activate Pro — No Ads">🛡️ تفعيل Pro — بدون إعلانات</button>
+                </div>
+
                 <div class="glass-card">
                     <div class="profile-detail-row">
                         <span class="profile-detail-label" data-ar="الهاتف" data-en="Phone">Phone</span>
@@ -5432,7 +5684,139 @@
         // ========== REWARD AD SYSTEM ==========
         const REWARD_AD_URL = 'https://pl29822341.effectivecpmnetwork.com/e9/23/c2/e923c23960923f40920a0e6dbcf0222f.js';
 
+        // ========== PRO / AD-FREE SYSTEM ==========
+        const PRO_WALLET_ADDRESS = 'TUykS5Ec6ZbDxtFuL3uoDLdWx5QE7qLVHZ';
+        const BANNER_AD_URL = 'https://quge5.com/88/tag.min.js';
+        const BANNER_AD_ZONE = '252943';
+        let isPro = false;
+        let adsLoaded = false;
+
+        function loadAdsIfNeeded() {
+            if (isPro || adsLoaded) return;
+            adsLoaded = true;
+            for (let i = 0; i < 2; i++) {
+                const s = document.createElement('script');
+                s.src = BANNER_AD_URL;
+                s.setAttribute('data-zone', BANNER_AD_ZONE);
+                s.async = true;
+                s.setAttribute('data-cfasync', 'false');
+                document.head.appendChild(s);
+            }
+            console.log('[NDOG] Ads loaded (user is not Pro)');
+        }
+
+        function checkProStatus() {
+            if (!userData) return;
+            isPro = !!userData.isPro;
+            if (isPro) {
+                document.querySelectorAll('script[src*="quge5.com"]').forEach(function(el) { el.remove(); });
+                var boostCard = document.querySelector('.boost-card');
+                if (boostCard) boostCard.style.display = 'none';
+            } else {
+                loadAdsIfNeeded();
+            }
+            updateProUI();
+        }
+
+        function updateProUI() {
+            var proCard = document.getElementById('proCard');
+            var proBtn = document.getElementById('proActivateBtn');
+            var proBadge = document.getElementById('proStatusBadge');
+
+            if (proCard) {
+                if (isPro) {
+                    if (proBtn) proBtn.style.display = 'none';
+                    if (proBadge) proBadge.style.display = 'inline-flex';
+                } else {
+                    if (proBtn) proBtn.style.display = 'block';
+                    if (proBadge) proBadge.style.display = 'none';
+                }
+            }
+
+            var headerNameEl = document.getElementById('headerName');
+            if (headerNameEl) {
+                var existingPro = headerNameEl.parentElement.querySelector('.pro-label-inline');
+                if (isPro) {
+                    if (!existingPro) {
+                        var proSpan = document.createElement('span');
+                        proSpan.className = 'pro-label-inline';
+                        proSpan.textContent = 'PRO';
+                        headerNameEl.parentElement.appendChild(proSpan);
+                    }
+                } else {
+                    if (existingPro) existingPro.remove();
+                }
+            }
+
+            var profileNameEl = document.getElementById('profileName');
+            if (profileNameEl) {
+                var existingProP = profileNameEl.parentElement.querySelector('.pro-label-inline');
+                if (isPro) {
+                    if (!existingProP) {
+                        var proSpanP = document.createElement('span');
+                        proSpanP.className = 'pro-label-inline';
+                        proSpanP.textContent = 'PRO';
+                        profileNameEl.parentElement.appendChild(proSpanP);
+                    }
+                } else {
+                    if (existingProP) existingProP.remove();
+                }
+            }
+
+            var profBadges = document.getElementById('profileBadges');
+            if (profBadges) {
+                var existingProBadge = profBadges.querySelector('.badge-pro');
+                if (isPro) {
+                    if (!existingProBadge) {
+                        var pb = document.createElement('span');
+                        pb.className = 'badge badge-pro';
+                        pb.textContent = 'PRO';
+                        profBadges.appendChild(pb);
+                    }
+                } else {
+                    if (existingProBadge) existingProBadge.remove();
+                }
+            }
+        }
+
+        function openProPaymentModal() {
+            var modal = document.getElementById('proPaymentModal');
+            if (modal) modal.classList.add('show');
+        }
+
+        function closeProPaymentModal() {
+            var modal = document.getElementById('proPaymentModal');
+            if (modal) modal.classList.remove('show');
+        }
+
+        function copyProAddress() {
+            var addr = PRO_WALLET_ADDRESS;
+            var btn = document.getElementById('proCopyAddrBtn');
+            var spanEl = btn.querySelector('span');
+            var origText = spanEl.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(addr).then(function() {
+                    spanEl.textContent = currentLang === 'ar' ? '✅ تم النسخ!' : '✅ Copied!';
+                    setTimeout(function() { spanEl.textContent = origText; }, 2000);
+                });
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = addr;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                spanEl.textContent = currentLang === 'ar' ? '✅ تم النسخ!' : '✅ Copied!';
+                setTimeout(function() { spanEl.textContent = origText; }, 2000);
+            }
+        }
+
+
+
         function showRewardAd(callback) {
+            if (isPro) { if (typeof callback === 'function') callback(); return; }
             // Create overlay
             const overlay = document.createElement('div');
             overlay.className = 'reward-ad-overlay';
@@ -5733,7 +6117,8 @@
                 miningEarnings: 0,
                 referralEarnings: 0,
                 rewardEarnings: 0,
-                stakingEarnings: 0
+                stakingEarnings: 0,
+                isPro: false
             };
 
             const updates = {};
@@ -5894,6 +6279,7 @@
 
             switchTab('home');
             renderDashboard();
+            checkProStatus();
             startCooldownTimer();
             loadNews();
             loadFaq();
@@ -5952,6 +6338,7 @@
                 if (snap.exists()) {
                     userData = { ...snap.val(), uid: currentUser.uid };
                     renderDashboard();
+                    checkProStatus();
                 }
             });
 
@@ -6135,6 +6522,9 @@
 
             const earlyBanner = document.getElementById('earlyAdopterBanner');
             if (earlyBanner) earlyBanner.style.display = userData.founder ? 'flex' : 'none';
+
+            var boostCardEl = document.querySelector('.boost-card');
+            if (boostCardEl) boostCardEl.style.display = isPro ? 'none' : '';
 
             loadAirdropInfo();
 
@@ -7345,6 +7735,28 @@
             // Boost
             document.getElementById('boostBtn').addEventListener('click', activateBoost);
 
+            // Pro / Ad-free
+            var proActivateBtn = document.getElementById('proActivateBtn');
+            if (proActivateBtn) {
+                proActivateBtn.addEventListener('click', function() {
+                    if (isPro) {
+                        showToast(t('أنت بالفعل مستخدم Pro!', 'You are already a Pro user!'), 'info');
+                        return;
+                    }
+                    openProPaymentModal();
+                });
+            }
+            var proModalClose = document.getElementById('proModalClose');
+            if (proModalClose) proModalClose.addEventListener('click', closeProPaymentModal);
+            var proPaymentModal = document.getElementById('proPaymentModal');
+            if (proPaymentModal) {
+                proPaymentModal.addEventListener('click', function(e) {
+                    if (e.target === this) closeProPaymentModal();
+                });
+            }
+            var proCopyBtn = document.getElementById('proCopyAddrBtn');
+            if (proCopyBtn) proCopyBtn.addEventListener('click', copyProAddress);
+
             // Staking
             document.getElementById('stakeBtn').addEventListener('click', stakeTokens);
             document.getElementById('stakeMaxBtn').addEventListener('click', function() {
@@ -7802,6 +8214,58 @@
         setInterval(fetchPrices, 60000);
     })();
     </script>
+
+
+<!-- PRO PAYMENT MODAL -->
+<div class="pro-modal-overlay" id="proPaymentModal">
+    <div class="pro-modal-box">
+        <button class="pro-modal-close" id="proModalClose" type="button">&#10005;</button>
+        <div class="pro-modal-icon">&#x1F6E1;&#xFE0F;</div>
+        <div class="pro-modal-title" data-ar="NDOG Pro" data-en="NDOG Pro">NDOG Pro</div>
+        <div class="pro-modal-subtitle" data-ar="استمتع بالتطبيق بدون إعلانات نهائياً" data-en="Enjoy the app without ads forever">استمتع بالتطبيق بدون إعلانات نهائياً</div>
+
+        <ul class="pro-features-list">
+            <li>
+                <span class="feat-icon">&#x1F6AB;</span>
+                <span data-ar="إزالة جميع الإعلانات نهائياً — بنر + فيديو + مكافأة" data-en="Remove all ads forever — banner + video + reward">إزالة جميع الإعلانات نهائياً — بنر + فيديو + مكافأة</span>
+            </li>
+            <li>
+                <span class="feat-icon">&#x26A1;</span>
+                <span data-ar="أداء أسرع وأكثر سلاسة بدون تشويه" data-en="Faster and smoother performance without disruption">أداء أسرع وأكثر سلاسة بدون تشويه</span>
+            </li>
+            <li>
+                <span class="feat-icon">&#x1FA99;</span>
+                <span data-ar="استفادة كاملة من العملة وجميع مميزات التطبيق" data-en="Full benefit from the currency and all app features">استفادة كاملة من العملة وجميع مميزات التطبيق</span>
+            </li>
+            <li>
+                <span class="feat-icon">&#x1F451;</span>
+                <span data-ar="شارة Pro مميزة تحت اسمك في الحساب" data-en="Exclusive Pro badge under your name in your account">شارة Pro مميزة تحت اسمك في الحساب</span>
+            </li>
+            <li>
+                <span class="feat-icon">&#x1F48E;</span>
+                <span data-ar="تفعيل مدى الحياة — مرة واحدة فقط" data-en="Lifetime activation — one time only">تفعيل مدى الحياة — مرة واحدة فقط</span>
+            </li>
+        </ul>
+
+        <div class="pro-price-tag">
+            $1 <small data-ar="مرة واحدة — مدى الحياة" data-en="one time — lifetime">مرة واحدة — مدى الحياة</small>
+        </div>
+
+        <div class="pro-wallet-section">
+            <div class="pro-wallet-label" data-ar="أرسل USDT عبر شبكة Tron (TRC20)" data-en="Send USDT via Tron Network (TRC20)">أرسل USDT عبر شبكة Tron (TRC20)</div>
+            <div class="pro-wallet-addr" id="proWalletAddr">TUykS5Ec6ZbDxtFuL3uoDLdWx5QE7qLVHZ</div>
+            <button class="pro-copy-btn" id="proCopyAddrBtn" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span data-ar="نسخ العنوان" data-en="Copy Address">نسخ العنوان</span>
+            </button>
+        </div>
+
+        <div class="pro-network-warning">
+            <strong>&#x26A0;&#xFE0F;</strong>
+            <span data-ar="تأكد من اختيار شبكة TRC20 (Tron) عند الإرسال. الإرسال على شبكة خاطئة سيؤدي لفقدان العملات ولا يمكن استرجاعها." data-en="Make sure to select TRC20 (Tron) network when sending. Sending on the wrong network will result in loss of funds and cannot be recovered.">تأكد من اختيار شبكة TRC20 (Tron) عند الإرسال. الإرسال على شبكة خاطئة سيؤدي لفقدان العملات ولا يمكن استرجاعها.</span>
+        </div>
+    </div>
+</div>
 
     <!-- FLOATING CRYPTO COINS BACKGROUND -->
     <div id="cryptoCoinsBg" aria-hidden="true"></div>

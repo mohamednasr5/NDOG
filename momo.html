@@ -559,8 +559,8 @@ select.field-input{cursor:pointer}
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>المستخدم</th><th>البريد</th><th>الكود</th><th>الرصيد</th><th>VIP</th><th>الدولة</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
-              <tbody id="usersTableBody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></td></tr></tbody>
+              <thead><tr><th>المستخدم</th><th>البريد</th><th>الكود</th><th>الرصيد</th><th>VIP</th><th>الدولة</th><th>الحالة</th><th>الإعلانات</th><th>الإجراءات</th></tr></thead>
+              <tbody id="usersTableBody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1188,10 +1188,12 @@ function renderUsersTable(users){
       <td>${vip.emoji} ${vip.label}</td>
       <td>${u.country||"—"}</td>
       <td>${statusBadge}</td>
+      <td>${u.isPro?`<span class="badge" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)">Pro</span>`:`<span class="badge" style="background:rgba(245,158,11,.1);color:var(--text3);border:1px solid var(--border)">Ads</span>`}</td>
       <td>
         <div class="action-btns">
           <button class="btn btn-info btn-sm" onclick="viewUser('${u.uid}')"><i class="fas fa-eye"></i></button>
           <button class="btn btn-purple btn-sm" onclick="editUser('${u.uid}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm" style="background:${u.isPro?'rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)':'rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)'}" onclick="toggleProAds('${u.uid}',${!u.isPro})" title="${u.isPro?'Cancel Pro / Show Ads':'Activate Pro / Block Ads'}"><i class="fas ${u.isPro?'fa-ad':'fa-shield-halved'}"></i></button>
           ${banBtn}
           <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.uid}','${(u.displayName||u.email||"").replace(/'/g,"\'")}')"><i class="fas fa-trash"></i></button>
         </div>
@@ -1221,7 +1223,7 @@ function viewUser(uid){
       ${u.photoURL?`<img src="${u.photoURL}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">`:
         `<div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff">${(u.displayName||"?")[0].toUpperCase()}</div>`}
       <div>
-        <div style="font-size:17px;font-weight:700">${u.displayName||"—"}</div>
+        <div style="font-size:17px;font-weight:700">${u.displayName||"—"} ${u.isPro?`<span style="font-size:11px;font-weight:800;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:2px 8px;border-radius:99px;margin-left:6px;letter-spacing:1px">PRO</span>`:""}</div>
         <div style="font-size:13px;color:var(--text2)">${u.email||"—"}</div>
         ${u.banned?`<span class="badge badge-banned">🚫 محظور</span>`:`<span class="badge badge-active">✅ نشط</span>`}
       </div>
@@ -1232,7 +1234,7 @@ function viewUser(uid){
         ["🌍 الدولة", u.country||"—"], ["📱 الهاتف", (u.dialCode||"")+""+(u.phone||"—")],
         ["🔗 كود الإحالة", u.referralCode||"—"], ["📅 تاريخ التسجيل", fmtDate(u.createdAt)],
         ["⏱️ آخر نشاط", fmtDateTime(u.lastActive)], ["⛏️ جلسات التعدين", u.miningSessionsTotal||0],
-        ["🎖️ مؤسس", u.founder?"نعم ✅":"لا"], ["💰 إجمالي الأرباح", fmt(u.totalClaimed||0)+" NDOG"],
+        ["🎖️ مؤسس", u.founder?"نعم ✅":"لا"], ["🛡️ Pro (بدون إعلانات)", u.isPro?"مفعّل ✅":"غير مفعّل ❌"], ["💰 إجمالي الأرباح", fmt(u.totalClaimed||0)+" NDOG"],
         ["🔥 Streak", u.streak||0], ["🆔 UID", `<code style="font-size:10px;color:var(--text3)">${uid}</code>`]
       ].map(([k,v])=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="color:var(--text3);font-size:11px;margin-bottom:3px">${k}</div><div style="font-weight:500;color:var(--text)">${v}</div></div>`).join("")}
     </div>`;
@@ -1278,6 +1280,17 @@ function deleteUser(uid, name){
   db.ref("users/"+uid).remove().then(()=>{
     hideLoader(); showToast("تم حذف المستخدم نهائياً 🗑️","warning"); loadAllData();
   }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+}
+
+function toggleProAds(uid, setPro){
+  var action = setPro ? "تفعيل Pro (إغلاق الإعلانات)" : "إلغاء Pro (تفعيل الإعلانات)";
+  if(!confirm("هل أنت متأكد من " + action + " لهذا المستخدم؟")) return;
+  showLoader();
+  db.ref("users/"+uid).update({isPro: setPro}).then(function(){
+    hideLoader();
+    showToast(setPro ? "تم تفعيل Pro — لن تظهر إعلانات للمستخدم 🛡️" : "تم إلغاء Pro — ستظهر الإعلانات للمستخدم 📢", setPro ? "success" : "info");
+    loadAllData();
+  }).catch(function(err){hideLoader();showToast("خطأ: "+err.message,"error")});
 }
 
 // ==================== NOTIFICATIONS ====================

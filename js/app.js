@@ -193,7 +193,12 @@ function initUserData(user) {
       db.ref().update(updates).then(() => {
         userData = { ...profile, uid: user.uid };
         const savedRef = localStorage.getItem('ndog_ref');
-        if (savedRef) applyReferralCode(savedRef).finally(() => { localStorage.removeItem('ndog_ref'); showApp(); });
+        if (savedRef) {
+          applyReferralCode(savedRef).finally(() => { 
+            localStorage.removeItem('ndog_ref'); 
+            showApp(); 
+          });
+        }
         else showApp();
       }).catch(err => { hideLoading(); showToast(t('فشل إنشاء الحساب','Failed to create account'), 'error'); });
     }
@@ -873,17 +878,19 @@ function loadLeaderboard() {
 // ── 17. REFERRAL ─────────────────────────────────────────────
 function loadReferralCount() {
   if (!currentUser) return;
-  db.ref('referrals/'+currentUser.uid).once('value').then(snap => setEl('referralCount', snap.numChildren()));
+  db.ref('referrals/'+currentUser.uid).on('value', snap => {
+    setEl('referralCount', snap.numChildren());
+  });
 }
 
 function applyReferralCode(code) {
-  if (!currentUser || !code) return Promise.reject('no code');
+  if (!currentUser || !code) return Promise.resolve();
   return db.ref('referralCodes/'+code).once('value').then(snap => {
-    if (!snap.exists()) { showToast(t('كود غير صالح','Invalid code'), 'error'); return; }
+    if (!snap.exists()) { showToast(t('كود غير صالح','Invalid code'), 'error'); return Promise.resolve(); }
     const ref = snap.val();
-    if (ref.uid === currentUser.uid) { showToast(t('كودك الخاص!','Your own code!'), 'warning'); return; }
+    if (ref.uid === currentUser.uid) { showToast(t('كودك الخاص!','Your own code!'), 'warning'); return Promise.resolve(); }
     return db.ref('users/'+currentUser.uid+'/referredBy').once('value').then(rs => {
-      if (rs.exists()) { showToast(t('لديك كود بالفعل','Already have a referral'), 'warning'); return; }
+      if (rs.exists()) { showToast(t('لديك كود بالفعل','Already have a referral'), 'warning'); return Promise.resolve(); }
       const now = Date.now();
       const upd = {};
       upd['users/'+currentUser.uid+'/referredBy'] = ref.uid;
@@ -891,9 +898,11 @@ function applyReferralCode(code) {
       return db.ref().update(upd).then(() => {
         referralChain(ref.uid, currentUser.uid, now, 1);
         showToast(t('✅ كود مطبّق! +50 NDOG','✅ Code applied! +50 NDOG'), 'success');
-      });
+        setTimeout(() => { if (userData) { renderDashboard(); loadReferralCount(); } }, 500);
+        return Promise.resolve();
+      }).catch(err => { console.error(err); return Promise.resolve(); });
     });
-  }).catch(err => console.error(err));
+  }).catch(err => { console.error(err); return Promise.resolve(); });
 }
 
 function referralChain(refUid, newUid, now, level) {

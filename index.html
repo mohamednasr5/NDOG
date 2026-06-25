@@ -6134,7 +6134,7 @@
                 const val = el.getAttribute('data-' + currentLang);
                 if (val !== null) {
                     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = val;
-                    else el.textContent = val;
+                    else el.innerHTML = val;
                 }
             });
             applyI18n(currentLang);

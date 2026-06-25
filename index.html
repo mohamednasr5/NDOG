@@ -2848,46 +2848,91 @@
         .loading-overlay.active {
             display: flex;
         }
-        .loading-coin {
-            font-size: 56px;
-            animation: loadingCoin 1.5s ease-in-out infinite;
-            filter: drop-shadow(0 0 20px rgba(212, 160, 23, 0.5));
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
         }
-        @keyframes loadingCoin {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1) rotate(10deg);
-            }
+        .loading-logo {
+            filter: drop-shadow(0 0 30px rgba(212, 160, 23, 0.4));
+            animation: logoFloat 3s ease-in-out infinite;
         }
-        .loading-bar {
-            width: 160px;
-            height: 3px;
-            background: var(--surface-3);
-            border-radius: 99px;
-            overflow: hidden;
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
         }
-        .loading-progress {
-            height: 100%;
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-            border-radius: 99px;
-            animation: loadingBar 1.5s ease-in-out infinite;
+        .ring-outer {
+            animation: spinOuter 8s linear infinite;
+            transform-origin: 50px 50px;
         }
-        @keyframes loadingBar {
-            0% {
-                width: 0%;
-                margin-left: 0%;
-            }
-            50% {
-                width: 60%;
-                margin-left: 20%;
-            }
-            100% {
-                width: 0%;
-                margin-left: 100%;
-            }
+        @keyframes spinOuter {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .ring-inner {
+            animation: spinInner 5s linear infinite reverse;
+            transform-origin: 50px 50px;
+        }
+        @keyframes spinInner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .emoji-dog {
+            animation: bounceEmoji 1.2s ease-in-out infinite;
+            transform-origin: 50px 60px;
+        }
+        @keyframes bounceEmoji {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.15) rotate(5deg); }
+        }
+        .loading-text {
+            text-align: center;
+            gap: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .loading-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-light), var(--blue-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            margin: 0;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+        @keyframes titlePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .loading-subtitle {
+            font-size: 14px;
+            color: var(--text-3);
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        .loading-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold-light), var(--blue-light));
+            animation: dotBounce 1.4s ease-in-out infinite;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: 0s; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        .loading-dots span:nth-child(4) { animation-delay: 0.6s; }
+        @keyframes dotBounce {
+            0%, 100% { transform: translateY(0px); opacity: 0.4; }
+            50% { transform: translateY(-12px); opacity: 1; }
         }
 
         .bottom-nav {
@@ -4104,8 +4149,36 @@
 
     <!-- ========== LOADING OVERLAY ========== -->
     <div id="globalLoading" class="loading-overlay active">
-        <div class="loading-coin">🐕</div>
-        <div class="loading-bar"><div class="loading-progress"></div></div>
+        <div class="loading-container">
+            <svg class="loading-logo" viewBox="0 0 100 100" width="80" height="80">
+                <!-- Outer rotating ring -->
+                <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradGold)" stroke-width="2" opacity="0.6" class="ring-outer"/>
+                <!-- Inner pulsing circle -->
+                <circle cx="50" cy="50" r="35" fill="none" stroke="url(#gradBlue)" stroke-width="2.5" class="ring-inner"/>
+                <!-- Animated dog emoji background -->
+                <text x="50" y="60" text-anchor="middle" font-size="40" class="emoji-dog">🐕</text>
+                <defs>
+                    <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#D4A017;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#1A6BDB;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2E89FF;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="loading-text">
+                <h2 class="loading-title">NDOG</h2>
+                <p class="loading-subtitle">جاري التحميل...</p>
+            </div>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
     </div>
 
     <!-- ========== TOAST STACK ========== -->
@@ -8522,5 +8595,3 @@
     <div id="cryptoCoinsBg" aria-hidden="true"></div>
 </body>
 </html>
-
-        

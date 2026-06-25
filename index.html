@@ -5223,6 +5223,22 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
+        // ========== TELEGRAM MINI APP STATE ==========
+        const WORKER_URL = 'https://ndogtg.ads4ads2029.workers.dev';
+        let tgApp         = null;
+        let isTelegramEnv = false;
+        let tgAuthDone    = false;
+
+        // كشف بيئة تيليجرام فوراً
+        (function detectTelegram() {
+            tgApp         = window.Telegram?.WebApp || null;
+            isTelegramEnv = !!(tgApp && tgApp.initData);
+            if (isTelegramEnv) {
+                tgApp.ready();
+                tgApp.expand();
+            }
+        })();
+
         // ========== ONESIGNAL PUSH NOTIFICATIONS ==========
         let oneSignalInitialized = false;
 

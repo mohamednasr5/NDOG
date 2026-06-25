@@ -6153,22 +6153,87 @@
         }
 
       // ========== GOOGLE SIGN-IN ==========
+// ========== GOOGLE / TELEGRAM SIGN-IN ==========
 async function signInWithGoogle() {
 
+    // إذا كان التطبيق يعمل داخل Telegram
+    if (isTelegramEnv) {
+
+        if (tgAuthDone) return;
+
+        tgAuthDone = true;
+
+        showLoading();
+
+        try {
+
+            const res = await fetch(`${WORKER_URL}/api/auth`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    initData: tgApp.initData
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.customToken) {
+                throw new Error(data.error || "Telegram authentication failed");
+            }
+
+            const result = await auth.signInWithCustomToken(data.customToken);
+
+            currentUser = result.user;
+
+            const snap = await db.ref("users/" + currentUser.uid).once("value");
+
+            if (snap.exists()) {
+
+                userData = {
+                    ...snap.val(),
+                    uid: currentUser.uid
+                };
+
+                hideLoading();
+                showApp();
+
+            } else {
+
+                hideLoading();
+                showProfileCompleteModal(currentUser);
+
+            }
+
+        } catch (err) {
+
+            hideLoading();
+
+            console.error(err);
+
+            showToast(err.message, "error");
+
+        }
+
+        return;
+    }
+
+    // ======= Google Login =======
     showLoading();
 
     try {
 
         const provider = new firebase.auth.GoogleAuthProvider();
+
         provider.addScope("profile");
         provider.addScope("email");
 
         const result = await auth.signInWithPopup(provider);
 
-        const user = result.user;
-        currentUser = user;
+        currentUser = result.user;
 
-        const snap = await db.ref("users/" + user.uid).once("value");
+        const snap = await db.ref("users/" + currentUser.uid).once("value");
 
         hideLoading();
 
@@ -6176,14 +6241,14 @@ async function signInWithGoogle() {
 
             userData = {
                 ...snap.val(),
-                uid: user.uid
+                uid: currentUser.uid
             };
 
             showApp();
 
         } else {
 
-            showProfileCompleteModal(user);
+            showProfileCompleteModal(currentUser);
 
         }
 
@@ -6191,25 +6256,13 @@ async function signInWithGoogle() {
 
         hideLoading();
 
-        const msgs = {
-            "auth/popup-blocked": t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
-            "auth/popup-closed-by-user": t("تم إغلاق نافذة تسجيل الدخول", "Popup was closed"),
-            "auth/cancelled-popup-request": t("تم إلغاء الطلب", "Popup request cancelled"),
-            "auth/unauthorized-domain": t("النطاق غير مصرح به", "Unauthorized domain")
-        };
-
         console.error(err);
 
-        showToast(
-            msgs[err.code] ||
-            t("فشل الدخول: " + err.message, "Login failed: " + err.message),
-            "error"
-        );
+        showToast(err.message, "error");
 
     }
 
 }
-
         // ========== PROFILE COMPLETION ==========
         function showProfileCompleteModal(user) {
             const modal = document.getElementById('profileCompleteModal');

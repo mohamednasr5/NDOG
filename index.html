@@ -6152,34 +6152,27 @@
             }
         }
 
-      // ========== GOOGLE SIGN-IN ==========
+// ========== GOOGLE / TELEGRAM SIGN-IN ==========
 // ========== GOOGLE / TELEGRAM SIGN-IN ==========
 async function signInWithGoogle() {
 
-    // إذا كان التطبيق يعمل داخل Telegram
+    // ===== Telegram Mini App =====
     if (isTelegramEnv) {
 
         if (tgAuthDone) return;
-
         tgAuthDone = true;
 
         showLoading();
 
         try {
 
-            const res = await fetch(`${WORKER_URL}/api/auth`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    initData: tgApp.initData
-                })
-            });
+            const response = await fetch(
+                `${WORKER_URL}/api/auth?initData=${encodeURIComponent(tgApp.initData)}`
+            );
 
-            const data = await res.json();
+            const data = await response.json();
 
-            if (!res.ok || !data.customToken) {
+            if (!response.ok || !data.ok || !data.customToken) {
                 throw new Error(data.error || "Telegram authentication failed");
             }
 
@@ -6187,13 +6180,12 @@ async function signInWithGoogle() {
 
             currentUser = result.user;
 
-            const snap = await db.ref("users/" + currentUser.uid).once("value");
-
-            if (snap.exists()) {
+            // إذا أعاد الـ Worker بيانات المستخدم استخدمها مباشرة
+            if (data.user) {
 
                 userData = {
-                    ...snap.val(),
-                    uid: currentUser.uid
+                    uid: data.uid,
+                    ...data.user
                 };
 
                 hideLoading();
@@ -6201,25 +6193,48 @@ async function signInWithGoogle() {
 
             } else {
 
+                // احتياطى إذا لم يعد بيانات المستخدم
+                const snap = await db.ref("users/" + currentUser.uid).once("value");
+
                 hideLoading();
-                showProfileCompleteModal(currentUser);
+
+                if (snap.exists()) {
+
+                    userData = {
+                        uid: currentUser.uid,
+                        ...snap.val()
+                    };
+
+                    showApp();
+
+                } else {
+
+                    showProfileCompleteModal(currentUser);
+
+                }
 
             }
 
         } catch (err) {
 
+            tgAuthDone = false;
+
             hideLoading();
 
             console.error(err);
 
-            showToast(err.message, "error");
+            showToast(
+                err.message || "Telegram Login Failed",
+                "error"
+            );
 
         }
 
         return;
     }
 
-    // ======= Google Login =======
+    // ===== Google Login =====
+
     showLoading();
 
     try {
@@ -6240,8 +6255,8 @@ async function signInWithGoogle() {
         if (snap.exists()) {
 
             userData = {
-                ...snap.val(),
-                uid: currentUser.uid
+                uid: currentUser.uid,
+                ...snap.val()
             };
 
             showApp();
@@ -6258,7 +6273,18 @@ async function signInWithGoogle() {
 
         console.error(err);
 
-        showToast(err.message, "error");
+        const msgs = {
+            "auth/popup-blocked": t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
+            "auth/popup-closed-by-user": t("تم إغلاق نافذة تسجيل الدخول", "Popup closed"),
+            "auth/cancelled-popup-request": t("تم إلغاء الطلب", "Popup cancelled"),
+            "auth/unauthorized-domain": t("النطاق غير مصرح به", "Unauthorized domain")
+        };
+
+        showToast(
+            msgs[err.code] ||
+            t("فشل الدخول: " + err.message, "Login failed: " + err.message),
+            "error"
+        );
 
     }
 

@@ -33,7 +33,7 @@ let isTelegramEnv  = false;  // هل نحن داخل تيليجرام؟
 let tgAuthDone     = false;  // هل تمّ التحقق مرة واحدة؟
 
 // رابط الـ Cloudflare Worker (عدّله ليطابق عنوانك)
-const WORKER_URL = 'https://ndog-bot.YOUR-SUBDOMAIN.workers.dev';
+const WORKER_URL = 'https://ndogtg.ads4ads2029.workers.dev';
 
 // ══════════════════════════════════════════════════════════
 // 2. CONSTANTS

@@ -34,7 +34,14 @@ let tgAuthDone     = false;  // هل تمّ التحقق مرة واحدة؟
 
 // رابط الـ Cloudflare Worker (عدّله ليطابق عنوانك)
 const WORKER_URL = 'https://ndogtg.ads4ads2029.workers.dev';
+// اكتشاف بيئة Telegram
+if (window.Telegram && window.Telegram.WebApp) {
+    tgApp = window.Telegram.WebApp;
+    tgApp.ready();
+    tgApp.expand();
 
+    isTelegramEnv = true;
+}
 // ══════════════════════════════════════════════════════════
 // 2. CONSTANTS
 // ══════════════════════════════════════════════════════════

@@ -6152,39 +6152,63 @@
             }
         }
 
-        // ========== GOOGLE SIGN-IN ==========
-        function signInWithGoogle() {
-            showLoading();
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(result => {
-                    const user = result.user;
-                    currentUser = user;
-                    // Check if user exists in DB
-                    db.ref('users/' + user.uid).once('value').then(snap => {
-                        if (snap.exists()) {
-                            userData = { ...snap.val(), uid: user.uid };
-                            showApp();
-                            hideLoading();
-                        } else {
-                            // New user: show profile completion modal
-                            hideLoading();
-                            showProfileCompleteModal(user);
-                        }
-                    }).catch(err => {
-                        hideLoading();
-                        showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                    });
-                })
-                .catch(err => {
-                    hideLoading();
-                    const msgs = {
-                        'auth/popup-blocked': t('يُرجى السماح بالنوافذ المنبثقة', 'Please allow popups'),
-                        'auth/unauthorized-domain': t('نطاق غير مصرح به', 'Unauthorized domain'),
-                    };
-                    showToast(msgs[err.code] || t('فشل الدخول: ' + err.message, 'Login failed: ' + err.message), 'error');
-                });
+      // ========== GOOGLE SIGN-IN ==========
+async function signInWithGoogle() {
+
+    showLoading();
+
+    try {
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope("profile");
+        provider.addScope("email");
+
+        const result = await auth.signInWithPopup(provider);
+
+        const user = result.user;
+        currentUser = user;
+
+        const snap = await db.ref("users/" + user.uid).once("value");
+
+        hideLoading();
+
+        if (snap.exists()) {
+
+            userData = {
+                ...snap.val(),
+                uid: user.uid
+            };
+
+            showApp();
+
+        } else {
+
+            showProfileCompleteModal(user);
+
         }
+
+    } catch (err) {
+
+        hideLoading();
+
+        const msgs = {
+            "auth/popup-blocked": t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
+            "auth/popup-closed-by-user": t("تم إغلاق نافذة تسجيل الدخول", "Popup was closed"),
+            "auth/cancelled-popup-request": t("تم إلغاء الطلب", "Popup request cancelled"),
+            "auth/unauthorized-domain": t("النطاق غير مصرح به", "Unauthorized domain")
+        };
+
+        console.error(err);
+
+        showToast(
+            msgs[err.code] ||
+            t("فشل الدخول: " + err.message, "Login failed: " + err.message),
+            "error"
+        );
+
+    }
+
+}
 
         // ========== PROFILE COMPLETION ==========
         function showProfileCompleteModal(user) {

@@ -34,52 +34,6 @@ let tgAuthDone     = false;  // هل تمّ التحقق مرة واحدة؟
 
 // رابط الـ Cloudflare Worker (عدّله ليطابق عنوانك)
 const WORKER_URL = 'https://ndogtg.ads4ads2029.workers.dev';
-// ================== TELEGRAM SIGN IN ==================
-async function telegramSignIn() {
-
-    if (tgAuthDone) return;
-
-    tgAuthDone = true;
-
-    showLoading();
-
-    try {
-
-        const response = await fetch(
-            `${WORKER_URL}/api/auth?initData=${encodeURIComponent(tgApp.initData)}`
-        );
-
-        const data = await response.json();
-
-        if (!data.ok) {
-            throw new Error(data.error || "Telegram authentication failed");
-        }
-
-        await auth.signInWithCustomToken(data.customToken);
-
-        currentUser = auth.currentUser;
-
-        userData = {
-            uid: data.uid,
-            ...data.user
-        };
-
-        hideLoading();
-        showApp();
-
-    } catch (err) {
-
-        tgAuthDone = false;
-
-        hideLoading();
-
-        console.error(err);
-
-        showToast(err.message, "error");
-
-    }
-
-}
 // ══════════════════════════════════════════════════════════
 // 2. CONSTANTS
 // ══════════════════════════════════════════════════════════
@@ -341,7 +295,11 @@ function showWebLoginScreen() {
 // ══════════════════════════════════════════════════════════
 // 6. AUTH — Google Login (ويب عادي)
 // ══════════════════════════════════════════════════════════
-function loginGoogle() {
+async function loginGoogle() {
+  // داخل تيليجرام: لا نستخدم Google Popup — نرجع لمصادقة تيليجرام
+  if (isTelegramEnv) {
+    return initTelegramAuth();
+  }
   showLoading();
   auth.signInWithPopup(googleProvider).catch(err => {
     hideLoading();

@@ -6254,7 +6254,9 @@ async function signInWithGoogle() {
         return;
     }
 
-    // ===== Google Login — Redirect (avoids COOP popup issues) =====
+    // ===== Google Login =====
+    // داخل Telegram WebView: نستخدم Popup لأن Redirect لا يعمل في WebView
+    // في المتصفح العادي: نستخدم Redirect لتجنب مشاكل COOP
 
     showLoading();
 
@@ -6264,21 +6266,39 @@ async function signInWithGoogle() {
         provider.addScope("profile");
         provider.addScope("email");
 
-        // signInWithRedirect لا يفتح popup ولا يعاني من COOP
-        await auth.signInWithRedirect(provider);
+        const isWebView = isTelegramEnv ||
+            /wv|WebView/.test(navigator.userAgent) ||
+            (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 
-        // التنفيذ يتوقف هنا — الصفحة ستُعاد تحميلها بعد الـ redirect
-        // النتيجة تُعالَج في handleRedirectResult() عند DOMContentLoaded
+        if (isWebView) {
+            // Popup — يعمل داخل Telegram WebView
+            const result = await auth.signInWithPopup(provider);
+            currentUser = result.user;
+            const snap = await db.ref("users/" + currentUser.uid).once("value");
+            hideLoading();
+            if (snap.exists()) {
+                userData = { uid: currentUser.uid, ...snap.val() };
+                showApp();
+            } else {
+                showProfileCompleteModal(currentUser);
+            }
+        } else {
+            // Redirect — للمتصفح العادي (لا popup، لا COOP warning)
+            await auth.signInWithRedirect(provider);
+            // الصفحة ستُعاد تحميلها — handleRedirectResult() تأخذ من هنا
+        }
 
     } catch (err) {
 
         hideLoading();
-
         console.error(err);
 
         const msgs = {
-            "auth/unauthorized-domain": t("النطاق غير مصرح به", "Unauthorized domain"),
-            "auth/operation-not-allowed": t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
+            "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
+            "auth/popup-closed-by-user":    t("تم إغلاق نافذة تسجيل الدخول", "Popup closed"),
+            "auth/cancelled-popup-request": t("تم إلغاء الطلب", "Popup cancelled"),
+            "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
+            "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
         };
 
         showToast(

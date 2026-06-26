@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- EARLY TELEGRAM DETECTION — runs BEFORE anything else                     -->
+    <!-- Uses User-Agent (synchronous, 100% reliable in Telegram WebView)         -->
+    <!-- Hides Google login button IMMEDIATELY so user never sees it              -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <script>
+    (function() {
+        var ua = navigator.userAgent || '';
+        var isTG = /Telegram/i.test(ua) || !!(window.Telegram && window.Telegram.WebApp);
+        window.__tgEarlyDetect = isTG;
+        window.__tgDetected = isTG; // compat with existing checks
+        if (isTG) {
+            // Inject CSS to hide auth screen INSTANTLY
+            var s = document.createElement('style');
+            s.id = 'tg-early-hide';
+            s.textContent = '#authScreens{display:none!important;}#globalLoading.active{display:flex!important;}';
+            document.head.appendChild(s);
+            // Try pre-injected WebApp object (Telegram injects it before page scripts run)
+            try {
+                var tw = window.Telegram && window.Telegram.WebApp;
+                if (tw && tw.initData) {
+                    window.__tgEarlyInitData = tw.initData;
+                    window.__tgEarlyUser = tw.initDataUnsafe && tw.initDataUnsafe.user;
+                    tw.ready();
+                    tw.expand();
+                    console.log('[NDOG] Early Telegram detected, user:', window.__tgEarlyUser);
+                }
+            } catch(e) {}
+        }
+    })();
+    </script>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -5203,12 +5235,10 @@
     </div>
 
     <!-- ============================================================= -->
-    <!-- TELEGRAM MINI APP SDK — Robust async loading with Promise -->
+    <!-- TELEGRAM MINI APP SDK — Enhanced with early UA detection    -->
     <!-- ============================================================= -->
     <script>
     (function() {
-        // Promise-based Telegram SDK loader
-        // Resolves with { WebApp, initData, user } or null if not in Telegram
         var _resolve;
         window.__tgPromise = new Promise(function(r) { _resolve = r; });
         window.__tgResult = null;
@@ -5219,47 +5249,64 @@
             if (!tg) return false;
             var initData = tg.initData;
             if (!initData) return false;
-            // Telegram detected!
             tg.ready();
             tg.expand();
             window.__tgResult = { WebApp: tg, initData: initData, user: tg.initDataUnsafe && tg.initDataUnsafe.user };
             window.__tgDone = true;
-            console.log('[NDOG] Telegram detected, user:', window.__tgResult.user);
+            console.log('[NDOG] Telegram SDK detected, user:', window.__tgResult.user);
             return true;
         }
 
-        // Try immediately (SDK might already be cached)
-        if (!tryDetect()) {
-            // Load SDK async — won't block the page
+        function resolveWith(data) {
+            if (window.__tgDone) return;
+            window.__tgResult = data;
+            window.__tgDone = true;
+            _resolve(data);
+        }
+
+        // PRIORITY 1: Early UA detection already got initData — use it
+        if (window.__tgEarlyDetect && window.__tgEarlyInitData) {
+            console.log('[NDOG] Using early-detected Telegram initData');
+            var tw = window.Telegram && window.Telegram.WebApp;
+            if (tw) {
+                resolveWith({ WebApp: tw, initData: tw.initData, user: tw.initDataUnsafe && tw.initDataUnsafe.user });
+            } else {
+                // Have initData but need SDK for full WebApp — load async
+                var s2 = document.createElement('script');
+                s2.src = 'https://telegram.org/js/telegram-web-app.js';
+                s2.async = true;
+                s2.onload = function() { tryDetect() || resolveWith(null); };
+                s2.onerror = function() { resolveWith(null); };
+                document.head.appendChild(s2);
+                setTimeout(function() { resolveWith(null); }, 5000);
+            }
+        }
+        // PRIORITY 2: Try synchronous detection (WebApp pre-injected)
+        else if (tryDetect()) {
+            _resolve(window.__tgResult);
+        }
+        // PRIORITY 3: Early UA detected but no initData yet — load SDK
+        else if (window.__tgEarlyDetect) {
+            console.log('[NDOG] Telegram UA detected, loading SDK for initData...');
             var s = document.createElement('script');
             s.src = 'https://telegram.org/js/telegram-web-app.js';
             s.async = true;
             s.onload = function() {
                 if (!tryDetect()) {
-                    // SDK loaded but no initData — not in Telegram
-                    window.__tgResult = null;
-                    window.__tgDone = true;
+                    console.warn('[NDOG] SDK loaded but no initData');
+                    resolveWith(null);
                 }
-                _resolve(window.__tgResult);
             };
             s.onerror = function() {
                 console.warn('[NDOG] Telegram SDK failed to load');
-                window.__tgResult = null;
-                window.__tgDone = true;
-                _resolve(null);
+                resolveWith(null);
             };
             document.head.appendChild(s);
-
-            // Timeout: if SDK doesn't load within 5s, continue without Telegram
-            setTimeout(function() {
-                if (!window.__tgDone) {
-                    window.__tgResult = null;
-                    window.__tgDone = true;
-                    _resolve(null);
-                }
-            }, 5000);
-        } else {
-            _resolve(window.__tgResult);
+            setTimeout(function() { resolveWith(null); }, 5000);
+        }
+        // PRIORITY 4: Not Telegram at all
+        else {
+            resolveWith(null);
         }
     })();
     </script>
@@ -5323,11 +5370,18 @@
                 tgApp = tgResult.WebApp;
                 isTelegramEnv = true;
                 console.log('[NDOG] Telegram env confirmed, triggering auth if needed');
-                // If Firebase auth hasn't kicked in yet, we wait.
-                // If it already fired with null user, we trigger auth now.
-                // If it already fired with a user, we're already logged in.
                 if (!currentUser && !tgAuthDone) {
                     doTelegramAuth();
+                }
+            } else if (window.__tgEarlyDetect) {
+                // UA says Telegram but SDK/SDK failed to get initData
+                console.warn('[NDOG] Telegram UA detected but no initData available');
+                isTelegramEnv = true;
+                if (!currentUser && !tgAuthDone) {
+                    hideLoading();
+                    showTelegramError(currentLang === 'ar'
+                        ? 'لم يتم الكشف عن بيانات التليجرام. يرجى فتح التطبيق من البوت مباشرة.'
+                        : 'Telegram data not detected. Please open the app from the bot directly.');
                 }
             }
         });
@@ -5355,10 +5409,21 @@
             if (authEl) authEl.style.display = 'none';
             showLoading();
 
+            // Get initData from WebApp OR from early detection
+            var initData = (tgApp && tgApp.initData) || window.__tgEarlyInitData || '';
+            if (!initData) {
+                hideLoading();
+                showTelegramError(currentLang === 'ar'
+                    ? 'لا توجد بيانات مصادقة تليجرام'
+                    : 'No Telegram auth data');
+                tgAuthDone = false;
+                return;
+            }
+
             try {
                 console.log('[NDOG] Sending Telegram auth to Worker...');
                 var response = await fetch(
-                    WORKER_URL + '/api/auth?initData=' + encodeURIComponent(tgApp.initData)
+                    WORKER_URL + '/api/auth?initData=' + encodeURIComponent(initData)
                 );
 
                 if (!response.ok) throw new Error('Worker status ' + response.status);
@@ -8517,7 +8582,7 @@ async function signInWithGoogle() {
                         currentUser = user;
 
                         // In Telegram: link account if logged in via custom token
-                        if (isTelegramEnv && !user.isAnonymous && tgApp && tgApp.initData && !tgAuthDone) {
+                        if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
                             linkTelegramToCurrentAccount().catch(function() {});
                         }
 
@@ -8535,8 +8600,8 @@ async function signInWithGoogle() {
                             } else {
                                 hideLoading();
                                 // In Telegram: create profile automatically with Telegram data
-                                if (isTelegramEnv && tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) {
-                                    var tgU = tgApp.initDataUnsafe.user;
+                                if (isTelegramEnv && ((tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser)) {
+                                    var tgU = (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser;
                                     var tgName = [tgU.first_name, tgU.last_name].filter(Boolean).join(' ');
                                     if (tgName) {
                                         db.ref('users/' + user.uid + '/displayName').set(tgName);
@@ -8562,18 +8627,19 @@ async function signInWithGoogle() {
                         if (notifEl) notifEl.style.display = 'none';
                         hideLoading();
 
-                        // In Telegram: auth will be triggered by __tgPromise (no login screen)
+                        // In Telegram (by SDK or UA): NEVER show login screen
                         // In normal browser: show login screen
-                        if (!isTelegramEnv) {
+                        if (!isTelegramEnv && !window.__tgEarlyDetect) {
                             if (authEl) authEl.style.display = 'flex';
+                        } else {
+                            if (authEl) authEl.style.display = 'none';
                         }
-                        // If Telegram was already detected (SDK loaded before auth fired)
-                        if (isTelegramEnv && !tgAuthDone) {
+                        // If Telegram was already detected
+                        if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
                             console.log('[NDOG] No user + Telegram detected, triggering auth...');
                             doTelegramAuth();
                         }
                         // If Telegram not yet detected, __tgPromise will trigger auth when ready
-                        // (see the __tgPromise.then handler above)
                     }
                 } catch(authErr) {
                     console.error('[NDOG] onAuthStateChanged error:', authErr);
@@ -8727,7 +8793,7 @@ async function signInWithGoogle() {
 
         // ========== AUTH TIMEOUT (prevents forever-loading in Telegram) ==========
         setTimeout(function() {
-            if (isTelegramEnv && !currentUser && !tgAuthDone) {
+            if ((isTelegramEnv || window.__tgEarlyDetect) && !currentUser && !tgAuthDone) {
                 console.warn('[NDOG] Auth timeout — showing error');
                 hideLoading();
                 showTelegramError(currentLang === 'ar' ? 'انتهت مهلة الاتصال' : 'Connection timeout');

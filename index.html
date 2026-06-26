@@ -5203,6 +5203,23 @@
     </div>
 
     <!-- ============================================================= -->
+    <!-- TELEGRAM MINI APP SDK — loaded with onerror fallback -->
+    <!-- ============================================================= -->
+    <script>
+    // Load Telegram SDK with fallback — prevents blocking if telegram.org is slow/blocked
+    window.__tgSdkReady = false;
+    window.__tgSdkFailed = false;
+    (function(){
+        var s = document.createElement('script');
+        s.src = 'https://telegram.org/js/telegram-web-app.js';
+        s.async = true;
+        s.onload = function(){ window.__tgSdkReady = true; };
+        s.onerror = function(){ window.__tgSdkFailed = true; console.warn('[NDOG] Telegram SDK failed to load, will retry...'); };
+        document.head.appendChild(s);
+    })();
+    </script>
+
+    <!-- ============================================================= -->
     <!-- FIREBASE & QR LIBRARIES -->
     <!-- ============================================================= -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js">
@@ -5214,8 +5231,17 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
     </script>
 
-    <!-- ONESIGNAL WEB SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <!-- ONESIGNAL WEB SDK — skipped in Telegram WebView (not supported) -->
+    <script>
+    // OneSignal requires Service Workers which are NOT supported in Telegram WebView
+    // Loading it there causes the entire app to break with a blank page
+    if (!window.__tgDetected) {
+        var os = document.createElement('script');
+        os.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+        os.defer = true;
+        document.head.appendChild(os);
+    }
+    </script>
 
     <!-- ============================================================= -->
     <!-- FIREBASE CONFIG & APP LOGIC -->
@@ -5244,14 +5270,50 @@
         let tgAuthDone    = false;
 
         // كشف بيئة تيليجرام فوراً
+        window.__tgDetected = false;
         (function detectTelegram() {
             tgApp         = window.Telegram?.WebApp || null;
             isTelegramEnv = !!(tgApp && tgApp.initData);
+            window.__tgDetected = isTelegramEnv;
             if (isTelegramEnv) {
+                console.log('[NDOG] Telegram Mini App environment detected');
                 tgApp.ready();
                 tgApp.expand();
             }
         })();
+
+        // If Telegram SDK not loaded yet but we're likely in Telegram, wait for it
+        if (!isTelegramEnv && !window.__tgSdkFailed && /Telegram/i.test(navigator.userAgent)) {
+            (function waitForTgSdk(){
+                if (window.__tgSdkReady) {
+                    tgApp = window.Telegram?.WebApp || null;
+                    isTelegramEnv = !!(tgApp && tgApp.initData);
+                    window.__tgDetected = isTelegramEnv;
+                    if (isTelegramEnv) {
+                        console.log('[NDOG] Telegram SDK loaded after delay');
+                        tgApp.ready();
+                        tgApp.expand();
+                    }
+                } else if (!window.__tgSdkFailed) {
+                    setTimeout(waitForTgSdk, 100);
+                }
+            })();
+        }
+
+        // ========== GLOBAL ERROR HANDLER (prevents blank page) ==========
+        window.__ndogErrors = [];
+        window.addEventListener('error', function(e) {
+            console.error('[NDOG] Global error:', e.message, e.filename, e.lineno);
+            window.__ndogErrors.push(e.message);
+            // Don't let errors in non-critical scripts kill the app
+            if (e.filename && (e.filename.includes('onesignal') || e.filename.includes('OneSignal'))) {
+                e.preventDefault();
+                console.warn('[NDOG] OneSignal error suppressed');
+            }
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('[NDOG] Unhandled promise rejection:', e.reason);
+        });
 
         // ========== ONESIGNAL PUSH NOTIFICATIONS ==========
         let oneSignalInitialized = false;
@@ -5259,6 +5321,12 @@
         async function initOneSignal() {
             // Guard: لا نعيد التهيئة أبداً إذا تمت مرة واحدة
             if (oneSignalInitialized || !currentUser) return;
+
+            // Skip OneSignal entirely in Telegram WebView (Service Workers not supported)
+            if (isTelegramEnv || window.__tgDetected) {
+                console.log('[NDOG] Skipping OneSignal in Telegram environment');
+                return;
+            }
 
             if (typeof OneSignal === 'undefined') {
                 console.warn('[NDOG] OneSignal SDK not loaded yet, retrying...');
@@ -5592,13 +5660,18 @@
                     if (typeof showToast === 'function') {
                         showToast('🔔 ' + (n.title || '') + ': ' + (n.message || ''), 'info');
                     }
-                    if (Notification.permission === 'granted') {
-                        new Notification(n.title || 'NDOG Coin', {
-                            body: n.message || '',
-                            icon: './icons/icon-192.png',
-                            badge: './icons/icon-72.png',
-                            tag: 'ndog-rtdb-' + Date.now(),
-                        });
+                    // Guard: Notification API not available in Telegram WebView
+                    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                        try {
+                            new Notification(n.title || 'NDOG Coin', {
+                                body: n.message || '',
+                                icon: './icons/icon-192.png',
+                                badge: './icons/icon-72.png',
+                                tag: 'ndog-rtdb-' + Date.now(),
+                            });
+                        } catch(notifErr) {
+                            console.warn('[NDOG] Notification failed:', notifErr);
+                        }
                     }
                     loadNotificationsEnhanced();
                 }
@@ -6197,23 +6270,33 @@ async function signInWithGoogle() {
         if (tgAuthDone) return;
         tgAuthDone = true;
 
+        // Hide auth screen and show loading
+        var authEl = document.getElementById('authScreens');
+        if (authEl) authEl.style.display = 'none';
         showLoading();
 
         try {
 
+            console.log('[NDOG] Sending Telegram auth request to Worker...');
             const response = await fetch(
                 `${WORKER_URL}/api/auth?initData=${encodeURIComponent(tgApp.initData)}`
             );
 
+            if (!response.ok) {
+                throw new Error('Worker returned status ' + response.status);
+            }
+
             const data = await response.json();
 
-            if (!response.ok || !data.ok || !data.customToken) {
+            if (!data.ok || !data.customToken) {
                 throw new Error(data.error || "Telegram authentication failed");
             }
 
+            console.log('[NDOG] Got custom token, signing in to Firebase...');
             const result = await auth.signInWithCustomToken(data.customToken);
 
             currentUser = result.user;
+            console.log('[NDOG] Firebase auth successful, uid:', currentUser.uid);
 
             // إذا أعاد الـ Worker بيانات المستخدم استخدمها مباشرة
             if (data.user) {
@@ -6255,13 +6338,26 @@ async function signInWithGoogle() {
             tgAuthDone = false;
 
             hideLoading();
-
-            console.error(err);
+            console.error('[NDOG] Telegram auth error:', err);
 
             showToast(
                 err.message || "Telegram Login Failed",
                 "error"
             );
+
+            // Show retry UI instead of blank screen
+            var authEl2 = document.getElementById('authScreens');
+            if (authEl2) {
+                authEl2.style.display = 'flex';
+                authEl2.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 20px;text-align:center;width:100%">' +
+                    '<div style="font-size:64px">🐕</div>' +
+                    '<div style="font-size:22px;font-weight:700;color:var(--text-1)">NDOG Coin</div>' +
+                    '<div style="font-size:14px;color:var(--red)">' + (currentLang === 'ar' ? 'فشل الاتصال بالسيرفر' : 'Server connection failed') + '</div>' +
+                    '<div style="font-size:12px;color:var(--text-3)">' + (err.message || '') + '</div>' +
+                    '<button onclick="tgAuthDone=false;signInWithGoogle()" style="margin-top:10px;padding:12px 32px;background:var(--gold);color:#000;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer">' +
+                    (currentLang === 'ar' ? 'إعادة المحاولة' : 'Retry') + '</button>' +
+                    '</div>';
+            }
 
         }
 
@@ -6478,7 +6574,12 @@ async function signInWithGoogle() {
 
         // ========== LOGOUT ==========
         function logoutUser() {
-            if (!confirm(t('هل تريد تسجيل الخروج؟', 'Sign out?'))) return;
+            // Guard: confirm() may not work in Telegram WebView
+            if (typeof confirm === 'function' && !confirm(t('هل تريد تسجيل الخروج؟', 'Sign out?'))) return;
+            if (isTelegramEnv) {
+                showToast(t('لا يمكن تسجيل الخروج داخل تيليجرام', 'Cannot sign out inside Telegram'), 'info');
+                return;
+            }
             if (cooldownInterval) clearInterval(cooldownInterval);
             // Mining persists in Firebase — do NOT stop miningInterval here
             // It will resume on next login via savedMiningStart
@@ -8408,30 +8509,57 @@ async function signInWithGoogle() {
             setTimeout(buildWheel, 500);
 
             // Auth state listener
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    // Check if user has profile in DB
-                    db.ref('users/' + user.uid).once('value').then(snap => {
-                        if (snap.exists()) {
-                            userData = { ...snap.val(), uid: user.uid };
-                            showApp();
-                            hideLoading();
-                        } else {
-                            // Show profile completion
-                            hideLoading();
-                            showProfileCompleteModal(user);
+            auth.onAuthStateChanged(function(user) {
+                try {
+                    if (user) {
+                        currentUser = user;
+
+                        // If in Telegram and logged in via custom token, link telegram if needed
+                        if (isTelegramEnv && !user.isAnonymous && tgApp && tgApp.initData && !tgAuthDone) {
+                            // Try linking telegram to existing Google account
+                            linkTelegramToCurrentAccount().catch(function() {});
                         }
-                    }).catch(err => {
+
+                        // Check if user has profile in DB
+                        db.ref('users/' + user.uid).once('value').then(function(snap) {
+                            if (snap.exists()) {
+                                userData = Object.assign({}, snap.val(), { uid: user.uid });
+                                showApp();
+                                hideLoading();
+
+                                // Init OneSignal only for non-Telegram
+                                if (!isTelegramEnv) {
+                                    initOneSignal();
+                                }
+                            } else {
+                                // Show profile completion
+                                hideLoading();
+                                showProfileCompleteModal(user);
+                            }
+                        }).catch(function(err) {
+                            console.error('[NDOG] User data load error:', err);
+                            hideLoading();
+                            if (typeof showToast === 'function') showToast(t('خطأ في التحميل', 'Load error'), 'error');
+                        });
+                    } else {
+                        currentUser = null;
+                        userData = null;
+                        var mainAppEl = document.getElementById('mainApp');
+                        var authEl = document.getElementById('authScreens');
+                        var notifEl = document.getElementById('notifBellBtn');
+                        if (mainAppEl) mainAppEl.style.display = 'none';
+                        if (authEl) authEl.style.display = 'flex';
+                        if (notifEl) notifEl.style.display = 'none';
                         hideLoading();
-                        showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                    });
-                } else {
-                    currentUser = null;
-                    userData = null;
-                    document.getElementById('mainApp').style.display = 'none';
-                    document.getElementById('authScreens').style.display = 'flex';
-                    document.getElementById('notifBellBtn').style.display = 'none';
+
+                        // ===== CRITICAL: Auto-trigger Telegram auth in Telegram WebView =====
+                        if (isTelegramEnv && !tgAuthDone) {
+                            console.log('[NDOG] No user in Telegram, triggering auto-auth...');
+                            signInWithGoogle(); // This routes to Telegram auth when isTelegramEnv=true
+                        }
+                    }
+                } catch(authErr) {
+                    console.error('[NDOG] onAuthStateChanged error:', authErr);
                     hideLoading();
                 }
             });
@@ -8537,7 +8665,8 @@ async function signInWithGoogle() {
         })();
 
         // ========== SERVICE WORKER (Standalone PWA) ==========
-        if ('serviceWorker' in navigator) {
+        // Skip SW registration entirely in Telegram WebView — not supported and causes issues
+        if ('serviceWorker' in navigator && !isTelegramEnv && !window.__tgDetected) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).then((reg) => {
                     console.log('[NDOG] SW registered with FCM:', reg.scope);
@@ -8575,7 +8704,29 @@ async function signInWithGoogle() {
                     console.warn('[NDOG] SW registration failed:', err);
                 });
             });
+        } else if (isTelegramEnv) {
+            console.log('[NDOG] Skipping Service Worker in Telegram WebView');
         }
+
+        // ========== AUTH TIMEOUT (prevents forever-loading in Telegram) ==========
+        setTimeout(function() {
+            if (isTelegramEnv && !currentUser && !tgAuthDone) {
+                console.warn('[NDOG] Auth timeout — showing fallback login');
+                hideLoading();
+                // Show a helpful error message instead of blank screen
+                var loginScreen = document.getElementById('loginScreen');
+                if (loginScreen) {
+                    loginScreen.style.display = 'flex';
+                    loginScreen.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 20px;text-align:center">' +
+                        '<div style="font-size:64px">🐕</div>' +
+                        '<div style="font-size:22px;font-weight:700;color:var(--text-1)">NDOG Coin</div>' +
+                        '<div style="font-size:14px;color:var(--red)">' + (currentLang === 'ar' ? 'خطأ في الاتصال. حاول مرة أخرى.' : 'Connection error. Please try again.') + '</div>' +
+                        '<button onclick="location.reload()" style="margin-top:10px;padding:12px 32px;background:var(--gold);color:#000;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer">' +
+                        (currentLang === 'ar' ? 'إعادة المحاولة' : 'Retry') + '</button>' +
+                        '</div>';
+                }
+            }
+        }, 15000); // 15 seconds timeout
 
         console.log('🐕 NDOG Coin v3.0 (Google Auth) loaded');
     </script>

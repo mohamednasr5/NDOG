@@ -7737,7 +7737,7 @@ async function signInWithGoogle() {
         function renderLeaderboard(users) {
             var el = document.getElementById('topBalanceList');
             if (!el) return;
-            var top = users.slice(0, 20);
+            var top = users.slice(0, 10);
             el.innerHTML = '';
 
             // Show "My Rank" card

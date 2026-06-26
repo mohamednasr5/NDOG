@@ -5243,15 +5243,21 @@
         let oneSignalInitialized = false;
 
         async function initOneSignal() {
+            // Guard: لا نعيد التهيئة أبداً إذا تمت مرة واحدة
             if (oneSignalInitialized || !currentUser) return;
-            try {
-                if (typeof OneSignal === 'undefined') {
-                    console.warn('[NDOG] OneSignal SDK not loaded yet, retrying...');
-                    setTimeout(initOneSignal, 1000);
-                    return;
-                }
 
-                OneSignal.init({
+            if (typeof OneSignal === 'undefined') {
+                console.warn('[NDOG] OneSignal SDK not loaded yet, retrying...');
+                setTimeout(initOneSignal, 1000);
+                return;
+            }
+
+            // وضع العلم أولاً لمنع أي استدعاء متزامن ثانٍ
+            oneSignalInitialized = true;
+
+            try {
+                // OneSignal v16 — init مرة واحدة فقط
+                await OneSignal.init({
                     appId: '84479925-fa80-47df-a5c8-599c56739791',
                     notifyButton: { enable: false },
                     allowLocalhostAsSecureOrigin: true,
@@ -5275,29 +5281,27 @@
                     }
                 });
 
-                OneSignal.login(currentUser.uid);
+                // OneSignal v16: ربط المستخدم بـ externalId
+                await OneSignal.login(currentUser.uid);
 
-                // Save OneSignal external ID to Firebase for admin targeting
-                OneSignal.User.PushSubscription.getIdAsync().then(id => {
-                    if (id) {
-                        const platform = getPlatform();
-                        db.ref('onesignalIds/' + currentUser.uid).set({
-                            subscriptionId: id,
-                            platform: platform,
-                            updatedAt: firebase.database.ServerValue.TIMESTAMP
-                        });
-                        console.log('[NDOG] OneSignal subscription saved:', id);
-                    }
-                });
+                // OneSignal v16 API الصحيحة لجلب subscription ID
+                // getIdAsync أُزيلت — نستخدم id property مباشرةً
+                const subId = OneSignal.User.PushSubscription.id;
+                if (subId) {
+                    db.ref('onesignalIds/' + currentUser.uid).set({
+                        subscriptionId: subId,
+                        platform: getPlatform(),
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    console.log('[NDOG] OneSignal subscription saved:', subId);
+                }
 
-                // Handle foreground notifications from OneSignal
-                OneSignal.Notifications.addEventListener('click', (event) => {
-                    console.log('[NDOG] OneSignal notification clicked:', event);
+                // الاستماع للإشعارات في المقدمة
+                OneSignal.Notifications.addEventListener('click', () => {
                     loadNotificationsEnhanced();
                 });
 
                 OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
-                    console.log('[NDOG] OneSignal foreground notification:', event);
                     const notif = event.notification;
                     if (notif && currentUser) {
                         db.ref('notifications/' + currentUser.uid).push({
@@ -5313,9 +5317,10 @@
                     loadNotificationsEnhanced();
                 });
 
-                oneSignalInitialized = true;
                 console.log('[NDOG] OneSignal initialized for user:', currentUser.uid);
             } catch(err) {
+                // إذا فشل الـ init نعيد الفرصة للمحاولة لاحقاً
+                oneSignalInitialized = false;
                 console.warn('[NDOG] OneSignal init error:', err);
             }
         }
@@ -7914,7 +7919,9 @@ async function signInWithGoogle() {
 
             // First, load user's dismissed news IDs
             const dismissedPromise = currentUser
-                ? db.ref('dismissedNews/' + currentUser.uid).once('value').then(s => s.val() || {})
+                ? db.ref('dismissedNews/' + currentUser.uid).once('value')
+                    .then(s => s.val() || {})
+                    .catch(() => ({}))
                 : Promise.resolve({});
 
             dismissedPromise.then(dismissed => {

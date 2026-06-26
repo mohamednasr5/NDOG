@@ -7805,7 +7805,7 @@ async function signInWithGoogle() {
                             }
                         }
                     }
-                });
+                }).catch(function() { /* lb_streak not in rules yet — silent */ });
             }
 
             top.forEach(function(u, i) {
@@ -7829,7 +7829,7 @@ async function signInWithGoogle() {
             if (!topUser || topUser.uid !== currentUser.uid) return; // Not #1
 
             var streakRef = db.ref('lb_streak/' + currentUser.uid);
-            streakRef.once('value').then(function(snap) {
+            streakRef.once('value').catch(function() { return { val: function(){ return {}; }, exists: function(){ return false; } }; }).then(function(snap) {
                 var data = snap.val() || {};
                 var lastDate = data.lastDate || '';
                 var days = data.days || 0;

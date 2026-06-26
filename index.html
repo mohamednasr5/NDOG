@@ -2476,22 +2476,39 @@
             margin-left: 6px;
         }
         .lb-my-rank {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 14px;
+            background: linear-gradient(135deg, rgba(212,160,23,0.08), rgba(26,107,219,0.08));
+            border: 1px solid rgba(212,160,23,0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-top: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
             font-size: 13px;
+        }
+        .lb-my-rank .lb-mr-left,
+        .lb-my-rank .lb-mr-right {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .lb-my-rank .lb-mr-right {
+            align-items: flex-end;
         }
         .lb-my-rank .lb-mr-label {
             color: var(--text-3);
+            font-size: 11px;
         }
         .lb-my-rank .lb-mr-value {
             font-weight: 700;
+            font-size: 18px;
             color: var(--gold);
+        }
+        .lb-my-rank .lb-mr-balance {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--accent);
         }
 
         .lb-tabs {
@@ -4856,15 +4873,21 @@
                             <span data-ar="إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>30 يوم متتالي</strong> تحصل على <strong>30 عملة NDOG</strong> مكافأة" data-en="If you stay <strong>#1</strong> for <strong>30 consecutive days</strong> you get <strong>30 NDOG</strong> reward">إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>30 يوم متتالي</strong> تحصل على <strong>30 عملة NDOG</strong> مكافأة</span>
                         </div>
                     </div>
-                    <div id="lbMyRank" class="lb-my-rank" style="display:none;">
-                        <span class="lb-mr-label" data-ar="ترتيبك" data-en="Your Rank">ترتيبك</span>
-                        <span class="lb-mr-value" id="lbMyRankVal">—</span>
-                    </div>
                     <div class="lb-tabs">
                         <button class="lb-tab active" data-lb="alltime" type="button" data-ar="كل الأوقات" data-en="All Time">All Time</button>
                         <button class="lb-tab" data-lb="monthly" type="button" data-ar="شهري" data-en="Monthly">Monthly</button>
                     </div>
                     <div id="topBalanceList" class="leader-list"></div>
+                    <div id="lbMyRank" class="lb-my-rank" style="display:none;">
+                        <div class="lb-mr-left">
+                            <span class="lb-mr-label" data-ar="ترتيبك" data-en="Your Rank">ترتيبك</span>
+                            <span class="lb-mr-value" id="lbMyRankVal">—</span>
+                        </div>
+                        <div class="lb-mr-right">
+                            <span class="lb-mr-label" data-ar="رصيدك" data-en="Your Balance">رصيدك</span>
+                            <span class="lb-mr-balance" id="lbMyRankBalance">— NDOG</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Airdrop -->
@@ -7748,7 +7771,11 @@ async function signInWithGoogle() {
                 if (myIdx >= 0) {
                     var myRankNum = myIdx + 1;
                     var myEmoji = myRankNum === 1 ? '🥇' : myRankNum === 2 ? '🥈' : myRankNum === 3 ? '🥉' : '#' + myRankNum;
-                    myRankVal.innerHTML = myEmoji + ' ' + myRankNum + ' <span style="color:var(--text-3);font-weight:400">/ ' + users.length + '</span>';
+                    myRankVal.innerHTML = myEmoji + ' ' + myRankNum + ' <span style="color:var(--text-3);font-weight:400;font-size:12px">/ ' + users.length + '</span>';
+                    var myBalanceEl = document.getElementById('lbMyRankBalance');
+                    if (myBalanceEl) {
+                        myBalanceEl.textContent = fmt(users[myIdx].balance || 0) + ' NDOG';
+                    }
                     myRankDiv.style.display = 'flex';
                 } else {
                     myRankDiv.style.display = 'none';

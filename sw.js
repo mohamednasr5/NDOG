@@ -30,10 +30,9 @@ const CDN_CACHE_URLS = [
 ];
 
 // ═══════════════════════════════════════════════════════
-// IMPORT ONESIGNAL SERVICE WORKER
+// NOTE: OneSignal SW is managed automatically by OneSignalSDK.page.js
+// Do NOT importScripts here — it causes CORP/COEP evaluation failure
 // ═══════════════════════════════════════════════════════
-
-importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.worker.js');
 
 // ═══════════════════════════════════════════════════════
 // INDEXED DB — Store notifications for in-app display

@@ -6254,9 +6254,7 @@ async function signInWithGoogle() {
         return;
     }
 
-    // ===== Google Login =====
-    // داخل Telegram WebView: نستخدم Popup لأن Redirect لا يعمل في WebView
-    // في المتصفح العادي: نستخدم Redirect لتجنب مشاكل COOP
+    // ===== Google Login — Popup =====
 
     showLoading();
 
@@ -6266,27 +6264,8 @@ async function signInWithGoogle() {
         provider.addScope("profile");
         provider.addScope("email");
 
-        const isWebView = isTelegramEnv ||
-            /wv|WebView/.test(navigator.userAgent) ||
-            (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-
-        if (isWebView) {
-            // Popup — يعمل داخل Telegram WebView
-            const result = await auth.signInWithPopup(provider);
-            currentUser = result.user;
-            const snap = await db.ref("users/" + currentUser.uid).once("value");
-            hideLoading();
-            if (snap.exists()) {
-                userData = { uid: currentUser.uid, ...snap.val() };
-                showApp();
-            } else {
-                showProfileCompleteModal(currentUser);
-            }
-        } else {
-            // Redirect — للمتصفح العادي (لا popup، لا COOP warning)
-            await auth.signInWithRedirect(provider);
-            // الصفحة ستُعاد تحميلها — handleRedirectResult() تأخذ من هنا
-        }
+        await auth.signInWithPopup(provider);
+        // onAuthStateChanged يتولى الباقي تلقائياً
 
     } catch (err) {
 
@@ -6311,38 +6290,6 @@ async function signInWithGoogle() {
 
 }
 
-// معالجة نتيجة الـ redirect بعد العودة من Google
-async function handleRedirectResult() {
-    try {
-        const result = await auth.getRedirectResult();
-        if (!result || !result.user) return; // لا يوجد redirect جارٍ
-
-        currentUser = result.user;
-        showLoading();
-
-        const snap = await db.ref("users/" + currentUser.uid).once("value");
-        hideLoading();
-
-        if (snap.exists()) {
-            userData = { uid: currentUser.uid, ...snap.val() };
-            showApp();
-        } else {
-            showProfileCompleteModal(currentUser);
-        }
-
-    } catch (err) {
-        hideLoading();
-        console.error('[NDOG] Redirect result error:', err);
-
-        const msgs = {
-            "auth/unauthorized-domain": t("النطاق غير مصرح به", "Unauthorized domain")
-        };
-        showToast(
-            msgs[err.code] || t("فشل الدخول: " + err.message, "Login failed: " + err.message),
-            "error"
-        );
-    }
-}
         // ========== PROFILE COMPLETION ==========
         function showProfileCompleteModal(user) {
             const modal = document.getElementById('profileCompleteModal');
@@ -8442,9 +8389,6 @@ async function handleRedirectResult() {
             wireEvents();
             initBgCanvas();
             setTimeout(buildWheel, 500);
-
-            // معالجة نتيجة redirect من Google (إن وُجدت)
-            handleRedirectResult();
 
             // Auth state listener
             auth.onAuthStateChanged(user => {

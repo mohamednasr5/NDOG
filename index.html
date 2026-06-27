@@ -6,6 +6,7 @@
     <!-- Uses User-Agent (synchronous, 100% reliable in Telegram WebView)         -->
     <!-- Hides Google login button IMMEDIATELY so user never sees it              -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
+	<script>(function(s){s.dataset.zone='11209610',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <script>
     (function() {
         var ua = navigator.userAgent || '';
@@ -4334,6 +4335,7 @@
                 <!-- Balance Card -->
                 <div class="balance-card">
                     <div class="balance-card-bg"></div>
+                <div class="balance-card-currency-bg">NDOG</div>
                     <div class="balance-label" data-ar="رصيد NDOG" data-en="NDOG Balance">NDOG Balance</div>
                     <div class="balance-amount-wrap">
                         <div class="balance-amount" id="dashBalance">0</div>
@@ -4531,7 +4533,6 @@
                         <button class="wallet-action-btn" id="walletP2PBtn" type="button">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                             <span data-ar="تحويل P2P" data-en="P2P Transfer">P2P Transfer</span>
-                            <small class="coming-soon-tag" data-ar="قريباً" data-en="Soon">Soon</small>
                         </button>
                     </div>
                 </div>
@@ -4600,6 +4601,18 @@
                             <div class="plan-days" data-ar="180 يوم" data-en="180 Days">180 Days</div>
                             <div class="plan-apr">25% APR</div>
                             <div class="plan-min" data-ar="حد أدنى 2000" data-en="Min 2K">Min 2K</div>
+                        </label>
+                        <label class="plan-card" data-plan="365_days">
+                            <input type="radio" name="stakePlan" value="365">
+                            <div class="plan-days" data-ar="سنة كاملة" data-en="1 Year">1 Year</div>
+                            <div class="plan-apr">50% APR</div>
+                            <div class="plan-min" data-ar="حد أدنى 5000" data-en="Min 5K">Min 5K</div>
+                        </label>
+                        <label class="plan-card" data-plan="1095_days">
+                            <input type="radio" name="stakePlan" value="1095">
+                            <div class="plan-days" data-ar="3 سنوات" data-en="3 Years">3 Years</div>
+                            <div class="plan-apr">100% APR</div>
+                            <div class="plan-min" data-ar="حد أدنى 10,000" data-en="Min 10K">Min 10K</div>
                         </label>
                     </div>
                     <div class="stake-input-row">
@@ -5018,6 +5031,19 @@
                     </form>
                 </div>
 
+
+                <!-- Biometric / Fingerprint -->
+                <div class="glass-card" id="biometricSection">
+                    <div class="card-header">
+                        <span class="card-header-icon">🔐</span>
+                        <span class="card-header-title" data-ar="تسجيل الدخول بالبصمة" data-en="Fingerprint Login">تسجيل الدخول بالبصمة</span>
+                        <span class="card-header-badge" id="biometricStatus" data-ar="غير مفعّل" data-en="Disabled">غير مفعّل</span>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn-secondary" id="enableBiometricBtn" type="button" style="flex:1;" data-ar=" تفعيل البصمة" data-en=" Enable Fingerprint"> تفعيل البصمة</button>
+                        <button class="btn-secondary" id="disableBiometricBtn" type="button" style="flex:1;display:none;" data-ar=" إلغاء البصمة" data-en=" Disable Fingerprint"> إلغاء البصمة</button>
+                    </div>
+                </div>
                 <!-- Notifications -->
                 <div class="glass-card">
                     <div class="card-header">
@@ -5046,12 +5072,12 @@
                         <span class="card-header-icon">📄</span>
                         <span class="card-header-title" data-ar="الورقة البيضاء" data-en="Whitepaper">Whitepaper</span>
                     </div>
-                    <a href="./whitepaper-en.html" target="_blank" rel="noopener" class="profile-link-row">
+                    <a href="./whitepaper-en.html" target="_blank" rel="noopener" class="profile-link-row" onclick="if(typeof trackWhitepaperRead==='function')trackWhitepaperRead();">
                         <div class="profile-link-icon">🇬🇧</div>
                         <span class="profile-link-label" data-ar="الورقة البيضاء - إنجليزي" data-en="Whitepaper — English">Whitepaper — English</span>
                         <svg class="profile-link-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </a>
-                    <a href="./whitepaper-ar.html" target="_blank" rel="noopener" class="profile-link-row">
+                    <a href="./whitepaper-ar.html" target="_blank" rel="noopener" class="profile-link-row" onclick="if(typeof trackWhitepaperRead==='function')trackWhitepaperRead();">
                         <div class="profile-link-icon">🇸🇦</div>
                         <span class="profile-link-label" data-ar="الورقة البيضاء - عربي" data-en="Whitepaper — Arabic">Whitepaper — Arabic</span>
                         <svg class="profile-link-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
@@ -5192,6 +5218,33 @@
         </div>
     </div>
 
+
+    <!-- P2P Transfer Modal -->
+    <div id="p2pTransferModal" class="modal-overlay" style="display:none;">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title" data-ar="تحويل P2P" data-en="P2P Transfer">تحويل P2P</div>
+            <div style="padding:0 20px 20px;">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" data-ar="كود دعوة المستلم" data-en="Recipient Referral Code">كود دعوة المستلم</label>
+                    <input class="form-input" type="text" id="p2pReferralCode" maxlength="12" placeholder="XXXXX" autocomplete="off" style="text-transform:uppercase;">
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" data-ar="المبلغ (الحد الأدنى 5000 NDOG)" data-en="Amount (Min 5000 NDOG)">المبلغ (الحد الأدنى 5000 NDOG)</label>
+                    <input class="form-input" type="number" id="p2pAmount" min="5000" placeholder="5000" inputmode="decimal">
+                </div>
+                <div style="background:var(--surface-2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:var(--text-3);">
+                    <span data-ar="⚠️ التحويل فوري ولا يمكن التراجع عنه. تأكد من كود الدعوة الصحيح." data-en="⚠️ Transfer is instant and cannot be reversed. Verify the code.">⚠️ التحويل فوري ولا يمكن التراجع عنه. تأكد من كود الدعوة الصحيح.</span>
+                </div>
+                <button class="btn-primary" id="p2pTransferSubmitBtn" type="button">
+                    <span data-ar="إرسال" data-en="Send">إرسال</span>
+                </button>
+                <button class="btn-secondary" id="p2pTransferCloseBtn" type="button" style="margin-top:8px;">
+                    <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Profile Completion Modal (for new users) -->
     <div id="profileCompleteModal" class="modal-overlay profile-complete-modal" style="display:none;">
         <div class="modal-sheet">
@@ -6528,7 +6581,7 @@ async function signInWithGoogle() {
                 phone: phone,
                 country: country,
                 dialCode: dialCode,
-                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+                photoURL: currentUser.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=random",
                 balance: 0,
                 streak: 0,
                 lastClaimAt: 0,
@@ -6546,7 +6599,8 @@ async function signInWithGoogle() {
                 referralEarnings: 0,
                 rewardEarnings: 0,
                 stakingEarnings: 0,
-                isPro: false
+                isPro: false,
+                platform: isTelegramEnv ? "telegram" : "web"
             };
 
             const updates = {};
@@ -6568,8 +6622,8 @@ async function signInWithGoogle() {
                             if (refUid && refUid !== uid) {
                                 // Set referredBy INSIDE updates BEFORE writing
                                 updates['users/' + uid + '/referredBy'] = refUid;
-                                updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email,
-                                    level: 1 };
+                                updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email || '',
+                                    displayName: name, photoURL: photoURL };
                                 resolve(refUid);
                                 return;
                             }
@@ -6593,13 +6647,21 @@ async function signInWithGoogle() {
 
                     // Give referral bonuses AFTER profile is written
                     if (refUid) {
-                        // L1 bonus to referrer (balance + referralEarnings in single transaction)
+                        // L1 bonus to referrer
                         db.ref('users/' + refUid).transaction(d => {
                             if (!d) return d;
                             d.balance = (Number(d.balance) || 0) + 50;
                             d.referralEarnings = (Number(d.referralEarnings) || 0) + 50;
                             return d;
                         }).then(r => { console.log('[NDOG] L1 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
+
+                        // Give 50 NDOG to the new user too
+                        db.ref('users/' + uid).transaction(d => {
+                            if (!d) return d;
+                            d.balance = (Number(d.balance) || 0) + 50;
+                            d.totalClaimed = (Number(d.totalClaimed) || 0) + 50;
+                            return d;
+                        });
 
                         // L2 bonus
                         db.ref('users/' + refUid + '/referredBy').once('value').then(s2 => {
@@ -6612,7 +6674,7 @@ async function signInWithGoogle() {
                                     return d;
                                 }).then(r => { console.log('[NDOG] L2 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                 db.ref('referrals/' + l2Uid + '/' + uid).set({ referredAt: ts,
-                                    email: currentUser.email, level: 2 });
+                                    email: currentUser.email || '', displayName: name, photoURL: photoURL });
                                 // L3 bonus
                                 db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
                                     if (s3.exists()) {
@@ -6624,7 +6686,7 @@ async function signInWithGoogle() {
                                             return d;
                                         }).then(r => { console.log('[NDOG] L3 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                         db.ref('referrals/' + l3Uid + '/' + uid).set({ referredAt: ts,
-                                            email: currentUser.email, level: 3 });
+                                            email: currentUser.email || '', displayName: name, photoURL: photoURL });
                                     }
                                 });
                             }

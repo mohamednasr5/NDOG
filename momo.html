@@ -758,14 +758,27 @@ select.field-input{cursor:pointer}
             </div>
             <div></div>
           </div>
-          <div class="form-group" style="margin-bottom:16px" id="resultGroup" hidden>
-            <label class="form-label-sm">النتيجة</label>
-            <select class="field-input" id="matchResult">
-              <option value="">-- اختر النتيجة --</option>
-              <option value="team1">فوز الفريق الأول</option>
-              <option value="draw" id="resultDrawOption">تعادل</option>
-              <option value="team2">فوز الفريق الثاني</option>
-            </select>
+          <div id="resultGroup" hidden style="margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label-sm">النتيجة</label>
+              <select class="field-input" id="matchResult" onchange="onResultChange()">
+                <option value="">-- اختر النتيجة --</option>
+                <option value="team1">فوز الفريق الأول</option>
+                <option value="draw" id="resultDrawOption">تعادل</option>
+                <option value="team2">فوز الفريق الثاني</option>
+              </select>
+            </div>
+            <div id="scoreGroup" style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end">
+              <div class="form-group">
+                <label class="form-label-sm">أهداف الفريق الأول</label>
+                <input class="field-input" type="number" id="matchScore1" min="0" value="0" style="text-align:center;font-size:20px;font-weight:700">
+              </div>
+              <div style="padding-bottom:8px;font-weight:800;color:var(--text3);font-size:18px;text-align:center">-</div>
+              <div class="form-group">
+                <label class="form-label-sm">أهداف الفريق الثاني</label>
+                <input class="field-input" type="number" id="matchScore2" min="0" value="0" style="text-align:center;font-size:20px;font-weight:700">
+              </div>
+            </div>
           </div>
           <button class="btn btn-primary btn-full" onclick="saveMatch()">⚽ حفظ المباراة</button>
         </div>
@@ -1697,6 +1710,7 @@ function saveMatch() {
 
     if (!team1 || !team2) { showToast('أدخل اسمي الفريقين', 'error'); return; }
     if (!matchDate || !matchTime) { showToast('أدخل التاريخ والوقت', 'error'); return; }
+    if (status === 'finished' && !result) { showToast('يجب اختيار نتيجة المباراة عند انتهائها', 'error'); document.getElementById('resultGroup').hidden = false; return; }
 
     const team1Code = adminGetCode(team1);
     const team2Code = adminGetCode(team2);
@@ -1712,6 +1726,8 @@ function saveMatch() {
     const matchData = {
         team1, team2, team1Code: team1Code || '', team2Code: team2Code || '',
         matchDate, matchTime, matchTimestamp, prize, status, drawEnabled,
+        score1: Number(document.getElementById('matchScore1').value) || 0,
+        score2: Number(document.getElementById('matchScore2').value) || 0,
         result: status === 'finished' ? result : null,
         winnerProcessed: false,
         createdAt: Date.now()
@@ -1755,7 +1771,10 @@ function clearMatchForm() {
     document.getElementById('drawEnabledLabel').style.color = '#22C55E';
     document.getElementById('matchStatus').value = 'upcoming';
     document.getElementById('matchResult').value = '';
+    document.getElementById('matchScore1').value = '0';
+    document.getElementById('matchScore2').value = '0';
     document.getElementById('resultGroup').hidden = true;
+    document.getElementById('scoreGroup').style.display = '';
     document.getElementById('resultDrawOption').style.display = '';
     document.getElementById('flagPreview1').innerHTML = '';
     document.getElementById('flagPreview2').innerHTML = '';
@@ -1785,8 +1804,9 @@ function loadMatches() {
                 : m.status === 'live'
                 ? '<span style="color:#F59E0B;font-weight:600">جارية</span>'
                 : '<span style="color:#60A5FA;font-weight:600">قادمة</span>';
+            const scoreText = (m.score1 != null && m.score2 != null) ? m.score1 + ' - ' + m.score2 : '';
             const resultText = m.result
-                ? (m.result === 'team1' ? 'فوز ' + m.team1 : m.result === 'draw' ? 'تعادل' : 'فوز ' + m.team2)
+                ? (m.result === 'team1' ? 'فوز ' + m.team1 + (scoreText ? ' (' + scoreText + ')' : '') : m.result === 'draw' ? 'تعادل' + (scoreText ? ' ' + scoreText : '') : 'فوز ' + m.team2 + (scoreText ? ' (' + scoreText + ')' : ''))
                 : '—';
 
             html += '<tr>';
@@ -1820,7 +1840,10 @@ function editMatch(matchId) {
         document.getElementById('matchPrize').value = m.prize || 10000;
         document.getElementById('matchStatus').value = m.status || 'upcoming';
         document.getElementById('matchResult').value = m.result || '';
+        document.getElementById('matchScore1').value = m.score1 != null ? m.score1 : 0;
+        document.getElementById('matchScore2').value = m.score2 != null ? m.score2 : 0;
         document.getElementById('resultGroup').hidden = m.status !== 'finished';
+        document.getElementById('scoreGroup').style.display = '';
         const de = m.drawEnabled !== false;
         document.getElementById('matchDrawEnabled').checked = de;
         document.getElementById('drawEnabledLabel').innerHTML = de ? '✅ مفعل' : '❌ مغلق';
@@ -1867,12 +1890,23 @@ document.getElementById('matchDrawEnabled').addEventListener('change', function(
 function onMatchStatusChange() {
     const status = document.getElementById('matchStatus').value;
     document.getElementById('resultGroup').hidden = status !== 'finished';
+    document.getElementById('scoreGroup').style.display = status === 'finished' ? '' : 'none';
     if (status === 'finished' && !document.getElementById('matchDrawEnabled').checked) {
         document.getElementById('resultDrawOption').style.display = 'none';
         if (document.getElementById('matchResult').value === 'draw') {
             document.getElementById('matchResult').value = '';
         }
     }
+}
+
+function onResultChange() {
+    const r = document.getElementById('matchResult').value;
+    const s1 = document.getElementById('matchScore1');
+    const s2 = document.getElementById('matchScore2');
+    if (r === 'team1') { s1.value = 2; s2.value = 1; }
+    else if (r === 'team2') { s1.value = 1; s2.value = 2; }
+    else if (r === 'draw') { s1.value = 1; s2.value = 1; }
+    else { s1.value = 0; s2.value = 0; }
 }
 
 document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ document.querySelectorAll(".modal-overlay.open").forEach(m=>m.classList.remove("open")); closeMoreMenu(); }});

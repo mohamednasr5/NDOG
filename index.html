@@ -9645,6 +9645,21 @@ async function signInWithGoogle() {
                 html += '<div class="match-vs">VS</div>';
                 html += '<div class="match-team"><img class="match-team-flag" src="' + flag2 + '" alt="" onerror="this.style.background=\'#151B2E\'"><div class="match-team-name">' + esc2 + '</div></div>';
                 html += '</div>';
+                // Final score for finished matches
+                if (isFinished && match.result) {
+                    var s1 = match.score1 != null ? match.score1 : '?';
+                    var s2 = match.score2 != null ? match.score2 : '?';
+                    var resLabel = '', resClass = '';
+                    if (match.result === 'team1') { resLabel = t('\u0641\u0648\u0632','Win') + ' ' + match.team1; resClass = 'rw'; }
+                    else if (match.result === 'draw') { resLabel = t('\u062A\u0639\u0627\u062F\u0644','Draw'); resClass = 'rg'; }
+                    else { resLabel = t('\u0641\u0648\u0632','Win') + ' ' + match.team2; resClass = 'rd'; }
+                    html += '<div class="match-final-score">';
+                    html += '<div class="fs-team"><div class="fs-team-name">' + esc1 + '</div><div class="fs-num">' + s1 + '</div></div>';
+                    html += '<div class="fs-sep">-</div>';
+                    html += '<div class="fs-team"><div class="fs-team-name">' + esc2 + '</div><div class="fs-num">' + s2 + '</div></div>';
+                    html += '</div>';
+                    html += '<div style="text-align:center;margin-bottom:6px"><span class="fs-result-label ' + resClass + '">' + resLabel + '</span></div>';
+                }
                 html += '<div class="match-prize">\uD83C\uDFC6 ' + prize.toLocaleString() + ' NDOG</div>';
                 // Bar
                 html += '<div class="pred-bar-container"><div class="pred-bar">';

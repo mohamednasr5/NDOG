@@ -7266,6 +7266,8 @@ async function signInWithGoogle() {
             // It will resume on next login via savedMiningStart
             if (boostInterval) clearInterval(boostInterval);
             if (boostTimer) clearInterval(boostTimer);
+            // Clear session marker — this is an intentional logout
+            localStorage.removeItem('ndog_had_session');
             auth.signOut();
         }
 
@@ -9311,6 +9313,8 @@ async function signInWithGoogle() {
                 try {
                     if (user) {
                         currentUser = user;
+                        // Mark session as active for unexpected logout detection
+                        localStorage.setItem('ndog_had_session', 'true');
 
                         // In Telegram: link account if logged in via custom token
                         if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
@@ -9363,6 +9367,12 @@ async function signInWithGoogle() {
                         // In Telegram (by SDK or UA): NEVER show login screen
                         // In normal browser: show login screen
                         if (!isTelegramEnv && !window.__tgEarlyDetect) {
+                            // Check if this is an unexpected logout (session was active before)
+                            var hadSession = localStorage.getItem('ndog_had_session') === 'true';
+                            if (hadSession) {
+                                console.log('[NDOG] Session lost unexpectedly, attempting silent re-auth...');
+                                localStorage.removeItem('ndog_had_session');
+                            }
                             if (authEl) authEl.style.display = 'flex';
                         } else {
                             if (authEl) authEl.style.display = 'none';

@@ -19,6 +19,12 @@ const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
+// Force LOCAL persistence — user stays logged in across browser restarts
+// (default is LOCAL, but we set it explicitly to prevent any accidental SESSION/NONE)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(err) {
+  console.warn('[NDOG] Auth persistence set failed (non-critical):', err.message);
+});
+
 // Google Auth Provider
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 googleProvider.addScope('profile');

@@ -741,19 +741,29 @@ select.field-input{cursor:pointer}
             </div>
             <div class="form-group">
               <label class="form-label-sm">الحالة</label>
-              <select class="field-input" id="matchStatus">
+              <select class="field-input" id="matchStatus" onchange="onMatchStatusChange()">
                 <option value="upcoming">قادمة</option>
                 <option value="live">جارية الآن</option>
                 <option value="finished">انتهت</option>
               </select>
             </div>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label-sm">السماح بالتعادل</label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 0">
+                <input type="checkbox" id="matchDrawEnabled" checked style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer">
+                <span id="drawEnabledLabel" style="color:#22C55E;font-weight:600">✅ مفعل</span>
+              </label>
+            </div>
+            <div></div>
+          </div>
           <div class="form-group" style="margin-bottom:16px" id="resultGroup" hidden>
             <label class="form-label-sm">النتيجة</label>
             <select class="field-input" id="matchResult">
               <option value="">-- اختر النتيجة --</option>
               <option value="team1">فوز الفريق الأول</option>
-              <option value="draw">تعادل</option>
+              <option value="draw" id="resultDrawOption">تعادل</option>
               <option value="team2">فوز الفريق الثاني</option>
             </select>
           </div>
@@ -1683,6 +1693,7 @@ function saveMatch() {
     const prize = Number(document.getElementById('matchPrize').value) || 10000;
     const status = document.getElementById('matchStatus').value;
     const result = document.getElementById('matchResult').value || null;
+    const drawEnabled = document.getElementById('matchDrawEnabled').checked;
 
     if (!team1 || !team2) { showToast('أدخل اسمي الفريقين', 'error'); return; }
     if (!matchDate || !matchTime) { showToast('أدخل التاريخ والوقت', 'error'); return; }
@@ -1700,7 +1711,7 @@ function saveMatch() {
 
     const matchData = {
         team1, team2, team1Code: team1Code || '', team2Code: team2Code || '',
-        matchDate, matchTime, matchTimestamp, prize, status,
+        matchDate, matchTime, matchTimestamp, prize, status, drawEnabled,
         result: status === 'finished' ? result : null,
         winnerProcessed: false,
         createdAt: Date.now()
@@ -1739,9 +1750,13 @@ function clearMatchForm() {
     document.getElementById('matchDate').value = '';
     document.getElementById('matchTime').value = '';
     document.getElementById('matchPrize').value = '10000';
+    document.getElementById('matchDrawEnabled').checked = true;
+    document.getElementById('drawEnabledLabel').innerHTML = '✅ مفعل';
+    document.getElementById('drawEnabledLabel').style.color = '#22C55E';
     document.getElementById('matchStatus').value = 'upcoming';
     document.getElementById('matchResult').value = '';
     document.getElementById('resultGroup').hidden = true;
+    document.getElementById('resultDrawOption').style.display = '';
     document.getElementById('flagPreview1').innerHTML = '';
     document.getElementById('flagPreview2').innerHTML = '';
     editingMatchId = null;
@@ -1762,7 +1777,7 @@ function loadMatches() {
             return;
         }
 
-        let html = '<table><thead><tr><th>#</th><th>الفريق 1</th><th>الفريق 2</th><th>التاريخ</th><th>الوقت</th><th>التوقعات</th><th>النتيجة</th><th>إجراءات</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>#</th><th>الفريق 1</th><th>الفريق 2</th><th>التاريخ</th><th>الوقت</th><th>التوقعات</th><th>التعادل</th><th>النتيجة</th><th>إجراءات</th></tr></thead><tbody>';
         matches.forEach(function(m, i) {
             const predCount = m.predictions ? Object.keys(m.predictions).length : 0;
             const statusBadge = m.status === 'finished'
@@ -1781,10 +1796,11 @@ function loadMatches() {
             html += '<td>' + (m.matchDate||'') + '</td>';
             html += '<td>' + (m.matchTime||'') + '</td>';
             html += '<td>' + predCount + '</td>';
+            html += '<td>' + (m.drawEnabled !== false ? '<span style="color:#22C55E">✅</span>' : '<span style="color:#EF4444">❌</span>') + '</td>';
             html += '<td>' + resultText + '</td>';
             html += '<td style="white-space:nowrap">';
-            html += '<button class="btn btn-info" style="padding:4px 10px;font-size:11px;margin:2px" onclick="editMatch('' + m.id + '')">✏️</button>';
-            html += '<button class="btn btn-danger" style="padding:4px 10px;font-size:11px;margin:2px" onclick="deleteMatch('' + m.id + '')">🗑️</button>';
+            html += '<button class="btn btn-info" style="padding:4px 10px;font-size:11px;margin:2px" onclick="editMatch(\'' + m.id + '\')">✏️</button>';
+            html += '<button class="btn btn-danger" style="padding:4px 10px;font-size:11px;margin:2px" onclick="deleteMatch(\'' + m.id + '\')">🗑️</button>';
             html += '</td></tr>';
         });
         html += '</tbody></table>';
@@ -1805,6 +1821,11 @@ function editMatch(matchId) {
         document.getElementById('matchStatus').value = m.status || 'upcoming';
         document.getElementById('matchResult').value = m.result || '';
         document.getElementById('resultGroup').hidden = m.status !== 'finished';
+        const de = m.drawEnabled !== false;
+        document.getElementById('matchDrawEnabled').checked = de;
+        document.getElementById('drawEnabledLabel').innerHTML = de ? '✅ مفعل' : '❌ مغلق';
+        document.getElementById('drawEnabledLabel').style.color = de ? '#22C55E' : '#EF4444';
+        document.getElementById('resultDrawOption').style.display = de ? '' : 'none';
         previewFlag('team1');
         previewFlag('team2');
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -1823,6 +1844,35 @@ function deleteMatch(matchId) {
         hideLoader();
         showToast('خطأ: ' + err.message, 'error');
     });
+}
+
+// Toggle draw enable label
+document.getElementById('matchDrawEnabled').addEventListener('change', function() {
+    const label = document.getElementById('drawEnabledLabel');
+    if (this.checked) {
+        label.innerHTML = '✅ مفعل';
+        label.style.color = '#22C55E';
+        document.getElementById('resultDrawOption').style.display = '';
+    } else {
+        label.innerHTML = '❌ مغلق';
+        label.style.color = '#EF4444';
+        document.getElementById('resultDrawOption').style.display = 'none';
+        // If draw is disabled and result was draw, reset it
+        if (document.getElementById('matchResult').value === 'draw') {
+            document.getElementById('matchResult').value = '';
+        }
+    }
+});
+
+function onMatchStatusChange() {
+    const status = document.getElementById('matchStatus').value;
+    document.getElementById('resultGroup').hidden = status !== 'finished';
+    if (status === 'finished' && !document.getElementById('matchDrawEnabled').checked) {
+        document.getElementById('resultDrawOption').style.display = 'none';
+        if (document.getElementById('matchResult').value === 'draw') {
+            document.getElementById('matchResult').value = '';
+        }
+    }
 }
 
 document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ document.querySelectorAll(".modal-overlay.open").forEach(m=>m.classList.remove("open")); closeMoreMenu(); }});

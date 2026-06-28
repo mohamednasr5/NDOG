@@ -4389,7 +4389,12 @@
         }
         .pred-btn { position: relative; }
         /* User prediction result badge */
-        .pred-result-badge {
+        :root {--gold2: #FFD700;}
+.pred-btn-prize {display:block;font-size:10px;color:var(--gold2);margin-top:2px;font-weight:700;letter-spacing:0.3px;}
+.pred-buttons {display:grid !important;gap:8px;}
+.pred-buttons:has(.btn-draw) {grid-template-columns:1fr 1fr 1fr !important;}
+.pred-buttons:not(:has(.btn-draw)) {grid-template-columns:1fr 1fr !important;}
+.pred-result-badge {
             text-align: center;
             padding: 10px;
             border-radius: 10px;
@@ -4481,6 +4486,114 @@
             font-size: 14px;
         }
         .pred-empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+        /* Countdown timer */
+        .match-countdown {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-3, rgba(255,255,255,0.5));
+            margin-bottom: 12px;
+            font-variant-numeric: tabular-nums;
+            min-height: 20px;
+        }
+        .match-countdown .cd-digits {
+            color: var(--text-1, #fff);
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+        /* LIVE badge — pulsing red */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239,68,68,0.15);
+            color: #EF4444;
+            font-size: 14px;
+            font-weight: 800;
+            padding: 6px 18px;
+            border-radius: 20px;
+            border: 1.5px solid rgba(239,68,68,0.4);
+            animation: livePulse 1.2s ease-in-out infinite;
+            letter-spacing: 1px;
+        }
+        .live-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #EF4444;
+            animation: liveDotPulse 1.2s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+        }
+        @keyframes liveDotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+        .live-wrap {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        /* Predictors list under each match */
+        .pred-predictors-list {
+            margin-top: 14px;
+            border-top: 1px solid var(--border, rgba(255,255,255,0.06));
+            padding-top: 12px;
+        }
+        .pred-predictors-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-3, rgba(255,255,255,0.45));
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pred-person-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            background: var(--surface-2, #151B2E);
+            font-size: 13px;
+        }
+        .pred-person-row.is-me {
+            background: rgba(212,160,23,0.08);
+            border: 1px solid rgba(212,160,23,0.15);
+        }
+        .pred-person-name {
+            color: var(--text-1, #fff);
+            font-weight: 600;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pred-person-choice {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
+            margin: 0 8px;
+            flex-shrink: 0;
+        }
+        .pred-person-choice.c-team1 { background: rgba(34,197,94,0.12); color: #22C55E; }
+        .pred-person-choice.c-draw { background: rgba(156,163,175,0.12); color: #9CA3AF; }
+        .pred-person-choice.c-team2 { background: rgba(239,68,68,0.12); color: #EF4444; }
+        .pred-person-prize {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--gold, #D4A017);
+            flex-shrink: 0;
+            min-width: 70px;
+            text-align: right;
+        }
+        .pred-person-prize.won { color: #22C55E; }
+        .pred-person-prize.lost { color: var(--text-3, rgba(255,255,255,0.3)); }
+
         .pred-section-title {
             font-size: 15px;
             font-weight: 700;
@@ -9475,13 +9588,13 @@ async function signInWithGoogle() {
             var listEl = document.getElementById('predMatchList');
             if (!listEl) return;
             if (predMatchesCache.length === 0) {
-                listEl.innerHTML = '<div class="pred-empty"><div class="pred-empty-icon">⚽</div><div data-ar="لا توجد مباريات حالياً" data-en="No matches available right now">لا توجد مباريات حالياً</div></div>';
+                listEl.innerHTML = '<div class="pred-empty"><div class="pred-empty-icon">\u26BD</div><div data-ar="\u0644\u0627 \u062A\u0648\u062C\u062F \u0645\u0628\u0627\u0631\u064A\u0627\u062A \u062D\u0627\u0644\u064A\u0627\u064B" data-en="No matches available right now">\u0644\u0627 \u062A\u0648\u062C\u062F \u0645\u0628\u0627\u0631\u064A\u0627\u062A \u062D\u0627\u0644\u064A\u0627\u064B</div></div>';
                 return;
             }
             var html = '';
             predMatchesCache.forEach(function(match) {
                 var now = Date.now();
-                var isFinished = match.status === 'finished' || (match.matchTimestamp && now > match.matchTimestamp + 7200000);
+                var isFinished = match.status === 'finished';
                 var isStarted = now > (match.matchTimestamp || 0);
                 var team1Code = match.team1Code || getTeamCode(match.team1);
                 var team2Code = match.team2Code || getTeamCode(match.team2);
@@ -9504,50 +9617,111 @@ async function signInWithGoogle() {
                 var hasPredicted = !!myPred;
                 var esc1 = (match.team1||'Team 1').replace(/'/g,"\\'").replace(/"/g,'&quot;');
                 var esc2 = (match.team2||'Team 2').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+                var drawEnabled = match.drawEnabled !== false;
 
-                html += '<div class="match-card' + (isFinished ? ' match-finished' : '') + '" data-match-id="' + match.id + '">';
+                // Prize share per winner
+                var prize = match.prize || 10000;
+                var winnerCount = 0;
+                if (isFinished && match.result) {
+                    predKeys.forEach(function(uid) { if (preds[uid].choice === match.result) winnerCount++; });
+                }
+                var sharePerWinner = winnerCount > 0 ? Math.floor(prize / winnerCount) : 0;
+                var potentialPrize = {};
+                potentialPrize['team1'] = Math.floor(prize / (t1Count + 1));
+                potentialPrize['draw'] = drawCount > 0 || drawEnabled ? Math.floor(prize / (drawCount + 1)) : 0;
+                potentialPrize['team2'] = Math.floor(prize / (t2Count + 1));
+
+                html += '<div class="match-card' + (isFinished ? ' match-finished' : '') + '" data-match-id="' + match.id + '" data-ts="' + (match.matchTimestamp||0) + '">';
                 html += '<div class="match-date-time"><div class="match-date">' + (match.matchDate||'') + '</div><div class="match-time">' + (match.matchTime||'') + '</div></div>';
+                // Countdown or LIVE
+                if (!isStarted && !isFinished && match.matchTimestamp) {
+                    html += '<div class="match-countdown" data-countdown-ts="' + match.matchTimestamp + '"></div>';
+                } else if (isStarted && !isFinished) {
+                    html += '<div class="live-wrap"><span class="live-badge"><span class="live-dot"></span>LIVE</span></div>';
+                }
+                // Teams
                 html += '<div class="match-teams">';
-                html += '<div class="match-team"><img class="match-team-flag" src="' + flag1 + '" alt="" onerror="this.style.background=\'%23151B2E\'"><div class="match-team-name">' + esc1 + '</div></div>';
+                html += '<div class="match-team"><img class="match-team-flag" src="' + flag1 + '" alt="" onerror="this.style.background=\'#151B2E\'"><div class="match-team-name">' + esc1 + '</div></div>';
                 html += '<div class="match-vs">VS</div>';
-                html += '<div class="match-team"><img class="match-team-flag" src="' + flag2 + '" alt="" onerror="this.style.background=\'%23151B2E\'"><div class="match-team-name">' + esc2 + '</div></div>';
+                html += '<div class="match-team"><img class="match-team-flag" src="' + flag2 + '" alt="" onerror="this.style.background=\'#151B2E\'"><div class="match-team-name">' + esc2 + '</div></div>';
                 html += '</div>';
-                html += '<div class="match-prize">\uD83C\uDFC6 ' + (match.prize||10000) + ' NDOG</div>';
+                html += '<div class="match-prize">\uD83C\uDFC6 ' + prize.toLocaleString() + ' NDOG</div>';
+                // Bar
                 html += '<div class="pred-bar-container"><div class="pred-bar">';
                 html += '<div class="pred-bar-seg seg-team1" style="width:' + Math.max(t1Pct,2) + '%">' + (t1Pct>=8?t1Pct+'%':'') + '</div>';
-                html += '<div class="pred-bar-seg seg-draw" style="width:' + Math.max(drawPct,2) + '%">' + (drawPct>=8?drawPct+'%':'') + '</div>';
+                if (drawEnabled) {
+                    html += '<div class="pred-bar-seg seg-draw" style="width:' + Math.max(drawPct,2) + '%">' + (drawPct>=8?drawPct+'%':'') + '</div>';
+                    }
                 html += '<div class="pred-bar-seg seg-team2" style="width:' + Math.max(t2Pct,2) + '%">' + (t2Pct>=8?t2Pct+'%':'') + '</div>';
                 html += '</div><div class="pred-bar-labels">';
                 html += '<span><span class="pred-dot green"></span>' + t1Pct + '%</span>';
-                html += '<span><span class="pred-dot gray"></span>' + drawPct + '%</span>';
+                if (drawEnabled) { html += '<span><span class="pred-dot gray"></span>' + drawPct + '%</span>'; }
                 html += '<span><span class="pred-dot red"></span>' + t2Pct + '%</span>';
                 html += '</div></div>';
 
+                // Buttons / Result
                 if (isFinished && match.result) {
                     if (hasPredicted) {
                         var won = myPred.choice === match.result;
                         html += '<div class="pred-result-badge ' + (won?'win':'lose') + '">';
-                        html += won ? '\uD83C\uDF89 ' + t('فزت! +10,000 NDOG','Won! +10,000 NDOG') : '\uD83D\uDE1E ' + t('خسرت التوقع','Lost the prediction');
+                        if (won) {
+                            html += '\uD83C\uDF89 ' + t('\u0641\u0632\u062A!','Won!') + ' +' + sharePerWinner.toLocaleString() + ' NDOG';
+                        } else {
+                            html += '\uD83D\uDE1E ' + t('\u062E\u0633\u0631\u062A \u0627\u0644\u062A\u0648\u0642\u0639','Lost the prediction');
+                        }
                         html += '</div>';
                     } else {
-                        html += '<div class="pred-result-badge waiting">\u23F0 ' + t('انتهت المباراة','Match ended') + '</div>';
+                        html += '<div class="pred-result-badge waiting">\u23F0 ' + t('\u0627\u0646\u062A\u0647\u062A \u0627\u0644\u0645\u0628\u0627\u0631\u0627\u0629','Match ended') + '</div>';
                     }
                 } else if (isStarted && !isFinished) {
-                    html += '<div class="pred-result-badge waiting">\u26BD ' + t('المباراة جارية...','Match in progress...') + '</div>';
+                    // LIVE shown above
                 } else if (hasPredicted) {
-                    var cl = myPred.choice==='team1' ? t('فوز','Win')+' '+match.team1 : myPred.choice==='draw' ? t('تعادل','Draw') : t('فوز','Win')+' '+match.team2;
-                    html += '<div class="pred-result-badge waiting">\u2705 ' + t('توقعك:','Your prediction:') + ' ' + cl + '</div>';
+                    var cl = myPred.choice==='team1' ? t('\u0641\u0648\u0632','Win')+' '+match.team1 : myPred.choice==='draw' ? t('\u062A\u0639\u0627\u062F\u0644','Draw') : t('\u0641\u0648\u0632','Win')+' '+match.team2;
+                    html += '<div class="pred-result-badge waiting">\u2705 ' + t('\u062A\u0648\u0642\u0639\u0643:','Your prediction:') + ' ' + cl + '</div>';
                 } else {
                     html += '<div class="pred-buttons">';
-                    html += '<button class="pred-btn btn-team1" onclick="submitPrediction(\''+match.id+'\',\'team1\')"><span class="pred-btn-pct">'+t1Pct+'%</span><span>'+t('فوز','Win')+' '+esc1+'</span></button>';
-                    html += '<button class="pred-btn btn-draw" onclick="submitPrediction(\''+match.id+'\',\'draw\')"><span class="pred-btn-pct">'+drawPct+'%</span><span>'+t('تعادل','Draw')+'</span></button>';
-                    html += '<button class="pred-btn btn-team2" onclick="submitPrediction(\''+match.id+'\',\'team2\')"><span class="pred-btn-pct">'+t2Pct+'%</span><span>'+t('فوز','Win')+' '+esc2+'</span></button>';
+                    html += '<button class="pred-btn btn-team1" onclick="submitPrediction(\''+match.id+'\',\'team1\')"><span class="pred-btn-pct">'+t1Pct+'%</span><span>'+t('\u0641\u0648\u0632','Win')+' '+esc1+'</span><span class="pred-btn-prize">'+potentialPrize['team1'].toLocaleString()+' \uD83D\uDCB0</span></button>';
+                    if (drawEnabled) {
+                    html += '<button class="pred-btn btn-draw" onclick="submitPrediction(\''+match.id+'\',\'draw\')"><span class="pred-btn-pct">'+drawPct+'%</span><span>'+t('\u062A\u0639\u0627\u062F\u0644','Draw')+'</span><span class="pred-btn-prize">'+potentialPrize['draw'].toLocaleString()+' \uD83D\uDCB0</span></button>';
+                    }
+                    html += '<button class="pred-btn btn-team2" onclick="submitPrediction(\''+match.id+'\',\'team2\')"><span class="pred-btn-pct">'+t2Pct+'%</span><span>'+t('\u0641\u0648\u0632','Win')+' '+esc2+'</span><span class="pred-btn-prize">'+potentialPrize['team2'].toLocaleString()+' \uD83D\uDCB0</span></button>';
                     html += '</div>';
                 }
+
+                // Predictors list
+                if (predKeys.length > 0) {
+                    html += '<div class="pred-predictors-list">';
+                    html += '<div class="pred-predictors-title">\uD83D\uDC65 ' + t('\u0627\u0644\u0645\u062A\u0648\u0642\u0648\u0646','Predictors') + ' (' + predKeys.length + ')</div>';
+                    predKeys.forEach(function(uid) {
+                        var p = preds[uid];
+                        var name = p.displayName || t('\u0645\u0633\u062A\u062E\u062F\u0645','User');
+                        var choiceClass = p.choice === 'team1' ? 'c-team1' : p.choice === 'draw' ? 'c-draw' : 'c-team2';
+                        var choiceLabel = p.choice === 'team1' ? t('\u0641\u0648\u0632','Win')+' '+match.team1 : p.choice === 'draw' ? t('\u062A\u0639\u0627\u062F\u0644','Draw') : t('\u0641\u0648\u0632','Win')+' '+match.team2;
+                        var isMe = currentUser && uid === currentUser.uid;
+                        var prizeText = '';
+                        if (isFinished && match.result) {
+                            var pWon = p.choice === match.result;
+                            if (pWon) {
+                                prizeText = '<span class="pred-person-prize won">+' + sharePerWinner.toLocaleString() + ' NDOG</span>';
+                            } else {
+                                prizeText = '<span class="pred-person-prize lost">0</span>';
+                            }
+                        }
+                        html += '<div class="pred-person-row' + (isMe ? ' is-me' : '') + '">';
+                        html += '<span class="pred-person-name">' + (isMe ? '\u2B50 ' : '') + name + '</span>';
+                        html += '<span class="pred-person-choice ' + choiceClass + '">' + choiceLabel + '</span>';
+                        html += prizeText;
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
                 html += '</div>';
             });
             listEl.innerHTML = html;
+            startPredictionCountdowns();
         }
+
 
         function submitPrediction(matchId, choice) {
             if (!currentUser) { showToast(t('سجّل دخولك أولاً','Sign in first'),'warning'); return; }
@@ -9633,18 +9807,62 @@ async function signInWithGoogle() {
             });
             if (winners.length === 0) return;
             db.ref('matches/' + matchId + '/winnerProcessed').set(true);
+            var prizePerWinner = Math.floor(prize / winners.length);
             winners.forEach(function(uid) {
                 db.ref('users/' + uid).transaction(function(d) {
                     if (!d) return d;
-                    d.balance = (Number(d.balance)||0) + prize;
+                    d.balance = (Number(d.balance)||0) + prizePerWinner;
                     d.predictionWins = (Number(d.predictionWins)||0) + 1;
-                    d.rewardEarnings = (Number(d.rewardEarnings)||0) + prize;
+                    d.rewardEarnings = (Number(d.rewardEarnings)||0) + prizePerWinner;
                     return d;
                 });
                 var txId = db.ref().child('transactions').push().key;
-                db.ref('transactions/' + txId).set({ uid:uid, amount:prize, ts:Date.now(), type:'prediction_win', description:'Prediction: '+match.team1+' vs '+match.team2 });
+                db.ref('transactions/' + txId).set({ uid:uid, amount:prizePerWinner, ts:Date.now(), type:'prediction_win', description:'Prediction: '+match.team1+' vs '+match.team2 });
             });
         }
+
+        // Countdown timers for upcoming matches
+        var predCountdownInterval = null;
+        function startPredictionCountdowns() {
+            if (predCountdownInterval) clearInterval(predCountdownInterval);
+            predCountdownInterval = setInterval(updateCountdowns, 1000);
+            updateCountdowns();
+        }
+        function updateCountdowns() {
+            var els = document.querySelectorAll('[data-countdown-ts]');
+            var now = Date.now();
+            var anyActive = false;
+            els.forEach(function(el) {
+                var ts = Number(el.getAttribute('data-countdown-ts'));
+                var diff = ts - now;
+                if (diff <= 0) {
+                    // Match started — replace countdown with LIVE badge
+                    var wrap = el.closest('.match-card');
+                    if (wrap && !wrap.querySelector('.live-badge')) {
+                        el.outerHTML = '<div class="live-wrap"><span class="live-badge"><span class="live-dot"></span>LIVE</span></div>';
+                    }
+                } else {
+                    anyActive = true;
+                    var d = Math.floor(diff / 86400000);
+                    var h = Math.floor((diff % 86400000) / 3600000);
+                    var m = Math.floor((diff % 3600000) / 60000);
+                    var s = Math.floor((diff % 60000) / 1000);
+                    var parts = [];
+                    if (d > 0) parts.push(d + ' ' + t('يوم','d'));
+                    parts.push(String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'));
+                    el.innerHTML = t('يبدأ بعد','Starts in') + ' <span class="cd-digits">' + parts.join(' ') + '</span>';
+                }
+            });
+            if (!anyActive && predCountdownInterval) { clearInterval(predCountdownInterval); predCountdownInterval = null; }
+        }
+
+        // Auto-refresh matches every 30s to update predictions + countdown
+        setInterval(function() {
+            if (predictionUnlocked && currentUser && document.getElementById('tabPredictions')?.classList.contains('active')) {
+                loadPredictionMatches();
+            }
+        }, 30000);
+
         setTimeout(initPredictionPrizeListener, 3000);
 
     </script>

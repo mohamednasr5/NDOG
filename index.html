@@ -7041,9 +7041,7 @@ async function signInWithGoogle() {
         return;
     }
 
-    // ===== Google Login — Popup (normal browser only) =====
-
-    showLoading();
+    // ===== Google Login — Redirect (avoids COOP/popup-blocked issues) =====
 
     try {
 
@@ -7051,8 +7049,8 @@ async function signInWithGoogle() {
         provider.addScope("profile");
         provider.addScope("email");
 
-        await auth.signInWithPopup(provider);
-        // onAuthStateChanged يتولى الباقي تلقائياً
+        await auth.signInWithRedirect(provider);
+        // Page will reload — onAuthStateChanged handles the rest
 
     } catch (err) {
 
@@ -7132,6 +7130,7 @@ async function signInWithGoogle() {
             if (!name) { showToast(t('الاسم مطلوب', 'Name is required'), 'error'); return; }
             if (!phone) { showToast(t('رقم الهاتف مطلوب', 'Phone is required'), 'error'); return; }
 
+            if (!currentUser) { showToast(t('خطأ','Error'),'error'); hideLoading(); return; }
             showLoading();
             const code = genCode();
             const ts = Date.now();
@@ -7141,7 +7140,7 @@ async function signInWithGoogle() {
                 phone: phone,
                 country: country,
                 dialCode: dialCode,
-                photoURL: currentUser.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=random",
+                photoURL: (currentUser.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=random"),
                 balance: 0,
                 streak: 0,
                 lastClaimAt: 0,
@@ -9317,6 +9316,21 @@ async function signInWithGoogle() {
                 try {
                     if (user) {
                         currentUser = user;
+
+                        // Handle redirect sign-in result
+                        auth.getRedirectResult().then(function(result) {
+                            if (result.credential) {
+                                // This was a redirect sign-in — already handled by onAuthStateChanged
+                            }
+                        }).catch(function(err) {
+                            console.error('[NDOG] getRedirectResult error:', err);
+                            const msgs = {
+                                "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
+                                "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
+                                "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
+                            };
+                            showToast(msgs[err.code] || t("فشل الدخول","Login failed"), "error");
+                        });
 
                         // In Telegram: link account if logged in via custom token
                         if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {

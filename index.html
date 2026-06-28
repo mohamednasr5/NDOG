@@ -4148,6 +4148,174 @@
             transition: all 0.2s;
         }
 
+
+        /* ═══ Crypto Watermark on Balance/Wallet Cards ═══ */
+        /* ═══ Biometric Verification Overlay ═══ */
+        .biometric-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg, #070B14);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .biometric-card {
+            text-align: center;
+            padding: 40px 30px;
+            max-width: 320px;
+        }
+        .biometric-fp-ring {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(212,160,23,0.12), rgba(212,160,23,0.04));
+            border: 2.5px solid rgba(212,160,23,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            animation: fpRingPulse 2.5s ease-in-out infinite;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .biometric-fp-ring:active {
+            border-color: rgba(212,160,23,0.7);
+            box-shadow: 0 0 30px rgba(212,160,23,0.3);
+            animation: none;
+            transform: scale(0.95);
+        }
+        .biometric-fp-icon {
+            width: 62px;
+            height: 62px;
+            color: var(--gold, #D4A017);
+            animation: fpIconGlow 2.5s ease-in-out infinite;
+        }
+        .biometric-scan-line {
+            position: absolute;
+            left: 12%;
+            width: 76%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--gold, #D4A017) 40%, var(--gold, #D4A017) 60%, transparent 100%);
+            border-radius: 1px;
+            animation: fpScanLine 2.5s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(212,160,23,0.4);
+        }
+        .biometric-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-1, #fff);
+            margin-bottom: 8px;
+        }
+        .biometric-subtitle {
+            font-size: 13px;
+            color: var(--text-3, rgba(255,255,255,0.4));
+            margin-bottom: 4px;
+        }
+        .biometric-status-text {
+            font-size: 12px;
+            color: var(--text-3, rgba(255,255,255,0.4));
+            margin-top: 4px;
+            min-height: 18px;
+            transition: color 0.3s;
+        }
+        .biometric-status-text.error { color: #EF4444; }
+        .biometric-status-text.success { color: #22C55E; }
+        .biometric-fallback-btn {
+            margin-top: 28px !important;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .biometric-fallback-btn:hover { opacity: 0.9; }
+
+        @keyframes fpRingPulse {
+            0%, 100% { transform: scale(1); border-color: rgba(212,160,23,0.35); box-shadow: 0 0 0 rgba(212,160,23,0); }
+            50% { transform: scale(1.04); border-color: rgba(212,160,23,0.55); box-shadow: 0 0 20px rgba(212,160,23,0.1); }
+        }
+        @keyframes fpIconGlow {
+            0%, 100% { filter: drop-shadow(0 0 3px rgba(212,160,23,0.3)); opacity: 0.85; }
+            50% { filter: drop-shadow(0 0 14px rgba(212,160,23,0.7)); opacity: 1; }
+        }
+        @keyframes fpScanLine {
+            0% { top: 12%; opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { top: 82%; opacity: 0; }
+        }
+        /* Fingerprint success animation */
+        @keyframes fpSuccess {
+            0% { transform: scale(1); border-color: rgba(212,160,23,0.35); }
+            30% { transform: scale(1.12); border-color: rgba(34,197,94,0.8); box-shadow: 0 0 30px rgba(34,197,94,0.3); }
+            100% { transform: scale(1); border-color: rgba(34,197,94,0.6); box-shadow: 0 0 15px rgba(34,197,94,0.15); }
+        }
+        .biometric-fp-ring.verified {
+            animation: fpSuccess 0.6s ease-out forwards;
+            border-color: rgba(34,197,94,0.6) !important;
+        }
+        .biometric-fp-ring.verified .biometric-fp-icon {
+            color: #22C55E !important;
+            animation: none !important;
+            filter: drop-shadow(0 0 8px rgba(34,197,94,0.5));
+        }
+        .biometric-fp-ring.verified .biometric-scan-line {
+            display: none;
+        }
+
+        .crypto-watermark {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .cw-coin {
+            position: absolute;
+            font-weight: 900;
+            line-height: 1;
+            user-select: none;
+        }
+        .cw-btc {
+            right: -8px;
+            top: -12px;
+            font-size: 110px;
+            color: #F7931A;
+            opacity: 0.06;
+            transform: rotate(12deg);
+        }
+        .cw-eth {
+            left: -5px;
+            bottom: -8px;
+            font-size: 75px;
+            color: #627EEA;
+            opacity: 0.05;
+            transform: rotate(-8deg);
+        }
+        .cw-usdt {
+            right: 35px;
+            bottom: 5px;
+            font-size: 55px;
+            color: #26A17B;
+            opacity: 0.05;
+            transform: rotate(5deg);
+        }
+        .cw-doge {
+            left: 40%;
+            top: -5px;
+            font-size: 40px;
+            color: #C3A634;
+            opacity: 0.04;
+            transform: rotate(-20deg);
+        }
+        html[dir="rtl"] .cw-btc { right: auto; left: -8px; }
+        html[dir="rtl"] .cw-eth { left: auto; right: -5px; }
+        html[dir="rtl"] .cw-usdt { right: auto; left: 35px; }
+
+        .wallet-card .crypto-watermark .cw-coin { opacity: 0.04; }
+
         </style>
 </head>
 <body itemscope itemtype="https://schema.org/WebPage" itemid="https://ndogcoin.com/">
@@ -4295,6 +4463,43 @@
         </div>
     </div>
 
+
+    <!-- ========== BIOMETRIC VERIFICATION OVERLAY ========== -->
+    <div id="biometricOverlay" class="biometric-overlay" style="display:none;">
+        <div class="biometric-card">
+            <div class="biometric-fp-ring" id="biometricFpRing">
+                <svg class="biometric-fp-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Outer circle -->
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.25"/>
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.15" stroke-dasharray="4 4"/>
+                    <!-- Fingerprint core -->
+                    <path d="M50 25 C38 25 28 35 28 47" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+                    <path d="M50 30 C41 30 33 38 33 47" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+                    <path d="M50 35 C43 35 37 41 37 48" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+                    <path d="M50 40 C45 40 41 44 41 49" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.8"/>
+                    <path d="M50 45 C47 45 45 47 45 50" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.8"/>
+                    <!-- Right side ridges -->
+                    <path d="M72 35 C78 42 78 55 72 62" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <path d="M67 38 C72 44 72 54 67 60" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+                    <!-- Left side ridges -->
+                    <path d="M28 38 C22 45 22 55 28 62" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <path d="M33 40 C28 46 28 54 33 59" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+                    <!-- Bottom anchor -->
+                    <path d="M42 62 C42 68 58 68 58 62" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+                    <path d="M45 66 C45 71 55 71 55 66" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+                </svg>
+                <div class="biometric-scan-line"></div>
+            </div>
+            <div class="biometric-title" data-ar="تسجيل الدخول بالبصمة" data-en="Fingerprint Login">تسجيل الدخول بالبصمة</div>
+            <div class="biometric-subtitle" data-ar="المس للدخول" data-en="Touch to sign in">المس للدخول</div>
+            <div class="biometric-status-text" id="biometricStatusText"></div>
+            <button class="btn-google biometric-fallback-btn" id="biometricFallbackBtn" type="button">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                <span data-ar="تسجيل الدخول بحساب Google" data-en="Sign in with Google">تسجيل الدخول بحساب Google</span>
+            </button>
+        </div>
+    </div>
+
     <!-- ============================================================= -->
     <!-- MAIN APPLICATION -->
     <!-- ============================================================= -->
@@ -4340,6 +4545,12 @@
                 <div class="balance-card">
                     <div class="balance-card-bg"></div>
                 <div class="balance-card-currency-bg">NDOG</div>
+                <div class="crypto-watermark">
+                    <span class="cw-coin cw-btc">₿</span>
+                    <span class="cw-coin cw-eth">Ξ</span>
+                    <span class="cw-coin cw-usdt">₮</span>
+                    <span class="cw-coin cw-doge">Ð</span>
+                </div>
                     <div class="balance-label" data-ar="رصيد NDOG" data-en="NDOG Balance">NDOG Balance</div>
                     <div class="balance-amount-wrap">
                         <div class="balance-amount" id="dashBalance">0</div>
@@ -4507,6 +4718,12 @@
 
                 <div class="wallet-card">
                     <div class="wallet-card-bg"></div>
+                    <div class="crypto-watermark">
+                        <span class="cw-coin cw-btc">₿</span>
+                        <span class="cw-coin cw-eth">Ξ</span>
+                        <span class="cw-coin cw-usdt">₮</span>
+                        <span class="cw-coin cw-doge">Ð</span>
+                    </div>
                     <div class="wallet-label" data-ar="الرصيد الكلي" data-en="Total Balance">Total Balance</div>
                     <div class="wallet-amount-wrap">
                         <div class="wallet-amount" id="walletBalance">0</div>
@@ -6341,8 +6558,8 @@
 
         const STREAK_MULTS = { 2: 1.2, 3: 1.5, 5: 1.8, 7: 2, 14: 2.5, 30: 3 };
         const BASE_REWARD = 10;
-        const WHEEL_PRIZES = [5, 10, 15, 20, 25, 50, 75, 100];
-        const WHEEL_COLORS = ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#8B5CF6', '#EC4899', '#F59E0B'];
+        const WHEEL_PRIZES = [5, 10, 15, 20, 25, 50, 75, 100, 0, 0];
+        const WHEEL_COLORS = ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#8B5CF6', '#EC4899', '#F59E0B', '#6B7280', '#4B5563'];
         const STAKING = {
             '7_days': { apr: 0.05, days: 7, min: 100 },
             '30_days': { apr: 0.10, days: 30, min: 500 },
@@ -6714,6 +6931,9 @@ async function signInWithGoogle() {
         function logoutUser() {
             // Guard: confirm() may not work in Telegram WebView
             if (typeof confirm === 'function' && !confirm(t('هل تريد تسجيل الخروج؟', 'Sign out?'))) return;
+            // Hide biometric overlay if visible
+            var bioOverlay = document.getElementById('biometricOverlay');
+            if (bioOverlay) bioOverlay.style.display = 'none';
             if (isTelegramEnv) {
                 showToast(t('لا يمكن تسجيل الخروج داخل تيليجرام', 'Cannot sign out inside Telegram'), 'info');
                 return;
@@ -7215,7 +7435,9 @@ async function signInWithGoogle() {
                 ctx.font = 'bold 12px "Space Grotesk", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 4;
-                ctx.fillText(prize, r * 0.65, 4);
+                var _segTxt = prize === 0 ? (currentLang === 'ar' ? 'حظ أوفر' : 'Try Again') : ('' + prize);
+                ctx.font = prize === 0 ? 'bold 9px "Tajawal", sans-serif' : 'bold 12px "Space Grotesk", sans-serif';
+                ctx.fillText(_segTxt, r * 0.65, 4);
                 ctx.restore();
             });
 
@@ -7256,10 +7478,9 @@ async function signInWithGoogle() {
             if (btn) { btn.disabled = true;
                 btn.querySelector('span').textContent = t('يدور...', 'Spinning...'); }
 
-            // 30% chance of losing
-            const isLose = Math.random() < 0.30;
             const prizeIdx = Math.floor(Math.random() * WHEEL_PRIZES.length);
-            const prize = isLose ? 0 : WHEEL_PRIZES[prizeIdx];
+            const prize = WHEEL_PRIZES[prizeIdx];
+            const isLose = prize === 0;
             const segDeg = 360 / WHEEL_PRIZES.length;
             const targetDeg = 360 - (prizeIdx * segDeg + segDeg / 2);
             const total = wheelRotation + 1440 + targetDeg;
@@ -7344,7 +7565,7 @@ async function signInWithGoogle() {
             const rewardEl = document.getElementById('luckyBoxReward');
             const amountEl = document.getElementById('luckyBoxRewardAmount');
             const closeBtn = document.getElementById('luckyBoxCloseBtn');
-            const isLose = Math.random() < 0.30;
+            const isLose = Math.random() < 0.20;
             const prize = isLose ? 0 : Math.floor(Math.random() * 46) + 5;
 
             modal.style.display = 'flex';
@@ -7397,7 +7618,7 @@ async function signInWithGoogle() {
             const prizeEl = document.getElementById('scratchPrize');
             const closeBtn = document.getElementById('scratchCloseBtn');
             const hint = document.querySelector('.scratch-hint');
-            const isLose = Math.random() < 0.30;
+            const isLose = Math.random() < 0.20;
             const prize = isLose ? 0 : Math.floor(Math.random() * 46) + 5;
 
             modal.style.display = 'flex';
@@ -8618,6 +8839,15 @@ async function signInWithGoogle() {
             // Biometric buttons
             document.getElementById('enableBiometricBtn')?.addEventListener('click', enableBiometric);
             document.getElementById('disableBiometricBtn')?.addEventListener('click', disableBiometric);
+
+            // Biometric overlay: tap fingerprint ring to verify
+            document.getElementById('biometricFpRing')?.addEventListener('click', function() { tryBiometricLogin(); });
+            // Biometric overlay: Google fallback
+            document.getElementById('biometricFallbackBtn')?.addEventListener('click', function() {
+                var overlay = document.getElementById('biometricOverlay');
+                if (overlay) overlay.style.display = 'none';
+                showApp();
+            });
         }
 
 
@@ -8691,7 +8921,7 @@ async function signInWithGoogle() {
             });
         }
 
-        // ========== BIOMETRIC / FINGERPRINT LOGIN ==========
+        // ========== BIOMETRIC / FINGERPRINT LOGIN (Redesigned) ==========
         function initBiometric() {
             if (!window.PublicKeyCredential) {
                 const section = document.getElementById('biometricSection');
@@ -8729,33 +8959,37 @@ async function signInWithGoogle() {
 
         async function enableBiometric() {
             if (!currentUser) { showToast(t('سجّل دخولك أولاً', 'Sign in first'), 'warning'); return; }
-            try {
-                const challenge = new Uint8Array(32);
-                crypto.getRandomValues(challenge);
-                const userId = new TextEncoder().encode(currentUser.uid);
-                const credential = await navigator.credentials.create({
-                    publicKey: {
-                        challenge: challenge,
-                        rp: { name: 'NDOG Coin', id: location.hostname },
-                        user: { id: userId, name: currentUser.email || 'ndog-user', displayName: currentUser.displayName || 'NDOG User' },
-                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
-                        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-                        timeout: 60000
-                    }
-                });
-                if (credential) {
-                    localStorage.setItem('ndog_biometric', 'true');
-                    localStorage.setItem('ndog_biometric_uid', currentUser.uid);
-                    updateBiometricUI(true);
-                    showToast(t('✅ تم تفعيل البصمة!', '✅ Fingerprint enabled!'), 'success');
+            // Try to register a WebAuthn credential (for devices that support it)
+            let registered = false;
+            if (window.PublicKeyCredential) {
+                try {
+                    const challenge = new Uint8Array(32);
+                    crypto.getRandomValues(challenge);
+                    const userId = new TextEncoder().encode(currentUser.uid);
+                    const credential = await navigator.credentials.create({
+                        publicKey: {
+                            challenge: challenge,
+                            rp: { name: 'NDOG Coin', id: location.hostname },
+                            user: { id: userId, name: currentUser.email || 'ndog-user', displayName: currentUser.displayName || 'NDOG User' },
+                            pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+                            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+                            timeout: 60000
+                        }
+                    });
+                    registered = !!credential;
+                } catch (err) {
+                    console.warn('[NDOG] WebAuthn create error (non-fatal):', err.name);
+                    // NotSupportedError or InvalidStateError — still allow enabling
+                    registered = true; // Allow enable even if create fails (some browsers)
                 }
-            } catch (err) {
-                console.warn('[NDOG] Biometric enable error:', err);
-                if (err.name === 'NotAllowedError') {
-                    showToast(t('تم إلغاء البصمة', 'Fingerprint cancelled'), 'info');
-                } else {
-                    showToast(t('البصمة غير مدعومة على هذا الجهاز', 'Biometric not supported on this device'), 'warning');
-                }
+            }
+            if (registered) {
+                localStorage.setItem('ndog_biometric', 'true');
+                localStorage.setItem('ndog_biometric_uid', currentUser.uid);
+                updateBiometricUI(true);
+                showToast(t('✅ تم تفعيل البصمة بنجاح!', '✅ Fingerprint enabled!'), 'success');
+            } else {
+                showToast(t('البصمة غير مدعومة على هذا الجهاز', 'Biometric not supported on this device'), 'warning');
             }
         }
 
@@ -8766,10 +9000,35 @@ async function signInWithGoogle() {
             showToast(t('تم إلغاء البصمة', 'Fingerprint disabled'), 'info');
         }
 
+        // Show biometric verification overlay (called when returning user has biometric enabled)
+        function showBiometricVerification() {
+            const overlay = document.getElementById('biometricOverlay');
+            if (!overlay) { showApp(); return; }
+            overlay.style.display = 'flex';
+            const statusText = document.getElementById('biometricStatusText');
+            if (statusText) { statusText.textContent = ''; statusText.className = 'biometric-status-text'; }
+            const fpRing = document.getElementById('biometricFpRing');
+            if (fpRing) fpRing.classList.remove('verified');
+            // Auto-trigger biometric prompt after short delay
+            setTimeout(function() { tryBiometricLogin(); }, 600);
+        }
+
+        // Attempt biometric verification
         async function tryBiometricLogin() {
-            if (localStorage.getItem('ndog_biometric') !== 'true') return false;
-            if (!window.PublicKeyCredential) return false;
+            const statusText = document.getElementById('biometricStatusText');
+            const fpRing = document.getElementById('biometricFpRing');
+            if (!window.PublicKeyCredential) {
+                // Not supported — proceed directly
+                if (statusText) { statusText.textContent = t('البصمة غير مدعومة، جاري الدخول...', 'Fingerprint not supported, signing in...'); statusText.className = 'biometric-status-text'; }
+                setTimeout(function() {
+                    var overlay = document.getElementById('biometricOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                    showApp();
+                }, 800);
+                return;
+            }
             try {
+                if (statusText) { statusText.textContent = t('جاري التحقق...', 'Verifying...'); statusText.className = 'biometric-status-text'; }
                 const challenge = new Uint8Array(32);
                 crypto.getRandomValues(challenge);
                 const assertion = await navigator.credentials.get({
@@ -8781,13 +9040,31 @@ async function signInWithGoogle() {
                     }
                 });
                 if (assertion) {
-                    showToast(t('✅ تم تسجيل الدخول بالبصمة!', '✅ Logged in with fingerprint!'), 'success');
-                    return true;
+                    // Success!
+                    if (statusText) { statusText.textContent = t('✅ تم التحقق!', '✅ Verified!'); statusText.className = 'biometric-status-text success'; }
+                    if (fpRing) fpRing.classList.add('verified');
+                    setTimeout(function() {
+                        var overlay = document.getElementById('biometricOverlay');
+                        if (overlay) overlay.style.display = 'none';
+                        showApp();
+                        showToast(t('✅ تم تسجيل الدخول بالبصمة!', '✅ Logged in with fingerprint!'), 'success');
+                    }, 700);
                 }
             } catch (err) {
-                console.warn('[NDOG] Biometric login error:', err);
+                console.warn('[NDOG] Biometric login error:', err.name, err.message);
+                if (err.name === 'NotAllowedError') {
+                    // User cancelled — keep overlay visible, they can use Google fallback
+                    if (statusText) { statusText.textContent = t('تم الإلغاء — حاول مرة أخرى أو سجّل بجوجل', 'Cancelled — try again or sign in with Google'); statusText.className = 'biometric-status-text error'; }
+                } else {
+                    // Other error (NotSupported, etc.) — proceed to app
+                    if (statusText) { statusText.textContent = t('البصمة غير متاحة، جاري الدخول...', 'Fingerprint unavailable, signing in...'); statusText.className = 'biometric-status-text'; }
+                    setTimeout(function() {
+                        var overlay = document.getElementById('biometricOverlay');
+                        if (overlay) overlay.style.display = 'none';
+                        showApp();
+                    }, 1000);
+                }
             }
-            return false;
         }
 
         // ========== APPLY REFERRAL ==========
@@ -8881,8 +9158,13 @@ async function signInWithGoogle() {
                         db.ref('users/' + user.uid).once('value').then(function(snap) {
                             if (snap.exists()) {
                                 userData = Object.assign({}, snap.val(), { uid: user.uid });
-                                showApp();
-                                hideLoading();
+                                // Check biometric: if enabled, show verification overlay first
+                                if (localStorage.getItem('ndog_biometric') === 'true' && window.PublicKeyCredential) {
+                                    hideLoading();
+                                    showBiometricVerification();
+                                } else {
+                                    showApp();
+                                }
 
                                 // Init OneSignal only for non-Telegram
                                 if (!isTelegramEnv) {
@@ -8911,6 +9193,8 @@ async function signInWithGoogle() {
                     } else {
                         currentUser = null;
                         userData = null;
+                        var bioOv = document.getElementById('biometricOverlay');
+                        if (bioOv) bioOv.style.display = 'none';
                         var mainAppEl = document.getElementById('mainApp');
                         var authEl = document.getElementById('authScreens');
                         var notifEl = document.getElementById('notifBellBtn');

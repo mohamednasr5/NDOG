@@ -9316,26 +9316,14 @@ async function signInWithGoogle() {
             initBgCanvas();
             setTimeout(buildWheel, 500);
 
-            // ===== Step 1: Process any pending redirect result FIRST =====
-            // Must be called BEFORE onAuthStateChanged so the redirect
-            // is resolved and the auth state is properly set.
-            auth.getRedirectResult().then(function(result) {
-                if (result.user) {
-                    console.log('[NDOG] Redirect sign-in resolved for:', result.user.uid);
-                    currentUser = result.user;
-                }
-            }).catch(function(err) {
-                console.error('[NDOG] getRedirectResult error:', err);
-                var msgs = {
-                    "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
-                    "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
-                    "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
-                };
-                if (typeof showToast === 'function') showToast(msgs[err.code] || t("فشل الدخول","Login failed"), "error");
+            // ===== Ensure persistent auth (survives page reload / tab close) =====
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(err) {
+                console.warn('[NDOG] setPersistence failed:', err);
+                // Non-critical — Firebase will fall back to default
             });
 
-            // ===== Step 2: Auth state listener (fires after redirect is resolved) =====
-            auth.onAuthStateChanged(function(user) {
+            // ===== Auth state handler (shared logic) =====
+            var authStateHandler = function(user) {
                 try {
                     if (user) {
                         currentUser = user;
@@ -9388,28 +9376,46 @@ async function signInWithGoogle() {
                         if (notifEl) notifEl.style.display = 'none';
                         hideLoading();
 
-                        // Delay showing login screen by 1.5s to allow redirect processing
-                        // Without this, the login screen flashes briefly after Google redirect
-                        setTimeout(function() {
-                            // Re-check: if user signed in during the delay, don't show login
-                            if (currentUser) return;
-                            // In Telegram (by SDK or UA): NEVER show login screen
-                            if (!isTelegramEnv && !window.__tgEarlyDetect) {
-                                if (authEl) authEl.style.display = 'flex';
-                            } else {
-                                if (authEl) authEl.style.display = 'none';
-                            }
-                            // If Telegram was already detected
-                            if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
-                                console.log('[NDOG] No user + Telegram detected, triggering auth...');
-                                doTelegramAuth();
-                            }
-                        }, 1500);
+                        // Show login screen ONLY after we're sure no redirect is pending
+                        // No more fragile setTimeout — redirect is resolved before this runs
+                        if (!isTelegramEnv && !window.__tgEarlyDetect) {
+                            if (authEl) authEl.style.display = 'flex';
+                        } else {
+                            if (authEl) authEl.style.display = 'none';
+                        }
+                        // If Telegram was already detected
+                        if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
+                            console.log('[NDOG] No user + Telegram detected, triggering auth...');
+                            doTelegramAuth();
+                        }
                     }
                 } catch(authErr) {
                     console.error('[NDOG] onAuthStateChanged error:', authErr);
                     hideLoading();
                 }
+            };
+
+            // ===== Step 1: Process any pending redirect result FIRST =====
+            // CRITICAL: Wait for redirect to resolve BEFORE registering onAuthStateChanged.
+            // This eliminates the race condition where onAuthStateChanged fires with
+            // null user while getRedirectResult() is still in-flight after a Google redirect.
+            auth.getRedirectResult().then(function(result) {
+                if (result.user) {
+                    console.log('[NDOG] Redirect sign-in resolved for:', result.user.uid);
+                    currentUser = result.user;
+                }
+                // NOW safely register the auth state listener — redirect is fully resolved
+                auth.onAuthStateChanged(authStateHandler);
+            }).catch(function(err) {
+                console.error('[NDOG] getRedirectResult error:', err);
+                var msgs = {
+                    "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
+                    "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
+                    "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
+                };
+                if (typeof showToast === 'function') showToast(msgs[err.code] || t("فشل الدخول","Login failed"), "error");
+                // Even on error, register the listener so the user can still use the app
+                auth.onAuthStateChanged(authStateHandler);
             });
 
             // Generate QR when user data is ready

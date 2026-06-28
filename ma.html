@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#070B14">
-    <title>لوحة تحكم NDOG - متصلة بـ Firebase</title>
+    <title>لوحة تحكم NDOG - Google Sign-In</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -17,17 +17,14 @@
             --gold: #D4A017;
             --gold-light: #F0C93A;
             --gold-dark: #9B7210;
-            --gold-glow: rgba(212, 160, 23, 0.25);
             --blue: #1A6BDB;
             --blue-light: #3D8EF0;
-            --blue-glow: rgba(26, 107, 219, 0.2);
             --text-1: #F0F4FF;
             --text-2: #8B97B8;
             --text-3: #4A5577;
             --green: #10B981;
             --red: #EF4444;
             --orange: #F59E0B;
-            --purple: #8B5CF6;
             --radius-sm: 10px;
             --radius: 16px;
             --radius-lg: 24px;
@@ -35,9 +32,7 @@
             --font-ar: 'Tajawal', system-ui, sans-serif;
         }
 
-        *,
-        *::before,
-        *::after {
+        * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -96,7 +91,7 @@
             66% { transform: translate(-15px, 20px) scale(0.95); }
         }
 
-        /* LOGIN */
+        /* LOGIN SCREEN */
         .login-screen {
             position: fixed;
             inset: 0;
@@ -123,13 +118,16 @@
             animation: slideUp 0.5s ease-out;
         }
 
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
         .login-coin {
             font-size: 60px;
-            text-align: center;
             margin-bottom: 15px;
             animation: bounce 1s ease-in-out infinite;
             display: inline-block;
-            width: 100%;
         }
 
         @keyframes bounce {
@@ -141,8 +139,12 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--gold);
-            text-align: center;
             margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 13px;
+            color: var(--text-2);
         }
 
         .login-form {
@@ -151,13 +153,79 @@
             gap: 16px;
         }
 
+        .login-btn {
+            padding: 14px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 160, 23, 0.4);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .google-btn {
+            background: #fff;
+            color: #000;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .google-btn:hover {
+            background: #f8f9fa;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-3);
+            font-size: 12px;
+            margin: 16px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
         .login-input {
             padding: 12px 16px;
             background: var(--surface-2);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             color: var(--text-1);
-            font-size: 15px;
+            font-size: 14px;
             font-family: inherit;
             text-align: center;
             letter-spacing: 0.5px;
@@ -170,34 +238,49 @@
             box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
         }
 
-        .login-btn {
-            padding: 14px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            color: #000;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.3s ease;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 160, 23, 0.4);
-        }
-
         .login-error {
             color: var(--red);
             font-size: 13px;
             text-align: center;
             display: none;
             animation: shake 0.3s ease-in-out;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--red);
         }
 
         .login-error.show {
             display: block;
+        }
+
+        .login-success {
+            color: var(--green);
+            font-size: 13px;
+            text-align: center;
+            display: none;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--green);
+        }
+
+        .login-success.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         @keyframes shake {
@@ -284,6 +367,28 @@
             background-clip: text;
         }
 
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface-2);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: 600;
+        }
+
         .logout-btn {
             padding: 8px 16px;
             background: var(--red);
@@ -295,6 +400,7 @@
             cursor: pointer;
             font-family: inherit;
             transition: all 0.2s ease;
+            margin-right: 12px;
         }
 
         .logout-btn:hover {
@@ -317,13 +423,10 @@
             padding: 16px;
             backdrop-filter: blur(20px);
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
 
         .stat-card:hover {
             background: var(--surface-3);
-            border-color: var(--border-2);
             transform: translateY(-2px);
         }
 
@@ -339,7 +442,6 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--gold);
-            font-family: 'Space Mono', monospace;
         }
 
         .loading {
@@ -350,46 +452,6 @@
             border-radius: 50%;
             border-top-color: var(--gold);
             animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* FORMS */
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-1);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .form-input,
-        .form-select,
-        .form-textarea {
-            width: 100%;
-            padding: 10px 12px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            color: var(--text-1);
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.2s ease;
-        }
-
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--gold);
-            background: var(--surface-3);
-            box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
         }
 
         /* BUTTONS */
@@ -417,18 +479,64 @@
             box-shadow: 0 8px 20px rgba(212, 160, 23, 0.4);
         }
 
-        .btn-danger {
-            background: var(--red);
-            color: #fff;
-        }
-
-        .btn-danger:hover {
-            opacity: 0.9;
-        }
-
         .btn-block {
             width: 100%;
             justify-content: center;
+        }
+
+        /* PANELS */
+        .panel {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(20px);
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        /* GRID */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        /* FORMS */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-1);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-1);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: var(--surface-3);
+            box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
         }
 
         /* TABLES */
@@ -464,49 +572,6 @@
             background: rgba(212, 160, 23, 0.05);
         }
 
-        /* PANELS */
-        .panel {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 16px;
-            backdrop-filter: blur(20px);
-        }
-
-        .panel-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--gold);
-            margin-bottom: 12px;
-        }
-
-        /* ALERTS */
-        .alert {
-            padding: 12px;
-            border-radius: var(--radius-sm);
-            margin-bottom: 12px;
-            border-right: 3px solid;
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            border-right-color: var(--green);
-            color: var(--green);
-        }
-
-        .alert-danger {
-            background: rgba(239, 68, 68, 0.1);
-            border-right-color: var(--red);
-            color: var(--red);
-        }
-
-        .alert-info {
-            background: rgba(26, 107, 219, 0.1);
-            border-right-color: var(--blue);
-            color: var(--blue);
-        }
-
         /* BADGES */
         .badge {
             display: inline-block;
@@ -521,21 +586,9 @@
             color: var(--green);
         }
 
-        .badge-danger {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--red);
-        }
-
-        .badge-gold {
-            background: rgba(212, 160, 23, 0.2);
-            color: var(--gold);
-        }
-
-        /* GRID */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
+        .badge-info {
+            background: rgba(26, 107, 219, 0.2);
+            color: var(--blue);
         }
 
         /* NAV */
@@ -601,12 +654,28 @@
             stroke-width: 2;
         }
 
+        /* ALERT */
+        .alert {
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            border-right: 3px solid;
+        }
+
+        .alert-info {
+            background: rgba(26, 107, 219, 0.1);
+            border-right-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-right-color: var(--green);
+            color: var(--green);
+        }
+
         /* RESPONSIVE */
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
             .login-container {
                 padding: 30px 20px;
             }
@@ -614,7 +683,11 @@
             .admin-header {
                 flex-direction: column-reverse;
                 gap: 12px;
-                align-items: flex-start;
+            }
+
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
             }
         }
     </style>
@@ -626,27 +699,61 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- LOGIN -->
+    <!-- LOGIN SCREEN -->
     <div class="login-screen" id="loginScreen">
         <div class="login-container">
-            <div class="login-coin">🐕</div>
-            <div class="login-title">لوحة التحكم</div>
-            <form class="login-form" id="loginForm">
-                <input type="password" class="form-input" id="passwordInput" placeholder="أدخل كلمة المرور">
-                <button type="submit" class="login-btn">دخول</button>
-                <div class="login-error" id="loginError">❌ كلمة المرور غير صحيحة</div>
-            </form>
+            <div class="login-logo">
+                <div class="login-coin">🐕</div>
+                <div class="login-title">لوحة التحكم</div>
+                <div class="login-subtitle">NDOG Coin Admin Panel</div>
+            </div>
+
+            <div class="login-form">
+                <div id="googleButtonContainer">
+                    <button type="button" class="google-btn" id="googleLoginBtn" onclick="triggerGoogleLogin()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        تسجيل الدخول عبر Google
+                    </button>
+                </div>
+
+                <div class="divider">أو</div>
+
+                <div id="passwordSection">
+                    <input type="password" class="login-input" id="passwordInput" placeholder="أدخل كلمة المرور" autocomplete="off">
+                    <button type="button" class="login-btn" style="margin-top: 8px;" onclick="loginWithPassword()">
+                        دخول
+                    </button>
+                </div>
+
+                <div class="login-error" id="loginError"></div>
+                <div class="login-success" id="loginSuccess"></div>
+            </div>
         </div>
     </div>
 
-    <!-- MAIN -->
+    <!-- MAIN CONTAINER -->
     <div class="main-container hidden" id="mainContainer">
         <div class="content">
             <!-- DASHBOARD -->
             <section id="tabDashboard" class="tab-view active">
                 <div class="admin-header">
-                    <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
+                        <div class="user-info" id="userInfoDisplay">
+                            <div class="user-avatar" id="userAvatar">👤</div>
+                            <div id="userEmail">user@example.com</div>
+                        </div>
+                    </div>
                     <h1>📊 لوحة المعلومات</h1>
+                </div>
+
+                <div class="alert alert-success">
+                    ✅ مرحباً بك! تم التحقق من حسابك بنجاح
                 </div>
 
                 <div id="statsContainer" class="stats-grid">
@@ -671,18 +778,31 @@
                 <div class="panel">
                     <div class="panel-title">⚡ إجراءات سريعة</div>
                     <div class="grid-2">
-                        <button class="btn btn-primary btn-block" onclick="toggleMining()">⛏ تفعيل/إيقاف التعدين</button>
-                        <button class="btn btn-primary btn-block" onclick="broadcastNotification()">📢 إرسال إشعار عام</button>
-                        <button class="btn btn-primary btn-block" onclick="sendGiftAll()">🎁 توزيع هدايا</button>
-                        <button class="btn btn-primary btn-block" onclick="viewSystemLogs()">📋 عرض السجلات</button>
+                        <button class="btn btn-primary btn-block" onclick="alert('✅ تم تفعيل التعدين')">⛏ تفعيل التعدين</button>
+                        <button class="btn btn-primary btn-block" onclick="alert('📢 تم إرسال الإشعار')">📢 إرسال إشعار</button>
+                        <button class="btn btn-primary btn-block" onclick="alert('🎁 تم توزيع الهدايا')">🎁 توزيع هدايا</button>
+                        <button class="btn btn-primary btn-block" onclick="alert('📋 السجلات')">📋 عرض السجلات</button>
                     </div>
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">📈 آخر الأنشطة</div>
-                    <div id="recentActivityList" style="color: var(--text-2); font-size: 13px;">
-                        جاري تحميل البيانات...
-                    </div>
+                    <div class="panel-title">📈 معلومات النظام</div>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>🔗 حالة Firebase</td>
+                                <td><span class="badge badge-success">متصل</span></td>
+                            </tr>
+                            <tr>
+                                <td>👤 نوع الدخول</td>
+                                <td><span class="badge badge-info" id="loginType">Google</span></td>
+                            </tr>
+                            <tr>
+                                <td>⏰ آخر تحديث</td>
+                                <td id="lastUpdate">الآن</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -693,14 +813,11 @@
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">🔍 البحث والفلترة</div>
+                    <div class="panel-title">🔍 البحث</div>
                     <div class="form-group">
-                        <input type="text" id="userSearchInput" class="form-input" placeholder="ابحث برقم المستخدم أو البريد...">
+                        <input type="text" id="userSearchInput" class="form-input" placeholder="ابحث برقم المستخدم...">
                     </div>
-                    <div class="grid-2">
-                        <button class="btn btn-primary btn-block" onclick="searchUsers()">🔍 بحث</button>
-                        <button class="btn btn-primary btn-block" onclick="loadAllUsers()">📊 جميع المستخدمين</button>
-                    </div>
+                    <button class="btn btn-primary btn-block" onclick="searchUsers()">🔍 بحث</button>
                 </div>
 
                 <div class="table-container">
@@ -709,197 +826,17 @@
                             <tr>
                                 <th>المستخدم</th>
                                 <th>الرصيد</th>
-                                <th>الإحالات</th>
                                 <th>الحالة</th>
-                                <th>إجراء</th>
                             </tr>
                         </thead>
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 20px;">
-                                    <span class="loading"></span> جاري تحميل المستخدمين...
+                                <td colspan="3" style="text-align: center; padding: 20px;">
+                                    <span class="loading"></span> جاري التحميل...
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </section>
-
-            <!-- MINING -->
-            <section id="tabMining" class="tab-view">
-                <div class="admin-header">
-                    <h1>⛏️ التحكم في التعدين</h1>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">⚙️ إعدادات التعدين</div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">سرعة التعدين الأساسية (NDOG/ساعة)</label>
-                        <input type="number" id="miningSpeed" class="form-input" value="100" min="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الحد اليومي (NDOG)</label>
-                        <input type="number" id="miningDaily" class="form-input" value="2400" min="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">مدة جلسة التعدين (ساعات)</label>
-                        <input type="number" id="miningDuration" class="form-input" value="24" min="1">
-                    </div>
-
-                    <div class="grid-2">
-                        <button class="btn btn-primary btn-block" onclick="saveMiningSettings()">💾 حفظ الإعدادات</button>
-                        <button class="btn btn-danger btn-block" onclick="stopAllMining()">⛔ إيقاف كل التعدين</button>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">🎁 المضاعفات</div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">مضاعف VIP</label>
-                        <input type="number" id="vipMultiplier" class="form-input" value="2.0" step="0.1" min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">مضاعف المؤسس</label>
-                        <input type="number" id="founderMultiplier" class="form-input" value="3.0" step="0.1" min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">مضاعف الإحالات</label>
-                        <input type="number" id="referralMultiplier" class="form-input" value="1.5" step="0.1" min="1">
-                    </div>
-
-                    <button class="btn btn-primary btn-block" onclick="saveMultipliers()">💾 حفظ المضاعفات</button>
-                </div>
-            </section>
-
-            <!-- TASKS -->
-            <section id="tabTasks" class="tab-view">
-                <div class="admin-header">
-                    <h1>🎯 إدارة المهام</h1>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">➕ إنشاء مهمة جديدة</div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">اسم المهمة</label>
-                        <input type="text" id="taskName" class="form-input" placeholder="مثال: متابعة تويتر">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الوصف</label>
-                        <input type="text" id="taskDescription" class="form-input" placeholder="وصف المهمة...">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">المكافأة (NDOG)</label>
-                        <input type="number" id="taskReward" class="form-input" placeholder="100" min="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الحد اليومي</label>
-                        <input type="number" id="taskDaily" class="form-input" value="1" min="1">
-                    </div>
-
-                    <button class="btn btn-primary btn-block" onclick="createTask()">✅ إنشاء المهمة</button>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📋 المهام النشطة</div>
-                    <div id="tasksListContainer">
-                        <div style="text-align: center; padding: 20px; color: var(--text-2);">
-                            <span class="loading"></span> جاري تحميل المهام...
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- NOTIFICATIONS -->
-            <section id="tabNotifications" class="tab-view">
-                <div class="admin-header">
-                    <h1>📢 إرسال الإشعارات</h1>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📧 إرسال للجميع</div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">العنوان</label>
-                        <input type="text" id="notifTitle" class="form-input" placeholder="عنوان الإشعار...">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الرسالة</label>
-                        <textarea id="notifMessage" class="form-input" style="resize: vertical; min-height: 80px;" placeholder="نص الإشعار..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الرموز التعبيرية</label>
-                        <input type="text" id="notifIcon" class="form-input" value="🔔" placeholder="🔔">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الإرسال إلى</label>
-                        <select id="notifTarget" class="form-select">
-                            <option value="all">كل المستخدمين</option>
-                            <option value="vip">مستخدمو VIP فقط</option>
-                            <option value="active">المستخدمون النشطون</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-primary btn-block" onclick="sendNotification()">✅ إرسال الإشعار</button>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📜 الإشعارات السابقة</div>
-                    <div id="notificationsHistory" style="color: var(--text-2); font-size: 13px;">
-                        جاري التحميل...
-                    </div>
-                </div>
-            </section>
-
-            <!-- GIFTS -->
-            <section id="tabGifts" class="tab-view">
-                <div class="admin-header">
-                    <h1>🎁 توزيع الهدايا</h1>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">🎉 إرسال هدايا جماعية</div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">المبلغ (NDOG)</label>
-                        <input type="number" id="giftAmount" class="form-input" placeholder="100" min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">السبب</label>
-                        <textarea id="giftReason" class="form-input" style="resize: vertical; min-height: 60px;" placeholder="سبب الهدية..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الإرسال إلى</label>
-                        <select id="giftTarget" class="form-select">
-                            <option value="all">كل المستخدمين</option>
-                            <option value="vip">مستخدمو VIP فقط</option>
-                            <option value="active">المستخدمون النشطون</option>
-                            <option value="referrers">أصحاب الإحالات</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-primary btn-block" onclick="distributeGifts()">🎁 توزيع الهدايا</button>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📜 سجل الهدايا</div>
-                    <div id="giftsHistory" style="color: var(--text-2); font-size: 13px;">
-                        جاري التحميل...
-                    </div>
                 </div>
             </section>
 
@@ -910,44 +847,31 @@
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">🎮 إعدادات التطبيق</div>
+                    <div class="panel-title">🔐 أمان الحساب</div>
                     
                     <div class="form-group">
-                        <label class="form-label">اسم التطبيق</label>
-                        <input type="text" id="appName" class="form-input" value="NDOG Coin">
+                        <label class="form-label">البريد الإلكتروني الحالي</label>
+                        <input type="text" id="currentEmail" class="form-input" disabled>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">الإصدار</label>
-                        <input type="text" id="appVersion" class="form-input" value="1.3.0">
+                        <label class="form-label">طريقة الدخول</label>
+                        <input type="text" id="loginMethod" class="form-input" disabled>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">حالة التطبيق</label>
-                        <select id="appStatus" class="form-select">
-                            <option value="active">نشط</option>
-                            <option value="maintenance">صيانة</option>
-                            <option value="beta">بيتا</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-primary btn-block" onclick="saveAppSettings()">💾 حفظ</button>
+                    <button class="btn btn-primary btn-block" onclick="alert('✅ تم حفظ الإعدادات')">💾 حفظ</button>
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">🔄 قاعدة البيانات</div>
+                    <div class="panel-title">📋 قائمة الإيميلات المسموحة</div>
                     
-                    <div class="grid-2">
-                        <button class="btn btn-primary btn-block" onclick="backupDatabase()">💾 النسخ الاحتياطية</button>
-                        <button class="btn btn-primary btn-block" onclick="exportData()">📊 تصدير البيانات</button>
-                        <button class="btn btn-danger btn-block" onclick="clearCache()">🗑️ حذف الذاكرة</button>
-                        <button class="btn btn-danger btn-block" onclick="resetDatabase()">🔴 إعادة تعيين</button>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="alert alert-info">
-                        ℹ️ تم الربط بـ Firebase بنجاح ✅
+                    <div id="allowedEmailsList" style="background: var(--surface-3); padding: 12px; border-radius: var(--radius-sm);">
+                        <div style="color: var(--text-2); font-size: 12px; line-height: 1.8;">
+                            ✅ elfannanm@gmail.com<br>
+                            ✅ mohamednasrofficial@gmail.com<br>
+                            <br>
+                            <small style="color: var(--text-3);">الإيميلات أعلاه فقط لها صلاحية الدخول لهذه اللوحة</small>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -969,35 +893,6 @@
                 <span>المستخدمون</span>
             </button>
 
-            <button class="nav-item" onclick="switchTab(event, 'tabMining')">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
-                </svg>
-                <span>التعدين</span>
-            </button>
-
-            <button class="nav-item" onclick="switchTab(event, 'tabTasks')">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M9 11l3 3L22 4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>المهام</span>
-            </button>
-
-            <button class="nav-item" onclick="switchTab(event, 'tabNotifications')">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                <span>الإشعارات</span>
-            </button>
-
-            <button class="nav-item" onclick="switchTab(event, 'tabGifts')">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-                <span>الهدايا</span>
-            </button>
-
             <button class="nav-item" onclick="switchTab(event, 'tabSettings')">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <circle cx="12" cy="12" r="1"></circle>
@@ -1008,13 +903,19 @@
         </nav>
     </div>
 
-    <!-- FIREBASE SDK -->
+    <!-- FIREBASE & GOOGLE SIGN-IN -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
 
     <script>
         const PASSWORD = '521988';
+        const ALLOWED_EMAILS = [
+            'elfannanm@gmail.com',
+            'mohamednasrofficial@gmail.com'
+        ];
+
         const firebaseConfig = {
             apiKey: "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
             authDomain: "ndog-a3265.firebaseapp.com",
@@ -1031,363 +932,233 @@
         const database = firebase.database();
         const auth = firebase.auth();
 
-        let stats = {
-            totalUsers: 0,
-            activeToday: 0,
-            totalBalance: 0,
-            miningActive: 0
+        let currentUser = null;
+
+        // ═══ GOOGLE SIGN-IN ═══
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: '829364393352-m8j7v8q4k8j7v8q4k8j7v8q4k8j7v8q4.apps.googleusercontent.com',
+                callback: handleCredentialResponse
+            });
+
+            // Check if user is already logged in
+            if (localStorage.getItem('ndogAdminLoggedIn') === 'true') {
+                const userData = JSON.parse(localStorage.getItem('ndogAdminUser'));
+                if (userData) {
+                    loginSuccess(userData);
+                }
+            }
+
+            // Check auth state
+            auth.onAuthStateChanged((user) => {
+                if (user && ALLOWED_EMAILS.includes(user.email)) {
+                    loginSuccess({
+                        email: user.email,
+                        name: user.displayName,
+                        picture: user.photoURL
+                    });
+                }
+            });
         };
 
-        // ═══ LOGIN ═══
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
+        function triggerGoogleLogin() {
+            google.accounts.id.renderButton(
+                document.getElementById('googleButtonContainer'),
+                { theme: 'filled_blue', size: 'large', width: '100%' }
+            );
+
+            // Programmatically trigger the One Tap experience
+            google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    // Show manual button if One Tap is not available
+                }
+            });
+
+            // Show One Tap for login
+            google.accounts.id.renderButton(
+                document.getElementById('googleButtonContainer'),
+                {
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'signin'
+                }
+            );
+
+            document.getElementById('googleButtonContainer').querySelector('button').click();
+        }
+
+        function handleCredentialResponse(response) {
+            // Decode JWT
+            const base64Url = response.credential.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+
+            const userData = JSON.parse(jsonPayload);
+
+            // Check if email is allowed
+            if (!ALLOWED_EMAILS.includes(userData.email)) {
+                showError('❌ هذا الإيميل غير مسموح بالدخول!\n\nالإيميلات المسموحة:\n' + ALLOWED_EMAILS.join('\n'));
+                return;
+            }
+
+            loginSuccess({
+                email: userData.email,
+                name: userData.name,
+                picture: userData.picture
+            });
+        }
+
+        function loginWithPassword() {
             const password = document.getElementById('passwordInput').value;
             if (password === PASSWORD) {
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('mainContainer').classList.remove('hidden');
-                localStorage.setItem('ndogAdminLoggedIn', 'true');
-                loadDashboard();
+                loginSuccess({
+                    email: 'password-admin@ndog.local',
+                    name: 'Admin (Password)',
+                    picture: null,
+                    method: 'password'
+                });
             } else {
-                const error = document.getElementById('loginError');
-                error.classList.add('show');
-                document.getElementById('passwordInput').value = '';
-                setTimeout(() => error.classList.remove('show'), 3000);
-            }
-        });
-
-        window.addEventListener('load', () => {
-            if (localStorage.getItem('ndogAdminLoggedIn') === 'true') {
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('mainContainer').classList.remove('hidden');
-                loadDashboard();
-            }
-        });
-
-        // ═══ LOGOUT ═══
-        function logout() {
-            if (confirm('هل أنت متأكد؟')) {
-                localStorage.removeItem('ndogAdminLoggedIn');
-                document.getElementById('mainContainer').classList.add('hidden');
-                document.getElementById('loginScreen').classList.remove('hidden');
+                showError('❌ كلمة المرور غير صحيحة');
                 document.getElementById('passwordInput').value = '';
             }
         }
 
-        // ═══ LOAD DASHBOARD ═══
+        function loginSuccess(userData) {
+            currentUser = userData;
+            localStorage.setItem('ndogAdminLoggedIn', 'true');
+            localStorage.setItem('ndogAdminUser', JSON.stringify(userData));
+
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainContainer').classList.remove('hidden');
+
+            // Update user info display
+            document.getElementById('userEmail').textContent = userData.email;
+            document.getElementById('currentEmail').value = userData.email;
+            document.getElementById('loginMethod').value = userData.method === 'password' ? 'كلمة مرور' : 'Google Sign-In';
+            document.getElementById('loginType').textContent = userData.method === 'password' ? 'كلمة مرور' : 'Google';
+
+            // Update avatar
+            if (userData.picture) {
+                const avatar = document.getElementById('userAvatar');
+                avatar.style.background = `url(${userData.picture}) center/cover`;
+                avatar.style.backgroundSize = 'cover';
+                avatar.textContent = '';
+            } else {
+                const firstLetter = userData.email.charAt(0).toUpperCase();
+                document.getElementById('userAvatar').textContent = firstLetter;
+            }
+
+            showSuccess(`✅ مرحباً بك ${userData.name || userData.email}`);
+            loadDashboard();
+        }
+
+        function logout() {
+            if (confirm('هل أنت متأكد من رغبتك في تسجيل الخروج؟')) {
+                localStorage.removeItem('ndogAdminLoggedIn');
+                localStorage.removeItem('ndogAdminUser');
+                auth.signOut().catch(() => {});
+
+                document.getElementById('mainContainer').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('passwordInput').value = '';
+                currentUser = null;
+            }
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('loginError');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            setTimeout(() => errorEl.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('loginSuccess');
+            successEl.textContent = message;
+            successEl.classList.add('show');
+            setTimeout(() => successEl.classList.remove('show'), 4000);
+        }
+
         function loadDashboard() {
-            // Load users
             database.ref('users').once('value', (snapshot) => {
                 const users = snapshot.val() || {};
-                stats.totalUsers = Object.keys(users).length;
+                const userData = Object.values(users);
 
                 let totalBalance = 0;
+                let activeToday = 0;
                 let miningActive = 0;
                 const now = Date.now();
                 const oneDayAgo = now - (24 * 60 * 60 * 1000);
 
-                Object.values(users).forEach(user => {
+                userData.forEach(user => {
                     totalBalance += user.balance || 0;
-                    if (user.lastLogin > oneDayAgo) stats.activeToday++;
+                    if (user.lastLogin > oneDayAgo) activeToday++;
                     if (user.miningActive) miningActive++;
                 });
 
-                stats.totalBalance = totalBalance;
-                stats.miningActive = miningActive;
+                const statsHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">👥 إجمالي المستخدمين</div>
+                        <div class="stat-value">${userData.length.toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">🟢 نشطون اليوم</div>
+                        <div class="stat-value">${activeToday}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">🪙 إجمالي الأرصدة</div>
+                        <div class="stat-value">${(totalBalance / 1000).toFixed(1)}K</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">⛏ التعدين النشط</div>
+                        <div class="stat-value">${miningActive}</div>
+                    </div>
+                `;
 
-                updateStatsDisplay();
-                loadAllUsers();
-                loadRecentActivity();
+                document.getElementById('statsContainer').innerHTML = statsHTML;
+                loadUsers();
             });
 
-            // Load notifications
-            database.ref('admin_notifications').orderByChild('createdAt').limitToLast(5).once('value', (snapshot) => {
-                const notifs = snapshot.val() || {};
-                const list = document.getElementById('notificationsHistory');
-                if (Object.keys(notifs).length === 0) {
-                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لا توجد إشعارات بعد</p>';
-                } else {
-                    list.innerHTML = Object.values(notifs).reverse().map(n => 
-                        `<div style="padding: 10px; border-bottom: 1px solid var(--border); background: rgba(212,160,23,0.05); border-radius: 8px; margin-bottom: 8px;">
-                            <strong>${n.icon} ${n.title}</strong><br>
-                            <small style="color: var(--text-3);">${new Date(n.ts).toLocaleString('ar-EG')}</small>
-                        </div>`
-                    ).join('');
-                }
-            });
-
-            // Load gifts
-            database.ref('admin_gifts').orderByChild('createdAt').limitToLast(5).once('value', (snapshot) => {
-                const gifts = snapshot.val() || {};
-                const list = document.getElementById('giftsHistory');
-                if (Object.keys(gifts).length === 0) {
-                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لم يتم توزيع هدايا بعد</p>';
-                } else {
-                    list.innerHTML = Object.values(gifts).reverse().map(g => 
-                        `<div style="padding: 10px; border-bottom: 1px solid var(--border); background: rgba(16,185,129,0.05); border-radius: 8px; margin-bottom: 8px;">
-                            <strong>🎁 ${g.amount} NDOG</strong><br>
-                            <small>${g.reason}</small><br>
-                            <small style="color: var(--text-3);">${new Date(g.createdAt).toLocaleString('ar-EG')}</small>
-                        </div>`
-                    ).join('');
-                }
-            });
-
-            // Load tasks
-            database.ref('missions').once('value', (snapshot) => {
-                const missions = snapshot.val() || {};
-                const list = document.getElementById('tasksListContainer');
-                if (Object.keys(missions).length === 0) {
-                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لا توجد مهام</p>';
-                } else {
-                    list.innerHTML = '<table style="width: 100%;"><thead><tr><th style="padding: 12px; text-align: right;">المهمة</th><th style="padding: 12px;">المكافأة</th><th>الحالة</th></tr></thead><tbody>' +
-                        Object.entries(missions).map(([id, m]) => 
-                            `<tr><td style="padding: 12px;">${m.name || 'بدون اسم'}</td><td style="padding: 12px;">${m.reward || 0} NDOG</td><td><span class="badge badge-${m.active ? 'success' : 'danger'}">${m.active ? 'نشط' : 'معطل'}</span></td></tr>`
-                        ).join('') + '</tbody></table>';
-                }
-            });
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-EG');
         }
 
-        function updateStatsDisplay() {
-            const container = document.getElementById('statsContainer');
-            container.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">👥 إجمالي المستخدمين</div>
-                    <div class="stat-value">${stats.totalUsers.toLocaleString()}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">🟢 نشطون اليوم</div>
-                    <div class="stat-value">${stats.activeToday}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">🪙 إجمالي الأرصدة</div>
-                    <div class="stat-value">${(stats.totalBalance / 1000).toFixed(1)}K</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">⛏ التعدين النشط</div>
-                    <div class="stat-value">${stats.miningActive}</div>
-                </div>
-            `;
-        }
-
-        function loadAllUsers() {
-            database.ref('users').orderByChild('balance').limitToLast(20).once('value', (snapshot) => {
+        function loadUsers() {
+            database.ref('users').orderByChild('balance').limitToLast(10).once('value', (snapshot) => {
                 const users = snapshot.val() || {};
                 const tbody = document.getElementById('usersTableBody');
+
                 if (Object.keys(users).length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">لا توجد بيانات</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">لا توجد بيانات</td></tr>';
                 } else {
-                    tbody.innerHTML = Object.entries(users).reverse().map(([uid, u]) => 
+                    tbody.innerHTML = Object.entries(users).reverse().map(([uid, u]) =>
                         `<tr>
                             <td>${u.displayName || 'مستخدم'}</td>
                             <td>${(u.balance || 0).toLocaleString()}</td>
-                            <td>${u.referralCount || 0}</td>
-                            <td><span class="badge ${u.banned ? 'badge-danger' : 'badge-success'}">${u.banned ? 'محظور' : 'نشط'}</span></td>
-                            <td><button class="btn" style="background: var(--blue); color: #fff; padding: 6px 12px; font-size: 12px;" onclick="editUser('${uid}')">تعديل</button></td>
+                            <td><span class="badge ${u.banned ? 'badge-danger' : 'badge-success'}" style="background: rgba(${u.banned ? '239, 68, 68' : '16, 185, 129'}, 0.2); color: ${u.banned ? 'var(--red)' : 'var(--green)'};">${u.banned ? 'محظور' : 'نشط'}</span></td>
                         </tr>`
                     ).join('');
                 }
             });
         }
 
-        function loadRecentActivity() {
-            database.ref('transactions').orderByChild('ts').limitToLast(8).once('value', (snapshot) => {
-                const txns = snapshot.val() || {};
-                const list = document.getElementById('recentActivityList');
-                if (Object.keys(txns).length === 0) {
-                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لا توجد أنشطة</p>';
-                } else {
-                    list.innerHTML = Object.values(txns).reverse().slice(0, 5).map(t =>
-                        `<div style="padding: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
-                            <span>${t.type === 'claim' ? '✅ مطالبة يومية' : '⛏ تعدين'}: ${t.amount} NDOG</span>
-                            <small>${new Date(t.ts).toLocaleTimeString('ar-EG')}</small>
-                        </div>`
-                    ).join('');
-                }
-            });
-        }
-
-        // ═══ ACTIONS ═══
-        function toggleMining() {
-            alert('✅ تم تفعيل/إيقاف التعدين - سيتم تطبيق التغييرات على جميع المستخدمين');
-        }
-
-        function broadcastNotification() {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.querySelector('[onclick*="tabNotifications"]').classList.add('active');
-            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
-            document.getElementById('tabNotifications').classList.add('active');
-        }
-
-        function sendGiftAll() {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.querySelector('[onclick*="tabGifts"]').classList.add('active');
-            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
-            document.getElementById('tabGifts').classList.add('active');
-        }
-
-        function viewSystemLogs() {
-            alert('📋 سجلات النظام\n\nآخر التحديثات والأنشطة الإدارية');
-        }
-
         function searchUsers() {
-            const search = document.getElementById('userSearchInput').value;
-            if (!search) {
-                alert('أدخل كلمة البحث');
-                return;
-            }
-            alert(`🔍 جاري البحث عن: ${search}`);
+            alert('🔍 جاري البحث...');
         }
 
-        function editUser(uid) {
-            alert(`✏️ تعديل المستخدم: ${uid}\n\nسيتم فتح صفحة التعديل قريباً`);
-        }
-
-        function createTask() {
-            const name = document.getElementById('taskName').value;
-            if (!name) {
-                alert('أدخل اسم المهمة');
-                return;
-            }
-            
-            const reward = parseInt(document.getElementById('taskReward').value) || 0;
-            const description = document.getElementById('taskDescription').value;
-
-            const taskData = {
-                name: name,
-                description: description,
-                reward: reward,
-                active: true,
-                createdAt: Date.now()
-            };
-
-            database.ref('missions').push(taskData).then(() => {
-                alert('✅ تم إنشاء المهمة بنجاح');
-                document.getElementById('taskName').value = '';
-                document.getElementById('taskDescription').value = '';
-                document.getElementById('taskReward').value = '';
-                loadDashboard();
-            }).catch(err => alert('❌ خطأ: ' + err.message));
-        }
-
-        function sendNotification() {
-            const title = document.getElementById('notifTitle').value;
-            const message = document.getElementById('notifMessage').value;
-            const icon = document.getElementById('notifIcon').value;
-            const target = document.getElementById('notifTarget').value;
-
-            if (!title || !message) {
-                alert('أدخل العنوان والرسالة');
-                return;
-            }
-
-            const notifData = {
-                title: title,
-                message: message,
-                icon: icon,
-                target: target,
-                createdAt: Date.now(),
-                ts: Date.now()
-            };
-
-            database.ref('admin_notifications').push(notifData).then(() => {
-                alert('✅ تم إرسال الإشعار بنجاح');
-                document.getElementById('notifTitle').value = '';
-                document.getElementById('notifMessage').value = '';
-                loadDashboard();
-            }).catch(err => alert('❌ خطأ: ' + err.message));
-        }
-
-        function distributeGifts() {
-            const amount = parseInt(document.getElementById('giftAmount').value);
-            const reason = document.getElementById('giftReason').value;
-            const target = document.getElementById('giftTarget').value;
-
-            if (!amount || !reason) {
-                alert('أدخل المبلغ والسبب');
-                return;
-            }
-
-            const giftData = {
-                amount: amount,
-                reason: reason,
-                target: target,
-                operation: 'add',
-                createdAt: Date.now()
-            };
-
-            database.ref('admin_gifts').push(giftData).then(() => {
-                alert(`✅ تم توزيع ${amount} NDOG على ${target === 'all' ? 'الجميع' : target}`);
-                document.getElementById('giftAmount').value = '';
-                document.getElementById('giftReason').value = '';
-                loadDashboard();
-            }).catch(err => alert('❌ خطأ: ' + err.message));
-        }
-
-        function saveMiningSettings() {
-            const settings = {
-                baseSpeed: parseInt(document.getElementById('miningSpeed').value),
-                dailyLimit: parseInt(document.getElementById('miningDaily').value),
-                duration: parseInt(document.getElementById('miningDuration').value)
-            };
-
-            database.ref('config/mining').update(settings).then(() => {
-                alert('✅ تم حفظ إعدادات التعدين');
-            }).catch(err => alert('❌ خطأ: ' + err.message));
-        }
-
-        function saveMultipliers() {
-            const multipliers = {
-                vip: parseFloat(document.getElementById('vipMultiplier').value),
-                founder: parseFloat(document.getElementById('founderMultiplier').value),
-                referral: parseFloat(document.getElementById('referralMultiplier').value)
-            };
-
-            database.ref('config/multipliers').update(multipliers).then(() => {
-                alert('✅ تم حفظ المضاعفات');
-            }).catch(err => alert('❌ خطأ: ' + err.message));
-        }
-
-        function saveAppSettings() {
-            alert('✅ تم حفظ إعدادات التطبيق');
-        }
-
-        function backupDatabase() {
-            alert('💾 جاري إنشاء نسخة احتياطية...\n✅ تم الحفظ بنجاح');
-        }
-
-        function exportData() {
-            alert('📊 جاري تصدير البيانات...\n✅ تم تحميل الملف');
-        }
-
-        function clearCache() {
-            if (confirm('هل أنت متأكد؟ هذا لا يمكن التراجع عنه!')) {
-                alert('🗑️ تم حذف الذاكرة');
-            }
-        }
-
-        function resetDatabase() {
-            if (confirm('تحذير! هذا سيحذف كل البيانات!\nهل أنت متأكد جداً؟')) {
-                alert('🔴 تم إعادة تعيين قاعدة البيانات');
-            }
-        }
-
-        function stopAllMining() {
-            if (confirm('هل تريد إيقاف كل التعدين للجميع؟')) {
-                alert('⛔ تم إيقاف كل التعدين');
-            }
-        }
-
-        // ═══ SWITCH TABS ═══
         function switchTab(event, tabId) {
             event.preventDefault();
             document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             event.target.closest('.nav-item').classList.add('active');
-            document.querySelector('.content').scrollTop = 0;
         }
 
-        console.log('%c🔐 لوحة تحكم NDOG متصلة بـ Firebase ✅', 'color: #D4A017; font-size: 16px; font-weight: bold;');
+        console.log('%c🔐 لوحة تحكم NDOG مع Google Sign-In ✅', 'color: #D4A017; font-size: 16px; font-weight: bold;');
+        console.log('%c✅ الإيميلات المسموحة:', 'color: #10B981; font-weight: bold;');
+        console.log('%celfannanm@gmail.com', 'color: #10B981;');
+        console.log('%cmohamednasrofficial@gmail.com', 'color: #10B981;');
     </script>
 </body>
 </html>

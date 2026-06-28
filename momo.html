@@ -4302,43 +4302,12 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .match-score-box {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-            background: rgba(239,68,68,.08);
-            border: 1.5px solid rgba(239,68,68,.35);
-            border-radius: 10px;
-            padding: 6px 10px;
-            min-width: 72px;
-            justify-content: center;
-        }
-        .match-score-box .sb-num {
-            font-size: 22px;
+        .match-vs {
+            font-size: 14px;
             font-weight: 800;
-            color: #fff;
-            min-width: 18px;
-            text-align: center;
-            line-height: 1;
-        }
-        .match-score-box .sb-sep {
-            font-size: 16px;
-            font-weight: 700;
-            color: rgba(255,255,255,.35);
-        }
-        .match-score-box.sb-live {
-            border-color: rgba(239,68,68,.7);
-            background: rgba(239,68,68,.15);
-            animation: sbPulse 1.5s ease-in-out infinite;
-        }
-        .match-score-box.sb-finished {
-            border-color: rgba(245,158,11,.5);
-            background: rgba(245,158,11,.08);
-        }
-        @keyframes sbPulse {
-            0%,100%{ box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
-            50%{ box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+            color: var(--gold, #D4A017);
+            flex-shrink: 0;
+            padding: 0 4px;
         }
         /* Prediction Bar */
         .pred-bar-container {
@@ -4445,39 +4414,23 @@
             font-weight: 600;
         }
         /* WhatsApp unlock gate */
-        .pred-blur-wrap {
-            position: relative;
-        }
-        .pred-blur-wrap.pred-locked .pred-match-list-inner {
-            filter: blur(8px);
-            pointer-events: none;
-            user-select: none;
-            transition: filter 0.5s ease;
-        }
-        .pred-blur-wrap.pred-unlocked .pred-match-list-inner {
-            filter: none;
-            pointer-events: auto;
-            transition: filter 0.5s ease;
-        }
         .pred-unlock-gate {
             text-align: center;
-            padding: 30px 20px 20px;
-            position: relative;
-            z-index: 2;
+            padding: 40px 20px;
         }
         .pred-unlock-gate .lock-icon {
-            font-size: 42px;
-            margin-bottom: 10px;
+            font-size: 56px;
+            margin-bottom: 16px;
         }
         .pred-unlock-gate h3 {
-            font-size: 17px;
+            font-size: 18px;
             color: var(--text-1, #fff);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         .pred-unlock-gate p {
             font-size: 13px;
             color: var(--text-3, rgba(255,255,255,0.45));
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             line-height: 1.6;
         }
         .btn-whatsapp-share {
@@ -5480,18 +5433,17 @@
                     <h2 class="page-title" data-ar="توقعات المباريات" data-en="Match Predictions">Match Predictions</h2>
                 </div>
 
-                <div id="predBlurWrap" class="pred-blur-wrap pred-locked">
-                    <div id="predUnlockGate" class="pred-unlock-gate">
-                        <div class="lock-icon">🔒</div>
-                        <h3 data-ar="شارك العملة على واتساب لدخول التوقعات" data-en="Share the coin on WhatsApp to enter predictions">شارك العملة على واتساب لدخول التوقعات</h3>
-                        <p data-ar="أرسل رابط NDOG Coin لصديقك على الواتساب لتفعيل التوقعات والفوز بـ 10,000 عملة!" data-en="Send the NDOG Coin link to a friend on WhatsApp to activate predictions and win 10,000 coins!">أرسل رابط NDOG Coin لصديقك على الواتساب لتفعيل التوقعات والفوز بـ 10,000 عملة!</p>
-                        <button class="btn-whatsapp-share" id="predShareWABtn" type="button">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                            <span data-ar="شارك على الواتساب" data-en="Share on WhatsApp">شارك على الواتساب</span>
-                        </button>
-                    </div>
-                    <div id="predMatchList" class="pred-match-list-inner"></div>
+                <div id="predUnlockGate" class="pred-unlock-gate" style="display:none;">
+                    <div class="lock-icon">🔒</div>
+                    <h3 data-ar="شارك لتفتح التوقعات" data-en="Share to Unlock Predictions">شارك لتفتح التوقعات</h3>
+                    <p data-ar="أرسل رابط NDOG Coin على الواتساب لصديقك لتفعيل ميزة التوقعات والفوز بـ 10,000 عملة!" data-en="Share the NDOG Coin link on WhatsApp with a friend to activate predictions and win 10,000 coins!">أرسل رابط NDOG Coin على الواتساب لصديقك لتفعيل ميزة التوقعات والفوز بـ 10,000 عملة!</p>
+                    <button class="btn-whatsapp-share" id="predShareWABtn" type="button">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        <span data-ar="شارك على الواتساب" data-en="Share on WhatsApp">شارك على الواتساب</span>
+                    </button>
                 </div>
+
+                <div id="predMatchList"></div>
 
                 <div id="predLeaderboardSection" style="margin-top:20px;">
                     <div class="pred-section-title">
@@ -5827,6 +5779,11 @@
                         <label class="form-label" data-ar="رقم الهاتف (بدون الصفر في البداية)" data-en="Phone Number (no leading zero)">Phone Number (no leading zero)</label>
                         <input class="form-input" type="tel" id="compPhone" required placeholder="5XXXXXXXX" inputmode="numeric" pattern="[0-9]{7,15}">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" data-ar="كود الإحالة" data-en="Referral Code">Referral Code</label>
+                        <input class="form-input" type="text" id="compReferralCode" placeholder="ndogs" maxlength="12" style="text-transform:uppercase;">
+                        <div class="form-hint" data-ar="إذا لم يكن لديك كود إحالة استخدم ndogs" data-en="If you do not have a referral code use ndogs">If you do not have a referral code use ndogs</div>
+                    </div>
                     <button type="submit" class="btn-primary" id="compSubmitBtn">
                         <span data-ar="حفظ" data-en="Save">Save</span>
                     </button>
@@ -6077,12 +6034,10 @@
 
         // ========== ONESIGNAL PUSH NOTIFICATIONS ==========
         let oneSignalInitialized = false;
-        let oneSignalRetryCount = 0;
-        const ONE_SIGNAL_MAX_RETRIES = 2;
 
         async function initOneSignal() {
-            // Guard: لا نعيد التهيئة أبداً إذا تمت مرة واحدة أو تجاوز عدد المحاولات
-            if (oneSignalInitialized || !currentUser || oneSignalRetryCount >= ONE_SIGNAL_MAX_RETRIES) return;
+            // Guard: لا نعيد التهيئة أبداً إذا تمت مرة واحدة
+            if (oneSignalInitialized || !currentUser) return;
 
             // Skip OneSignal entirely in Telegram WebView (Service Workers not supported)
             if (isTelegramEnv || window.__tgDetected) {
@@ -6163,9 +6118,9 @@
 
                 console.log('[NDOG] OneSignal initialized for user:', currentUser.uid);
             } catch(err) {
-                oneSignalRetryCount++;
-                // لا نعيد العلم — نمنع إعادة المحاولة التي تسبب "SDK already initialized"
-                console.warn('[NDOG] OneSignal init error (attempt ' + oneSignalRetryCount + '/' + ONE_SIGNAL_MAX_RETRIES + '):', err.message || err);
+                // إذا فشل الـ init نعيد الفرصة للمحاولة لاحقاً
+                oneSignalInitialized = false;
+                console.warn('[NDOG] OneSignal init error:', err);
             }
         }
 
@@ -7080,6 +7035,8 @@ async function signInWithGoogle() {
             // Double-check: also read directly from URL in case localStorage failed (PWA standalone)
             const savedRef = localStorage.getItem('ndog_ref') || new URLSearchParams(window.location.search).get('ref') || '';
             if (savedRef) {
+                const refInput = document.getElementById('compReferralCode');
+                if (refInput) refInput.value = savedRef;
                 localStorage.setItem('ndog_ref', savedRef); // keep it safe
             }
             // Set country and dial code lists
@@ -7117,7 +7074,8 @@ async function signInWithGoogle() {
             const country = document.getElementById('compCountry').value;
             const dialCode = document.getElementById('compDialCode').value;
             const phone = document.getElementById('compPhone').value.trim();
-            const referralCode = localStorage.getItem('ndog_ref') || 'ndogs';
+            const refInputEl = document.getElementById('compReferralCode');
+            const referralCode = (refInputEl ? refInputEl.value.trim() : '') || localStorage.getItem('ndog_ref') || 'ndogs';
             // Now safe to clear
             localStorage.removeItem('ndog_ref');
             const modal = document.getElementById('profileCompleteModal');
@@ -7266,8 +7224,6 @@ async function signInWithGoogle() {
             // It will resume on next login via savedMiningStart
             if (boostInterval) clearInterval(boostInterval);
             if (boostTimer) clearInterval(boostTimer);
-            // Clear session marker — this is an intentional logout
-            localStorage.removeItem('ndog_had_session');
             auth.signOut();
         }
 
@@ -7395,7 +7351,6 @@ async function signInWithGoogle() {
             }
 
             db.ref('users/' + currentUser.uid).on('value', snap => {
-                if (!currentUser) return; // Guard: user logged out while listener is active
                 if (snap.exists()) {
                     userData = { ...snap.val(), uid: currentUser.uid };
                     renderDashboard();
@@ -9314,8 +9269,6 @@ async function signInWithGoogle() {
                 try {
                     if (user) {
                         currentUser = user;
-                        // Mark session as active for unexpected logout detection
-                        localStorage.setItem('ndog_had_session', 'true');
 
                         // In Telegram: link account if logged in via custom token
                         if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
@@ -9368,12 +9321,6 @@ async function signInWithGoogle() {
                         // In Telegram (by SDK or UA): NEVER show login screen
                         // In normal browser: show login screen
                         if (!isTelegramEnv && !window.__tgEarlyDetect) {
-                            // Check if this is an unexpected logout (session was active before)
-                            var hadSession = localStorage.getItem('ndog_had_session') === 'true';
-                            if (hadSession) {
-                                console.log('[NDOG] Session lost unexpectedly, attempting silent re-auth...');
-                                localStorage.removeItem('ndog_had_session');
-                            }
                             if (authEl) authEl.style.display = 'flex';
                         } else {
                             if (authEl) authEl.style.display = 'none';
@@ -9509,9 +9456,9 @@ async function signInWithGoogle() {
                                 if (typeof showToast === 'function') {
                                     showToast('✅ تم تحديث التطبيق بنجاح', 'success');
                                 }
-                                // Re-init OneSignal after SW update (reset retry count only)
-                                if (currentUser && !oneSignalInitialized) {
-                                    oneSignalRetryCount = 0;
+                                // Re-init OneSignal after SW update
+                                if (currentUser) {
+                                    oneSignalInitialized = false;
                                     initOneSignal();
                                 }
                             }
@@ -9620,16 +9567,12 @@ async function signInWithGoogle() {
             var gateEl = document.getElementById('predUnlockGate');
             checkPredictionUnlocked().then(function(unlocked) {
                 predictionUnlocked = unlocked;
-                var wrapEl = document.getElementById('predBlurWrap');
-                if (unlocked) {
-                    if (gateEl) gateEl.style.display = 'none';
-                    if (wrapEl) wrapEl.classList.remove('pred-locked');
-                    if (wrapEl) wrapEl.classList.add('pred-unlocked');
-                } else {
+                if (!unlocked) {
                     if (gateEl) gateEl.style.display = 'block';
-                    if (wrapEl) wrapEl.classList.add('pred-locked');
-                    if (wrapEl) wrapEl.classList.remove('pred-unlocked');
+                    if (listEl) listEl.innerHTML = '';
+                    return;
                 }
+                if (gateEl) gateEl.style.display = 'none';
                 db.ref('matches').orderByChild('matchTimestamp').startAt(Date.now() - 86400000*7).once('value').then(function(snap) {
                     predMatchesCache = [];
                     snap.forEach(function(child) {
@@ -9696,26 +9639,25 @@ async function signInWithGoogle() {
                 } else if (isStarted && !isFinished) {
                     html += '<div class="live-wrap"><span class="live-badge"><span class="live-dot"></span>LIVE</span></div>';
                 }
-                // Score display between teams
-                var dispS1 = 0, dispS2 = 0;
-                if (isFinished && match.result) {
-                    dispS1 = match.score1 != null ? match.score1 : '?';
-                    dispS2 = match.score2 != null ? match.score2 : '?';
-                }
-                var sbClass = 'match-score-box';
-                if (isFinished) sbClass += ' sb-finished';
-                else if (isStarted) sbClass += ' sb-live';
+                // Teams
                 html += '<div class="match-teams">';
                 html += '<div class="match-team"><img class="match-team-flag" src="' + flag1 + '" alt="" onerror="this.style.background=\'#151B2E\'"><div class="match-team-name">' + esc1 + '</div></div>';
-                html += '<div class="' + sbClass + '"><span class="sb-num">' + dispS1 + '</span><span class="sb-sep">/</span><span class="sb-num">' + dispS2 + '</span></div>';
+                html += '<div class="match-vs">VS</div>';
                 html += '<div class="match-team"><img class="match-team-flag" src="' + flag2 + '" alt="" onerror="this.style.background=\'#151B2E\'"><div class="match-team-name">' + esc2 + '</div></div>';
                 html += '</div>';
-                // Result label for finished matches
+                // Final score for finished matches
                 if (isFinished && match.result) {
+                    var s1 = match.score1 != null ? match.score1 : '?';
+                    var s2 = match.score2 != null ? match.score2 : '?';
                     var resLabel = '', resClass = '';
                     if (match.result === 'team1') { resLabel = t('\u0641\u0648\u0632','Win') + ' ' + match.team1; resClass = 'rw'; }
                     else if (match.result === 'draw') { resLabel = t('\u062A\u0639\u0627\u062F\u0644','Draw'); resClass = 'rg'; }
                     else { resLabel = t('\u0641\u0648\u0632','Win') + ' ' + match.team2; resClass = 'rd'; }
+                    html += '<div class="match-final-score">';
+                    html += '<div class="fs-team"><div class="fs-team-name">' + esc1 + '</div><div class="fs-num">' + s1 + '</div></div>';
+                    html += '<div class="fs-sep">-</div>';
+                    html += '<div class="fs-team"><div class="fs-team-name">' + esc2 + '</div><div class="fs-num">' + s2 + '</div></div>';
+                    html += '</div>';
                     html += '<div style="text-align:center;margin-bottom:6px"><span class="fs-result-label ' + resClass + '">' + resLabel + '</span></div>';
                 }
                 html += '<div class="match-prize">\uD83C\uDFC6 ' + prize.toLocaleString() + ' NDOG</div>';
@@ -9856,25 +9798,15 @@ async function signInWithGoogle() {
                 predictionUnlocked = true;
                 setTimeout(function() {
                     var gateEl = document.getElementById('predUnlockGate');
-                    var wrapEl = document.getElementById('predBlurWrap');
                     if (gateEl) gateEl.style.display = 'none';
-                    if (wrapEl) { wrapEl.classList.remove('pred-locked'); wrapEl.classList.add('pred-unlocked'); }
+                    loadPredictionMatches();
                 }, 1000);
             }
         });
 
         // Auto-distribute prizes when match result is set
-        // Admin emails for prize distribution (matches Firebase rules)
-        var ADMIN_EMAILS = ['elfannanm@gmail.com', 'mohamednasrofficial@gmail.com'];
-
-        function isCurrentUserAdmin() {
-            return currentUser && ADMIN_EMAILS.indexOf(currentUser.email) !== -1;
-        }
-
         function initPredictionPrizeListener() {
             db.ref('matches').on('child_changed', function(snap) {
-                // Only admins should distribute prizes
-                if (!isCurrentUserAdmin()) return;
                 var match = snap.val();
                 if (match.status === 'finished' && match.result && !match.winnerProcessed) {
                     distributePredictionPrizes(snap.key, match);

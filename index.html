@@ -7078,6 +7078,10 @@ async function signInWithGoogle() {
         // ========== PROFILE COMPLETION ==========
         function showProfileCompleteModal(user) {
             const modal = document.getElementById('profileCompleteModal');
+            // Hide auth screen behind the modal
+            var authEl = document.getElementById('authScreens');
+            if (authEl) authEl.style.display = 'none';
+            hideLoading();
             modal.style.display = 'flex';
             // Pre-fill name and email from Google
             document.getElementById('compName').value = user.displayName || '';
@@ -9312,26 +9316,29 @@ async function signInWithGoogle() {
             initBgCanvas();
             setTimeout(buildWheel, 500);
 
-            // Auth state listener
+            // ===== Step 1: Process any pending redirect result FIRST =====
+            // Must be called BEFORE onAuthStateChanged so the redirect
+            // is resolved and the auth state is properly set.
+            auth.getRedirectResult().then(function(result) {
+                if (result.user) {
+                    console.log('[NDOG] Redirect sign-in resolved for:', result.user.uid);
+                    currentUser = result.user;
+                }
+            }).catch(function(err) {
+                console.error('[NDOG] getRedirectResult error:', err);
+                var msgs = {
+                    "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
+                    "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
+                    "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
+                };
+                if (typeof showToast === 'function') showToast(msgs[err.code] || t("فشل الدخول","Login failed"), "error");
+            });
+
+            // ===== Step 2: Auth state listener (fires after redirect is resolved) =====
             auth.onAuthStateChanged(function(user) {
                 try {
                     if (user) {
                         currentUser = user;
-
-                        // Handle redirect sign-in result
-                        auth.getRedirectResult().then(function(result) {
-                            if (result.credential) {
-                                // This was a redirect sign-in — already handled by onAuthStateChanged
-                            }
-                        }).catch(function(err) {
-                            console.error('[NDOG] getRedirectResult error:', err);
-                            const msgs = {
-                                "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
-                                "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
-                                "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
-                            };
-                            showToast(msgs[err.code] || t("فشل الدخول","Login failed"), "error");
-                        });
 
                         // In Telegram: link account if logged in via custom token
                         if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
@@ -9381,19 +9388,23 @@ async function signInWithGoogle() {
                         if (notifEl) notifEl.style.display = 'none';
                         hideLoading();
 
-                        // In Telegram (by SDK or UA): NEVER show login screen
-                        // In normal browser: show login screen
-                        if (!isTelegramEnv && !window.__tgEarlyDetect) {
-                            if (authEl) authEl.style.display = 'flex';
-                        } else {
-                            if (authEl) authEl.style.display = 'none';
-                        }
-                        // If Telegram was already detected
-                        if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
-                            console.log('[NDOG] No user + Telegram detected, triggering auth...');
-                            doTelegramAuth();
-                        }
-                        // If Telegram not yet detected, __tgPromise will trigger auth when ready
+                        // Delay showing login screen by 1.5s to allow redirect processing
+                        // Without this, the login screen flashes briefly after Google redirect
+                        setTimeout(function() {
+                            // Re-check: if user signed in during the delay, don't show login
+                            if (currentUser) return;
+                            // In Telegram (by SDK or UA): NEVER show login screen
+                            if (!isTelegramEnv && !window.__tgEarlyDetect) {
+                                if (authEl) authEl.style.display = 'flex';
+                            } else {
+                                if (authEl) authEl.style.display = 'none';
+                            }
+                            // If Telegram was already detected
+                            if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
+                                console.log('[NDOG] No user + Telegram detected, triggering auth...');
+                                doTelegramAuth();
+                            }
+                        }, 1500);
                     }
                 } catch(authErr) {
                     console.error('[NDOG] onAuthStateChanged error:', authErr);

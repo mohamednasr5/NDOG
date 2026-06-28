@@ -7378,6 +7378,7 @@ async function signInWithGoogle() {
             }
 
             db.ref('users/' + currentUser.uid).on('value', snap => {
+                if (!currentUser) return; // Guard: user logged out while listener is active
                 if (snap.exists()) {
                     userData = { ...snap.val(), uid: currentUser.uid };
                     renderDashboard();

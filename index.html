@@ -8691,6 +8691,105 @@ async function signInWithGoogle() {
             });
         }
 
+        // ========== BIOMETRIC / FINGERPRINT LOGIN ==========
+        function initBiometric() {
+            if (!window.PublicKeyCredential) {
+                const section = document.getElementById('biometricSection');
+                if (section) section.style.display = 'none';
+                return;
+            }
+            const enabled = localStorage.getItem('ndog_biometric') === 'true';
+            updateBiometricUI(enabled);
+        }
+
+        function updateBiometricUI(enabled) {
+            const enableBtn = document.getElementById('enableBiometricBtn');
+            const disableBtn = document.getElementById('disableBiometricBtn');
+            const statusBadge = document.getElementById('biometricStatus');
+            if (enabled) {
+                if (enableBtn) enableBtn.style.display = 'none';
+                if (disableBtn) disableBtn.style.display = 'block';
+                if (statusBadge) {
+                    statusBadge.textContent = t('مفعّل', 'Enabled');
+                    statusBadge.style.background = 'rgba(16,185,129,0.1)';
+                    statusBadge.style.borderColor = 'rgba(16,185,129,0.3)';
+                    statusBadge.style.color = 'var(--green)';
+                }
+            } else {
+                if (enableBtn) enableBtn.style.display = 'block';
+                if (disableBtn) disableBtn.style.display = 'none';
+                if (statusBadge) {
+                    statusBadge.textContent = t('غير مفعّل', 'Disabled');
+                    statusBadge.style.background = '';
+                    statusBadge.style.borderColor = '';
+                    statusBadge.style.color = '';
+                }
+            }
+        }
+
+        async function enableBiometric() {
+            if (!currentUser) { showToast(t('سجّل دخولك أولاً', 'Sign in first'), 'warning'); return; }
+            try {
+                const challenge = new Uint8Array(32);
+                crypto.getRandomValues(challenge);
+                const userId = new TextEncoder().encode(currentUser.uid);
+                const credential = await navigator.credentials.create({
+                    publicKey: {
+                        challenge: challenge,
+                        rp: { name: 'NDOG Coin', id: location.hostname },
+                        user: { id: userId, name: currentUser.email || 'ndog-user', displayName: currentUser.displayName || 'NDOG User' },
+                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+                        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+                        timeout: 60000
+                    }
+                });
+                if (credential) {
+                    localStorage.setItem('ndog_biometric', 'true');
+                    localStorage.setItem('ndog_biometric_uid', currentUser.uid);
+                    updateBiometricUI(true);
+                    showToast(t('✅ تم تفعيل البصمة!', '✅ Fingerprint enabled!'), 'success');
+                }
+            } catch (err) {
+                console.warn('[NDOG] Biometric enable error:', err);
+                if (err.name === 'NotAllowedError') {
+                    showToast(t('تم إلغاء البصمة', 'Fingerprint cancelled'), 'info');
+                } else {
+                    showToast(t('البصمة غير مدعومة على هذا الجهاز', 'Biometric not supported on this device'), 'warning');
+                }
+            }
+        }
+
+        async function disableBiometric() {
+            localStorage.removeItem('ndog_biometric');
+            localStorage.removeItem('ndog_biometric_uid');
+            updateBiometricUI(false);
+            showToast(t('تم إلغاء البصمة', 'Fingerprint disabled'), 'info');
+        }
+
+        async function tryBiometricLogin() {
+            if (localStorage.getItem('ndog_biometric') !== 'true') return false;
+            if (!window.PublicKeyCredential) return false;
+            try {
+                const challenge = new Uint8Array(32);
+                crypto.getRandomValues(challenge);
+                const assertion = await navigator.credentials.get({
+                    publicKey: {
+                        challenge: challenge,
+                        rpId: location.hostname,
+                        userVerification: 'required',
+                        timeout: 60000
+                    }
+                });
+                if (assertion) {
+                    showToast(t('✅ تم تسجيل الدخول بالبصمة!', '✅ Logged in with fingerprint!'), 'success');
+                    return true;
+                }
+            } catch (err) {
+                console.warn('[NDOG] Biometric login error:', err);
+            }
+            return false;
+        }
+
         // ========== APPLY REFERRAL ==========
         function applyReferralCode(code) {
             if (!currentUser || !code) return Promise.reject('no code');

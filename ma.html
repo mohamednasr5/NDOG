@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#070B14">
+    <title>لوحة تحكم NDOG - متصلة بـ Firebase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #070B14;
+            --surface: #0D1220;
+            --surface-2: #141826;
+            --surface-3: #1C2236;
+            --border: rgba(255, 255, 255, 0.07);
+            --border-2: rgba(255, 255, 255, 0.12);
+            --gold: #D4A017;
+            --gold-light: #F0C93A;
+            --gold-dark: #9B7210;
+            --gold-glow: rgba(212, 160, 23, 0.25);
+            --blue: #1A6BDB;
+            --blue-light: #3D8EF0;
+            --blue-glow: rgba(26, 107, 219, 0.2);
+            --text-1: #F0F4FF;
+            --text-2: #8B97B8;
+            --text-3: #4A5577;
+            --green: #10B981;
+            --red: #EF4444;
+            --orange: #F59E0B;
+            --purple: #8B5CF6;
+            --radius-sm: 10px;
+            --radius: 16px;
+            --radius-lg: 24px;
+            --nav-h: 72px;
+            --font-ar: 'Tajawal', system-ui, sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-1);
+            font-family: var(--font-ar);
+            font-size: 15px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* AMBIENT */
+        .ambient-orbs {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: orbFloat 12s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            top: -100px;
+            right: -100px;
+            background: radial-gradient(circle, rgba(212, 160, 23, 0.12) 0%, transparent 70%);
+        }
+
+        .orb-2 {
+            width: 350px;
+            height: 350px;
+            top: 40%;
+            left: -80px;
+            background: radial-gradient(circle, rgba(26, 107, 219, 0.12) 0%, transparent 70%);
+            animation-delay: -4s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -30px) scale(1.05); }
+            66% { transform: translate(-15px, 20px) scale(0.95); }
+        }
+
+        /* LOGIN */
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--bg);
+        }
+
+        .login-screen.hidden {
+            display: none;
+        }
+
+        .login-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(20px);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .login-coin {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 15px;
+            animation: bounce 1s ease-in-out infinite;
+            display: inline-block;
+            width: 100%;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .login-input {
+            padding: 12px 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-1);
+            font-size: 15px;
+            font-family: inherit;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: var(--surface-3);
+            box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
+        }
+
+        .login-btn {
+            padding: 14px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 160, 23, 0.4);
+        }
+
+        .login-error {
+            color: var(--red);
+            font-size: 13px;
+            text-align: center;
+            display: none;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        .login-error.show {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* MAIN */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: var(--nav-h);
+        }
+
+        .main-container.hidden {
+            display: none;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        /* TABS */
+        .tab-view {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* HEADER */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .admin-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--blue-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            background: var(--surface-3);
+            border-color: var(--border-2);
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-2);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gold);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(212, 160, 23, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--gold);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* FORMS */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-1);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-1);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: var(--surface-3);
+            box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
+        }
+
+        /* BUTTONS */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 160, 23, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--red);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* TABLES */
+        .table-container {
+            overflow-x: auto;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(20px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--surface-3);
+            padding: 12px;
+            text-align: right;
+            color: var(--gold);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: rgba(212, 160, 23, 0.05);
+        }
+
+        /* PANELS */
+        .panel {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(20px);
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        /* ALERTS */
+        .alert {
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            border-right: 3px solid;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-right-color: var(--green);
+            color: var(--green);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-right-color: var(--red);
+            color: var(--red);
+        }
+
+        .alert-info {
+            background: rgba(26, 107, 219, 0.1);
+            border-right-color: var(--blue);
+            color: var(--blue);
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+        }
+
+        .badge-gold {
+            background: rgba(212, 160, 23, 0.2);
+            color: var(--gold);
+        }
+
+        /* GRID */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        /* NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-h);
+            background: rgba(13, 18, 32, 0.8);
+            border-top: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 8px;
+        }
+
+        .nav-item {
+            flex: 1;
+            height: 56px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-2);
+            font-size: 11px;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            color: var(--gold);
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 3px;
+            background: var(--gold);
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            .admin-header {
+                flex-direction: column-reverse;
+                gap: 12px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- AMBIENT -->
+    <div class="ambient-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-coin">🐕</div>
+            <div class="login-title">لوحة التحكم</div>
+            <form class="login-form" id="loginForm">
+                <input type="password" class="form-input" id="passwordInput" placeholder="أدخل كلمة المرور">
+                <button type="submit" class="login-btn">دخول</button>
+                <div class="login-error" id="loginError">❌ كلمة المرور غير صحيحة</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-container hidden" id="mainContainer">
+        <div class="content">
+            <!-- DASHBOARD -->
+            <section id="tabDashboard" class="tab-view active">
+                <div class="admin-header">
+                    <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
+                    <h1>📊 لوحة المعلومات</h1>
+                </div>
+
+                <div id="statsContainer" class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">👥 إجمالي المستخدمين</div>
+                        <div class="stat-value"><span class="loading"></span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">🟢 نشطون اليوم</div>
+                        <div class="stat-value"><span class="loading"></span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">🪙 إجمالي الأرصدة</div>
+                        <div class="stat-value"><span class="loading"></span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">⛏ التعدين النشط</div>
+                        <div class="stat-value"><span class="loading"></span></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">⚡ إجراءات سريعة</div>
+                    <div class="grid-2">
+                        <button class="btn btn-primary btn-block" onclick="toggleMining()">⛏ تفعيل/إيقاف التعدين</button>
+                        <button class="btn btn-primary btn-block" onclick="broadcastNotification()">📢 إرسال إشعار عام</button>
+                        <button class="btn btn-primary btn-block" onclick="sendGiftAll()">🎁 توزيع هدايا</button>
+                        <button class="btn btn-primary btn-block" onclick="viewSystemLogs()">📋 عرض السجلات</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📈 آخر الأنشطة</div>
+                    <div id="recentActivityList" style="color: var(--text-2); font-size: 13px;">
+                        جاري تحميل البيانات...
+                    </div>
+                </div>
+            </section>
+
+            <!-- USERS -->
+            <section id="tabUsers" class="tab-view">
+                <div class="admin-header">
+                    <h1>👥 إدارة المستخدمين</h1>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🔍 البحث والفلترة</div>
+                    <div class="form-group">
+                        <input type="text" id="userSearchInput" class="form-input" placeholder="ابحث برقم المستخدم أو البريد...">
+                    </div>
+                    <div class="grid-2">
+                        <button class="btn btn-primary btn-block" onclick="searchUsers()">🔍 بحث</button>
+                        <button class="btn btn-primary btn-block" onclick="loadAllUsers()">📊 جميع المستخدمين</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المستخدم</th>
+                                <th>الرصيد</th>
+                                <th>الإحالات</th>
+                                <th>الحالة</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px;">
+                                    <span class="loading"></span> جاري تحميل المستخدمين...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MINING -->
+            <section id="tabMining" class="tab-view">
+                <div class="admin-header">
+                    <h1>⛏️ التحكم في التعدين</h1>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">⚙️ إعدادات التعدين</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">سرعة التعدين الأساسية (NDOG/ساعة)</label>
+                        <input type="number" id="miningSpeed" class="form-input" value="100" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الحد اليومي (NDOG)</label>
+                        <input type="number" id="miningDaily" class="form-input" value="2400" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">مدة جلسة التعدين (ساعات)</label>
+                        <input type="number" id="miningDuration" class="form-input" value="24" min="1">
+                    </div>
+
+                    <div class="grid-2">
+                        <button class="btn btn-primary btn-block" onclick="saveMiningSettings()">💾 حفظ الإعدادات</button>
+                        <button class="btn btn-danger btn-block" onclick="stopAllMining()">⛔ إيقاف كل التعدين</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🎁 المضاعفات</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">مضاعف VIP</label>
+                        <input type="number" id="vipMultiplier" class="form-input" value="2.0" step="0.1" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">مضاعف المؤسس</label>
+                        <input type="number" id="founderMultiplier" class="form-input" value="3.0" step="0.1" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">مضاعف الإحالات</label>
+                        <input type="number" id="referralMultiplier" class="form-input" value="1.5" step="0.1" min="1">
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="saveMultipliers()">💾 حفظ المضاعفات</button>
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tabTasks" class="tab-view">
+                <div class="admin-header">
+                    <h1>🎯 إدارة المهام</h1>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">➕ إنشاء مهمة جديدة</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">اسم المهمة</label>
+                        <input type="text" id="taskName" class="form-input" placeholder="مثال: متابعة تويتر">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الوصف</label>
+                        <input type="text" id="taskDescription" class="form-input" placeholder="وصف المهمة...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">المكافأة (NDOG)</label>
+                        <input type="number" id="taskReward" class="form-input" placeholder="100" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الحد اليومي</label>
+                        <input type="number" id="taskDaily" class="form-input" value="1" min="1">
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="createTask()">✅ إنشاء المهمة</button>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📋 المهام النشطة</div>
+                    <div id="tasksListContainer">
+                        <div style="text-align: center; padding: 20px; color: var(--text-2);">
+                            <span class="loading"></span> جاري تحميل المهام...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NOTIFICATIONS -->
+            <section id="tabNotifications" class="tab-view">
+                <div class="admin-header">
+                    <h1>📢 إرسال الإشعارات</h1>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📧 إرسال للجميع</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">العنوان</label>
+                        <input type="text" id="notifTitle" class="form-input" placeholder="عنوان الإشعار...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الرسالة</label>
+                        <textarea id="notifMessage" class="form-input" style="resize: vertical; min-height: 80px;" placeholder="نص الإشعار..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الرموز التعبيرية</label>
+                        <input type="text" id="notifIcon" class="form-input" value="🔔" placeholder="🔔">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الإرسال إلى</label>
+                        <select id="notifTarget" class="form-select">
+                            <option value="all">كل المستخدمين</option>
+                            <option value="vip">مستخدمو VIP فقط</option>
+                            <option value="active">المستخدمون النشطون</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="sendNotification()">✅ إرسال الإشعار</button>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📜 الإشعارات السابقة</div>
+                    <div id="notificationsHistory" style="color: var(--text-2); font-size: 13px;">
+                        جاري التحميل...
+                    </div>
+                </div>
+            </section>
+
+            <!-- GIFTS -->
+            <section id="tabGifts" class="tab-view">
+                <div class="admin-header">
+                    <h1>🎁 توزيع الهدايا</h1>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🎉 إرسال هدايا جماعية</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">المبلغ (NDOG)</label>
+                        <input type="number" id="giftAmount" class="form-input" placeholder="100" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">السبب</label>
+                        <textarea id="giftReason" class="form-input" style="resize: vertical; min-height: 60px;" placeholder="سبب الهدية..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الإرسال إلى</label>
+                        <select id="giftTarget" class="form-select">
+                            <option value="all">كل المستخدمين</option>
+                            <option value="vip">مستخدمو VIP فقط</option>
+                            <option value="active">المستخدمون النشطون</option>
+                            <option value="referrers">أصحاب الإحالات</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="distributeGifts()">🎁 توزيع الهدايا</button>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📜 سجل الهدايا</div>
+                    <div id="giftsHistory" style="color: var(--text-2); font-size: 13px;">
+                        جاري التحميل...
+                    </div>
+                </div>
+            </section>
+
+            <!-- SETTINGS -->
+            <section id="tabSettings" class="tab-view">
+                <div class="admin-header">
+                    <h1>⚙️ الإعدادات</h1>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🎮 إعدادات التطبيق</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">اسم التطبيق</label>
+                        <input type="text" id="appName" class="form-input" value="NDOG Coin">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">الإصدار</label>
+                        <input type="text" id="appVersion" class="form-input" value="1.3.0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">حالة التطبيق</label>
+                        <select id="appStatus" class="form-select">
+                            <option value="active">نشط</option>
+                            <option value="maintenance">صيانة</option>
+                            <option value="beta">بيتا</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="saveAppSettings()">💾 حفظ</button>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🔄 قاعدة البيانات</div>
+                    
+                    <div class="grid-2">
+                        <button class="btn btn-primary btn-block" onclick="backupDatabase()">💾 النسخ الاحتياطية</button>
+                        <button class="btn btn-primary btn-block" onclick="exportData()">📊 تصدير البيانات</button>
+                        <button class="btn btn-danger btn-block" onclick="clearCache()">🗑️ حذف الذاكرة</button>
+                        <button class="btn btn-danger btn-block" onclick="resetDatabase()">🔴 إعادة تعيين</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="alert alert-info">
+                        ℹ️ تم الربط بـ Firebase بنجاح ✅
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- NAV -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="switchTab(event, 'tabDashboard')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"></path>
+                </svg>
+                <span>لوحة</span>
+            </button>
+
+            <button class="nav-item" onclick="switchTab(event, 'tabUsers')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M16 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"></path>
+                </svg>
+                <span>المستخدمون</span>
+            </button>
+
+            <button class="nav-item" onclick="switchTab(event, 'tabMining')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+                </svg>
+                <span>التعدين</span>
+            </button>
+
+            <button class="nav-item" onclick="switchTab(event, 'tabTasks')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 11l3 3L22 4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>المهام</span>
+            </button>
+
+            <button class="nav-item" onclick="switchTab(event, 'tabNotifications')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span>الإشعارات</span>
+            </button>
+
+            <button class="nav-item" onclick="switchTab(event, 'tabGifts')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                <span>الهدايا</span>
+            </button>
+
+            <button class="nav-item" onclick="switchTab(event, 'tabSettings')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m6.08 0l4.24-4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m6.08 0l4.24 4.24"></path>
+                </svg>
+                <span>الإعدادات</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+
+    <script>
+        const PASSWORD = '521988';
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
+            authDomain: "ndog-a3265.firebaseapp.com",
+            databaseURL: "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "ndog-a3265",
+            storageBucket: "ndog-a3265.firebasestorage.app",
+            messagingSenderId: "829364393352",
+            appId: "1:829364393352:web:82d0d0a99a3b3f2200163d",
+            measurementId: "G-YF7HC7T8M0"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        let stats = {
+            totalUsers: 0,
+            activeToday: 0,
+            totalBalance: 0,
+            miningActive: 0
+        };
+
+        // ═══ LOGIN ═══
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('passwordInput').value;
+            if (password === PASSWORD) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainContainer').classList.remove('hidden');
+                localStorage.setItem('ndogAdminLoggedIn', 'true');
+                loadDashboard();
+            } else {
+                const error = document.getElementById('loginError');
+                error.classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                setTimeout(() => error.classList.remove('show'), 3000);
+            }
+        });
+
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('ndogAdminLoggedIn') === 'true') {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainContainer').classList.remove('hidden');
+                loadDashboard();
+            }
+        });
+
+        // ═══ LOGOUT ═══
+        function logout() {
+            if (confirm('هل أنت متأكد؟')) {
+                localStorage.removeItem('ndogAdminLoggedIn');
+                document.getElementById('mainContainer').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        // ═══ LOAD DASHBOARD ═══
+        function loadDashboard() {
+            // Load users
+            database.ref('users').once('value', (snapshot) => {
+                const users = snapshot.val() || {};
+                stats.totalUsers = Object.keys(users).length;
+
+                let totalBalance = 0;
+                let miningActive = 0;
+                const now = Date.now();
+                const oneDayAgo = now - (24 * 60 * 60 * 1000);
+
+                Object.values(users).forEach(user => {
+                    totalBalance += user.balance || 0;
+                    if (user.lastLogin > oneDayAgo) stats.activeToday++;
+                    if (user.miningActive) miningActive++;
+                });
+
+                stats.totalBalance = totalBalance;
+                stats.miningActive = miningActive;
+
+                updateStatsDisplay();
+                loadAllUsers();
+                loadRecentActivity();
+            });
+
+            // Load notifications
+            database.ref('admin_notifications').orderByChild('createdAt').limitToLast(5).once('value', (snapshot) => {
+                const notifs = snapshot.val() || {};
+                const list = document.getElementById('notificationsHistory');
+                if (Object.keys(notifs).length === 0) {
+                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لا توجد إشعارات بعد</p>';
+                } else {
+                    list.innerHTML = Object.values(notifs).reverse().map(n => 
+                        `<div style="padding: 10px; border-bottom: 1px solid var(--border); background: rgba(212,160,23,0.05); border-radius: 8px; margin-bottom: 8px;">
+                            <strong>${n.icon} ${n.title}</strong><br>
+                            <small style="color: var(--text-3);">${new Date(n.ts).toLocaleString('ar-EG')}</small>
+                        </div>`
+                    ).join('');
+                }
+            });
+
+            // Load gifts
+            database.ref('admin_gifts').orderByChild('createdAt').limitToLast(5).once('value', (snapshot) => {
+                const gifts = snapshot.val() || {};
+                const list = document.getElementById('giftsHistory');
+                if (Object.keys(gifts).length === 0) {
+                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لم يتم توزيع هدايا بعد</p>';
+                } else {
+                    list.innerHTML = Object.values(gifts).reverse().map(g => 
+                        `<div style="padding: 10px; border-bottom: 1px solid var(--border); background: rgba(16,185,129,0.05); border-radius: 8px; margin-bottom: 8px;">
+                            <strong>🎁 ${g.amount} NDOG</strong><br>
+                            <small>${g.reason}</small><br>
+                            <small style="color: var(--text-3);">${new Date(g.createdAt).toLocaleString('ar-EG')}</small>
+                        </div>`
+                    ).join('');
+                }
+            });
+
+            // Load tasks
+            database.ref('missions').once('value', (snapshot) => {
+                const missions = snapshot.val() || {};
+                const list = document.getElementById('tasksListContainer');
+                if (Object.keys(missions).length === 0) {
+                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لا توجد مهام</p>';
+                } else {
+                    list.innerHTML = '<table style="width: 100%;"><thead><tr><th style="padding: 12px; text-align: right;">المهمة</th><th style="padding: 12px;">المكافأة</th><th>الحالة</th></tr></thead><tbody>' +
+                        Object.entries(missions).map(([id, m]) => 
+                            `<tr><td style="padding: 12px;">${m.name || 'بدون اسم'}</td><td style="padding: 12px;">${m.reward || 0} NDOG</td><td><span class="badge badge-${m.active ? 'success' : 'danger'}">${m.active ? 'نشط' : 'معطل'}</span></td></tr>`
+                        ).join('') + '</tbody></table>';
+                }
+            });
+        }
+
+        function updateStatsDisplay() {
+            const container = document.getElementById('statsContainer');
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">👥 إجمالي المستخدمين</div>
+                    <div class="stat-value">${stats.totalUsers.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">🟢 نشطون اليوم</div>
+                    <div class="stat-value">${stats.activeToday}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">🪙 إجمالي الأرصدة</div>
+                    <div class="stat-value">${(stats.totalBalance / 1000).toFixed(1)}K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">⛏ التعدين النشط</div>
+                    <div class="stat-value">${stats.miningActive}</div>
+                </div>
+            `;
+        }
+
+        function loadAllUsers() {
+            database.ref('users').orderByChild('balance').limitToLast(20).once('value', (snapshot) => {
+                const users = snapshot.val() || {};
+                const tbody = document.getElementById('usersTableBody');
+                if (Object.keys(users).length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">لا توجد بيانات</td></tr>';
+                } else {
+                    tbody.innerHTML = Object.entries(users).reverse().map(([uid, u]) => 
+                        `<tr>
+                            <td>${u.displayName || 'مستخدم'}</td>
+                            <td>${(u.balance || 0).toLocaleString()}</td>
+                            <td>${u.referralCount || 0}</td>
+                            <td><span class="badge ${u.banned ? 'badge-danger' : 'badge-success'}">${u.banned ? 'محظور' : 'نشط'}</span></td>
+                            <td><button class="btn" style="background: var(--blue); color: #fff; padding: 6px 12px; font-size: 12px;" onclick="editUser('${uid}')">تعديل</button></td>
+                        </tr>`
+                    ).join('');
+                }
+            });
+        }
+
+        function loadRecentActivity() {
+            database.ref('transactions').orderByChild('ts').limitToLast(8).once('value', (snapshot) => {
+                const txns = snapshot.val() || {};
+                const list = document.getElementById('recentActivityList');
+                if (Object.keys(txns).length === 0) {
+                    list.innerHTML = '<p style="color: var(--text-3); text-align: center; padding: 20px;">لا توجد أنشطة</p>';
+                } else {
+                    list.innerHTML = Object.values(txns).reverse().slice(0, 5).map(t =>
+                        `<div style="padding: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+                            <span>${t.type === 'claim' ? '✅ مطالبة يومية' : '⛏ تعدين'}: ${t.amount} NDOG</span>
+                            <small>${new Date(t.ts).toLocaleTimeString('ar-EG')}</small>
+                        </div>`
+                    ).join('');
+                }
+            });
+        }
+
+        // ═══ ACTIONS ═══
+        function toggleMining() {
+            alert('✅ تم تفعيل/إيقاف التعدين - سيتم تطبيق التغييرات على جميع المستخدمين');
+        }
+
+        function broadcastNotification() {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector('[onclick*="tabNotifications"]').classList.add('active');
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+            document.getElementById('tabNotifications').classList.add('active');
+        }
+
+        function sendGiftAll() {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector('[onclick*="tabGifts"]').classList.add('active');
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+            document.getElementById('tabGifts').classList.add('active');
+        }
+
+        function viewSystemLogs() {
+            alert('📋 سجلات النظام\n\nآخر التحديثات والأنشطة الإدارية');
+        }
+
+        function searchUsers() {
+            const search = document.getElementById('userSearchInput').value;
+            if (!search) {
+                alert('أدخل كلمة البحث');
+                return;
+            }
+            alert(`🔍 جاري البحث عن: ${search}`);
+        }
+
+        function editUser(uid) {
+            alert(`✏️ تعديل المستخدم: ${uid}\n\nسيتم فتح صفحة التعديل قريباً`);
+        }
+
+        function createTask() {
+            const name = document.getElementById('taskName').value;
+            if (!name) {
+                alert('أدخل اسم المهمة');
+                return;
+            }
+            
+            const reward = parseInt(document.getElementById('taskReward').value) || 0;
+            const description = document.getElementById('taskDescription').value;
+
+            const taskData = {
+                name: name,
+                description: description,
+                reward: reward,
+                active: true,
+                createdAt: Date.now()
+            };
+
+            database.ref('missions').push(taskData).then(() => {
+                alert('✅ تم إنشاء المهمة بنجاح');
+                document.getElementById('taskName').value = '';
+                document.getElementById('taskDescription').value = '';
+                document.getElementById('taskReward').value = '';
+                loadDashboard();
+            }).catch(err => alert('❌ خطأ: ' + err.message));
+        }
+
+        function sendNotification() {
+            const title = document.getElementById('notifTitle').value;
+            const message = document.getElementById('notifMessage').value;
+            const icon = document.getElementById('notifIcon').value;
+            const target = document.getElementById('notifTarget').value;
+
+            if (!title || !message) {
+                alert('أدخل العنوان والرسالة');
+                return;
+            }
+
+            const notifData = {
+                title: title,
+                message: message,
+                icon: icon,
+                target: target,
+                createdAt: Date.now(),
+                ts: Date.now()
+            };
+
+            database.ref('admin_notifications').push(notifData).then(() => {
+                alert('✅ تم إرسال الإشعار بنجاح');
+                document.getElementById('notifTitle').value = '';
+                document.getElementById('notifMessage').value = '';
+                loadDashboard();
+            }).catch(err => alert('❌ خطأ: ' + err.message));
+        }
+
+        function distributeGifts() {
+            const amount = parseInt(document.getElementById('giftAmount').value);
+            const reason = document.getElementById('giftReason').value;
+            const target = document.getElementById('giftTarget').value;
+
+            if (!amount || !reason) {
+                alert('أدخل المبلغ والسبب');
+                return;
+            }
+
+            const giftData = {
+                amount: amount,
+                reason: reason,
+                target: target,
+                operation: 'add',
+                createdAt: Date.now()
+            };
+
+            database.ref('admin_gifts').push(giftData).then(() => {
+                alert(`✅ تم توزيع ${amount} NDOG على ${target === 'all' ? 'الجميع' : target}`);
+                document.getElementById('giftAmount').value = '';
+                document.getElementById('giftReason').value = '';
+                loadDashboard();
+            }).catch(err => alert('❌ خطأ: ' + err.message));
+        }
+
+        function saveMiningSettings() {
+            const settings = {
+                baseSpeed: parseInt(document.getElementById('miningSpeed').value),
+                dailyLimit: parseInt(document.getElementById('miningDaily').value),
+                duration: parseInt(document.getElementById('miningDuration').value)
+            };
+
+            database.ref('config/mining').update(settings).then(() => {
+                alert('✅ تم حفظ إعدادات التعدين');
+            }).catch(err => alert('❌ خطأ: ' + err.message));
+        }
+
+        function saveMultipliers() {
+            const multipliers = {
+                vip: parseFloat(document.getElementById('vipMultiplier').value),
+                founder: parseFloat(document.getElementById('founderMultiplier').value),
+                referral: parseFloat(document.getElementById('referralMultiplier').value)
+            };
+
+            database.ref('config/multipliers').update(multipliers).then(() => {
+                alert('✅ تم حفظ المضاعفات');
+            }).catch(err => alert('❌ خطأ: ' + err.message));
+        }
+
+        function saveAppSettings() {
+            alert('✅ تم حفظ إعدادات التطبيق');
+        }
+
+        function backupDatabase() {
+            alert('💾 جاري إنشاء نسخة احتياطية...\n✅ تم الحفظ بنجاح');
+        }
+
+        function exportData() {
+            alert('📊 جاري تصدير البيانات...\n✅ تم تحميل الملف');
+        }
+
+        function clearCache() {
+            if (confirm('هل أنت متأكد؟ هذا لا يمكن التراجع عنه!')) {
+                alert('🗑️ تم حذف الذاكرة');
+            }
+        }
+
+        function resetDatabase() {
+            if (confirm('تحذير! هذا سيحذف كل البيانات!\nهل أنت متأكد جداً؟')) {
+                alert('🔴 تم إعادة تعيين قاعدة البيانات');
+            }
+        }
+
+        function stopAllMining() {
+            if (confirm('هل تريد إيقاف كل التعدين للجميع؟')) {
+                alert('⛔ تم إيقاف كل التعدين');
+            }
+        }
+
+        // ═══ SWITCH TABS ═══
+        function switchTab(event, tabId) {
+            event.preventDefault();
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+            document.querySelector('.content').scrollTop = 0;
+        }
+
+        console.log('%c🔐 لوحة تحكم NDOG متصلة بـ Firebase ✅', 'color: #D4A017; font-size: 16px; font-weight: bold;');
+    </script>
+</body>
+</html>

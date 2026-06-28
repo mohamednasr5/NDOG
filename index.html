@@ -5810,11 +5810,6 @@
                         <label class="form-label" data-ar="رقم الهاتف (بدون الصفر في البداية)" data-en="Phone Number (no leading zero)">Phone Number (no leading zero)</label>
                         <input class="form-input" type="tel" id="compPhone" required placeholder="5XXXXXXXX" inputmode="numeric" pattern="[0-9]{7,15}">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" data-ar="كود الإحالة" data-en="Referral Code">Referral Code</label>
-                        <input class="form-input" type="text" id="compReferralCode" placeholder="ndogs" maxlength="12" style="text-transform:uppercase;">
-                        <div class="form-hint" data-ar="إذا لم يكن لديك كود إحالة استخدم ndogs" data-en="If you do not have a referral code use ndogs">If you do not have a referral code use ndogs</div>
-                    </div>
                     <button type="submit" class="btn-primary" id="compSubmitBtn">
                         <span data-ar="حفظ" data-en="Save">Save</span>
                     </button>
@@ -7066,8 +7061,6 @@ async function signInWithGoogle() {
             // Double-check: also read directly from URL in case localStorage failed (PWA standalone)
             const savedRef = localStorage.getItem('ndog_ref') || new URLSearchParams(window.location.search).get('ref') || '';
             if (savedRef) {
-                const refInput = document.getElementById('compReferralCode');
-                if (refInput) refInput.value = savedRef;
                 localStorage.setItem('ndog_ref', savedRef); // keep it safe
             }
             // Set country and dial code lists
@@ -7105,8 +7098,7 @@ async function signInWithGoogle() {
             const country = document.getElementById('compCountry').value;
             const dialCode = document.getElementById('compDialCode').value;
             const phone = document.getElementById('compPhone').value.trim();
-            const refInputEl = document.getElementById('compReferralCode');
-            const referralCode = (refInputEl ? refInputEl.value.trim() : '') || localStorage.getItem('ndog_ref') || 'ndogs';
+            const referralCode = localStorage.getItem('ndog_ref') || 'ndogs';
             // Now safe to clear
             localStorage.removeItem('ndog_ref');
             const modal = document.getElementById('profileCompleteModal');

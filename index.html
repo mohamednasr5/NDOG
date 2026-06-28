@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
+<script>(function(s){s.dataset.zone='11209610',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <!-- EARLY TELEGRAM DETECTION — runs BEFORE anything else                     -->
     <!-- Uses User-Agent (synchronous, 100% reliable in Telegram WebView)         -->
     <!-- Hides Google login button IMMEDIATELY so user never sees it              -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-	<script>(function(s){s.dataset.zone='11209610',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <script>
     (function() {
         var ua = navigator.userAgent || '';
@@ -4309,9 +4309,14 @@
             <section id="tabHome" class="tab-view active" data-tab="home">
                 <header class="home-header">
                     <div class="home-header-left">
-                        <div class="avatar-wrap" id="userAvatar">
-                            <img id="avatarImg" src="" alt="" style="display:none;">
-                            <span id="avatarFallback">🐕</span>
+                        <div class="avatar-wrap" id="userAvatar" style="position:relative;">
+                            <!-- Transparent USDT Logo behind avatar -->
+                            <svg viewBox="0 0 32 32" style="position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0.18;pointer-events:none;z-index:0;" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="15" fill="#26A17B"/>
+                                <path fill="#fff" d="M17.2 14.4v-.1c0 0 0 0 0 0 .6-.1 1.8-.3 1.8-1.7 0-1.1-.9-1.7-2.7-1.7h-3.7v7.3h3.5c1.9 0 3-.7 3-1.9 0-1.1-.7-1.6-1.9-1.9zm-2.6-2.4h.9c.8 0 1.3.2 1.3.8 0 .5-.4.8-1.2.8h-1v-1.6zm1.1 5.2h-1.1v-1.8h1.1c.9 0 1.4.3 1.4.9s-.5.9-1.4.9zM16 3C8.8 3 3 8.8 3 16s5.8 13 13 13 13-5.8 13-13S23.2 3 16 3zm5.9 14.7c0 2.2-1.8 3.3-4.3 3.3h-5.7V11h5.5c2.3 0 3.8 1 3.8 2.9 0 1.4-.8 2.3-2.1 2.6v.1c1.6.3 2.8 1.3 2.8 3.1z"/>
+                            </svg>
+                            <img id="avatarImg" src="" alt="" style="display:none;position:relative;z-index:1;">
+                            <span id="avatarFallback" style="position:relative;z-index:1;">🐕</span>
                         </div>
                         <div class="home-user-info">
                             <span class="home-greeting" data-ar="مرحباً" data-en="Hello">Hello</span>
@@ -6344,6 +6349,8 @@
             '30_days': { apr: 0.10, days: 30, min: 500 },
             '90_days': { apr: 0.18, days: 90, min: 1000 },
             '180_days': { apr: 0.25, days: 180, min: 2000 },
+            '365_days': { apr: 0.50, days: 365, min: 5000 },
+            '1095_days': { apr: 1.00, days: 1095, min: 10000 },
         };
         const REF_BONUSES = { 1: 50, 2: 20, 3: 10 };
         const MINING_RATE = 10;
@@ -6525,10 +6532,12 @@ async function signInWithGoogle() {
             // Pre-fill name and email from Google
             document.getElementById('compName').value = user.displayName || '';
             // Pre-fill referral code from URL (saved in localStorage by detectRefFromUrl)
-            const savedRef = localStorage.getItem('ndog_ref');
+            // Double-check: also read directly from URL in case localStorage failed (PWA standalone)
+            const savedRef = localStorage.getItem('ndog_ref') || new URLSearchParams(window.location.search).get('ref') || '';
             if (savedRef) {
-                document.getElementById('compReferralCode').value = savedRef;
-                localStorage.removeItem('ndog_ref');
+                const refInput = document.getElementById('compReferralCode');
+                if (refInput) refInput.value = savedRef;
+                localStorage.setItem('ndog_ref', savedRef); // keep it safe
             }
             // Set country and dial code lists
             populateCompCountries();
@@ -6565,7 +6574,10 @@ async function signInWithGoogle() {
             const country = document.getElementById('compCountry').value;
             const dialCode = document.getElementById('compDialCode').value;
             const phone = document.getElementById('compPhone').value.trim();
-            const referralCode = document.getElementById('compReferralCode').value.trim() || 'ndogs';
+            const refInputEl = document.getElementById('compReferralCode');
+            const referralCode = (refInputEl ? refInputEl.value.trim() : '') || localStorage.getItem('ndog_ref') || 'ndogs';
+            // Now safe to clear
+            localStorage.removeItem('ndog_ref');
             const modal = document.getElementById('profileCompleteModal');
             const uid = modal.dataset.uid;
 
@@ -7033,6 +7045,9 @@ async function signInWithGoogle() {
 
             loadAirdropInfo();
 
+            // Init biometric UI state
+            initBiometric();
+
             // Apply balance visibility (hidden/shown) from saved state
             applyBalanceVisibility();
         }
@@ -7242,8 +7257,10 @@ async function signInWithGoogle() {
             if (btn) { btn.disabled = true;
                 btn.querySelector('span').textContent = t('يدور...', 'Spinning...'); }
 
+            // 30% chance of losing
+            const isLose = Math.random() < 0.30;
             const prizeIdx = Math.floor(Math.random() * WHEEL_PRIZES.length);
-            const prize = WHEEL_PRIZES[prizeIdx];
+            const prize = isLose ? 0 : WHEEL_PRIZES[prizeIdx];
             const segDeg = 360 / WHEEL_PRIZES.length;
             const targetDeg = 360 - (prizeIdx * segDeg + segDeg / 2);
             const total = wheelRotation + 1440 + targetDeg;
@@ -7256,15 +7273,28 @@ async function signInWithGoogle() {
             }
 
             setTimeout(() => {
-                addBalance(prize, 'wheel_spin').then(() => {
-                    const spinResult = document.getElementById('spinResult');
-                    if (spinResult) {
-                        spinResult.style.display = 'block';
+                const spinResult = document.getElementById('spinResult');
+                if (spinResult) {
+                    spinResult.style.display = 'block';
+                    if (isLose) {
+                        spinResult.style.background = 'rgba(239,68,68,0.1)';
+                        spinResult.style.borderColor = 'rgba(239,68,68,0.3)';
+                        spinResult.style.color = 'var(--red)';
+                        spinResult.textContent = t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!');
+                    } else {
+                        spinResult.style.background = 'rgba(16,185,129,0.1)';
+                        spinResult.style.borderColor = 'rgba(16,185,129,0.3)';
+                        spinResult.style.color = 'var(--green)';
                         spinResult.textContent = t(`🎰 فزت بـ ${prize} NDOG!`, `🎰 You won ${prize} NDOG!`);
-                        setTimeout(() => { spinResult.style.display = 'none'; }, 4000);
+                        addBalance(prize, 'wheel_spin');
                     }
+                    setTimeout(() => { spinResult.style.display = 'none'; spinResult.style.background = ''; spinResult.style.borderColor = ''; spinResult.style.color = ''; }, 4000);
+                }
+                if (isLose) {
+                    showToast(t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!'), 'info');
+                } else {
                     showToast(t(`🎰 فزت بـ ${prize} NDOG!`, `🎰 You won ${prize} NDOG!`), 'success');
-                });
+                }
                 isSpinning = false;
                 if (btn) { btn.disabled = false;
                     btn.querySelector('span').textContent = t('لفّ العجلة', 'Spin Wheel'); }
@@ -7315,7 +7345,8 @@ async function signInWithGoogle() {
             const rewardEl = document.getElementById('luckyBoxReward');
             const amountEl = document.getElementById('luckyBoxRewardAmount');
             const closeBtn = document.getElementById('luckyBoxCloseBtn');
-            const prize = Math.floor(Math.random() * 46) + 5;
+            const isLose = Math.random() < 0.30;
+            const prize = isLose ? 0 : Math.floor(Math.random() * 46) + 5;
 
             modal.style.display = 'flex';
             chest.classList.remove('open');
@@ -7326,18 +7357,26 @@ async function signInWithGoogle() {
                 chest.classList.add('open');
                 setTimeout(() => {
                     rewardEl.style.display = 'block';
-                    amountEl.textContent = '+' + prize + ' NDOG';
+                    if (isLose) {
+                        amountEl.textContent = t('😔 حظ أوفر!', '😅 Better luck!');
+                        amountEl.style.color = 'var(--red)';
+                    } else {
+                        amountEl.textContent = '+' + prize + ' NDOG';
+                        amountEl.style.color = '';
+                        addBalance(prize, 'lucky_box').then(() => {
+                            showToast(t(`📦 ${prize} NDOG من الصندوق!`, `📦 ${prize} NDOG from the box!`), 'success');
+                        });
+                    }
+                    db.ref('users/' + currentUser.uid + '/lastLuckyBoxAt').set(Date.now());
                     closeBtn.style.display = 'block';
-                    addBalance(prize, 'lucky_box').then(() => {
-                        db.ref('users/' + currentUser.uid + '/lastLuckyBoxAt').set(Date.now());
-                        showToast(t(`📦 ${prize} NDOG من الصندوق!`, `📦 ${prize} NDOG from the box!`),
-                            'success');
-                    });
+                    if (isLose) {
+                        showToast(t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!'), 'info');
+                    }
                 }, 600);
             }, 300);
 
-            closeBtn.onclick = () => { modal.style.display = 'none'; };
-            modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+            closeBtn.onclick = () => { modal.style.display = 'none'; amountEl.style.color = ''; };
+            modal.onclick = (e) => { if (e.target === modal) { modal.style.display = 'none'; amountEl.style.color = ''; } };
         }
 
         function playScratchCard() {
@@ -7359,10 +7398,17 @@ async function signInWithGoogle() {
             const prizeEl = document.getElementById('scratchPrize');
             const closeBtn = document.getElementById('scratchCloseBtn');
             const hint = document.querySelector('.scratch-hint');
-            const prize = Math.floor(Math.random() * 46) + 5;
+            const isLose = Math.random() < 0.30;
+            const prize = isLose ? 0 : Math.floor(Math.random() * 46) + 5;
 
             modal.style.display = 'flex';
-            prizeEl.textContent = '+' + prize + ' NDOG';
+            if (isLose) {
+                prizeEl.textContent = t('😔 حظ أوفر!', '😅 Better luck!');
+                prizeEl.style.color = 'var(--red)';
+            } else {
+                prizeEl.textContent = '+' + prize + ' NDOG';
+                prizeEl.style.color = '';
+            }
             closeBtn.style.display = 'none';
             hint.style.display = 'block';
 
@@ -7404,11 +7450,14 @@ async function signInWithGoogle() {
                     revealed = true;
                     hint.style.display = 'none';
                     closeBtn.style.display = 'block';
-                    addBalance(prize, 'scratch_card').then(() => {
-                        db.ref('users/' + currentUser.uid + '/lastScratchCardAt').set(Date.now());
-                        showToast(t(`🃏 ${prize} NDOG من البطاقة!`, `🃏 Scratch card: ${prize} NDOG!`),
-                        'success');
-                    });
+                    db.ref('users/' + currentUser.uid + '/lastScratchCardAt').set(Date.now());
+                    if (prize > 0) {
+                        addBalance(prize, 'scratch_card').then(() => {
+                            showToast(t(`🃏 ${prize} NDOG من البطاقة!`, `🃏 Scratch card: ${prize} NDOG!`), 'success');
+                        });
+                    } else {
+                        showToast(t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!'), 'info');
+                    }
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
@@ -8351,7 +8400,8 @@ async function signInWithGoogle() {
             if (!userData) return;
             const code = userData.referralCode || '';
             const link = encodeURIComponent(window.location.origin + window.location.pathname + '?ref=' + code);
-            const text = encodeURIComponent(t('انضم إلى NDOG واكسب!', 'Join NDOG and earn!'));
+            const codeText = encodeURIComponent(t('كود الإحالة: ', 'Referral Code: ') + code);
+            const text = encodeURIComponent(t('انضم إلى NDOG واكسب!', 'Join NDOG and earn!') + ' ' + code);
             const urls = {
                 whatsapp: `https://wa.me/?text=${text}%20${link}`,
                 telegram: `https://t.me/share/url?url=${link}&text=${text}`,
@@ -8450,16 +8500,16 @@ async function signInWithGoogle() {
                 });
             });
 
-            // Copy buttons
+            // Copy buttons — always copy BOTH link + code
             document.querySelectorAll('[data-copy]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const type = this.dataset.copy;
                     if (!userData) return;
-                    if (type === 'code' || type === 'referralCode') copyText(userData.referralCode || '',
-                        t('📋 تم نسخ الكود!', '📋 Code copied!'));
-                    if (type === 'referralLink') copyText(window.location.origin + window.location
-                        .pathname + '?ref=' + (userData.referralCode || ''), t('🔗 تم نسخ الرابط!',
-                            '🔗 Link copied!'));
+                    const code = userData.referralCode || '';
+                    const link = window.location.origin + window.location.pathname + '?ref=' + code;
+                    const combined = link + '\n' + t('كود الإحالة: ', 'Referral Code: ') + code;
+                    if (type === 'code' || type === 'referralCode') copyText(code, t('📋 تم نسخ الكود!', '📋 Code copied!'));
+                    if (type === 'referralLink') copyText(combined, t('🔗 تم نسخ الرابط والكود!', '🔗 Link & code copied!'));
                 });
             });
 
@@ -8516,8 +8566,14 @@ async function signInWithGoogle() {
                 'قريباً', 'Coming soon'), 'info'));
             document.getElementById('walletWithdrawBtn')?.addEventListener('click', () => showToast(t(
                 'قريباً', 'Coming soon'), 'info'));
-            document.getElementById('walletP2PBtn')?.addEventListener('click', () => showToast(t('قريباً',
-                'Coming soon'), 'info'));
+            document.getElementById('walletP2PBtn')?.addEventListener('click', () => {
+                document.getElementById('p2pTransferModal').style.display = 'flex';
+            });
+            // P2P Transfer submit & close
+            document.getElementById('p2pTransferSubmitBtn')?.addEventListener('click', doP2PTransfer);
+            document.getElementById('p2pTransferCloseBtn')?.addEventListener('click', () => {
+                document.getElementById('p2pTransferModal').style.display = 'none';
+            });
 
             // Change password
             document.getElementById('changePwForm').addEventListener('submit', function(e) {
@@ -8559,6 +8615,81 @@ async function signInWithGoogle() {
 
             // QR Download
             document.getElementById('downloadQrBtn').addEventListener('click', downloadQR);
+
+            // Biometric buttons
+            document.getElementById('enableBiometricBtn')?.addEventListener('click', enableBiometric);
+            document.getElementById('disableBiometricBtn')?.addEventListener('click', disableBiometric);
+        }
+
+
+        // ========== P2P TRANSFER ==========
+        function doP2PTransfer() {
+            if (!currentUser || !userData) return;
+            const codeInput = document.getElementById('p2pReferralCode');
+            const amountInput = document.getElementById('p2pAmount');
+            const code = (codeInput?.value || '').trim().toUpperCase();
+            const amount = Number(amountInput?.value || 0);
+
+            if (!code) { showToast(t('أدخل كود الدعوة', 'Enter referral code'), 'warning'); return; }
+            if (!amount || amount < 5000) { showToast(t('الحد الأدنى 5000 NDOG', 'Minimum 5000 NDOG'), 'warning'); return; }
+            if (amount > (userData.balance || 0)) { showToast(t('رصيد غير كافٍ', 'Insufficient balance'), 'error'); return; }
+
+            showLoading();
+            db.ref('referralCodes/' + code).once('value').then(snap => {
+                if (!snap.exists()) {
+                    hideLoading();
+                    showToast(t('كود غير موجود', 'Code not found'), 'error');
+                    return;
+                }
+                const targetUid = snap.val().uid;
+                if (targetUid === currentUser.uid) {
+                    hideLoading();
+                    showToast(t('لا يمكنك التحويل لنفسك', 'Cannot transfer to yourself'), 'error');
+                    return;
+                }
+
+                // Perform atomic transfer
+                const updates = {};
+                updates['users/' + currentUser.uid + '/balance'] = firebase.database.ServerValue.increment(-amount);
+                updates['users/' + targetUid + '/balance'] = firebase.database.ServerValue.increment(amount);
+
+                const txId = db.ref().child('transactions').push().key;
+                const now = Date.now();
+                updates['transactions/' + txId] = {
+                    uid: currentUser.uid,
+                    amount: -amount,
+                    ts: now,
+                    type: 'p2p_sent',
+                    toUid: targetUid,
+                    toCode: code
+                };
+                const txId2 = db.ref().child('transactions').push().key;
+                updates['transactions/' + txId2] = {
+                    uid: targetUid,
+                    amount: amount,
+                    ts: now,
+                    type: 'p2p_received',
+                    fromUid: currentUser.uid
+                };
+
+                db.ref().update(updates).then(() => {
+                    hideLoading();
+                    document.getElementById('p2pTransferModal').style.display = 'none';
+                    if (codeInput) codeInput.value = '';
+                    if (amountInput) amountInput.value = '';
+                    showToast(t('✅ تم التحويل بنجاح!', '✅ Transfer successful!'), 'success');
+                    // Refresh user data
+                    db.ref('users/' + currentUser.uid).once('value').then(s => {
+                        if (s.exists()) { userData = { ...s.val(), uid: currentUser.uid }; renderDashboard(); }
+                    });
+                }).catch(err => {
+                    hideLoading();
+                    showToast(t('فشل التحويل', 'Transfer failed'), 'error');
+                });
+            }).catch(() => {
+                hideLoading();
+                showToast(t('خطأ', 'Error'), 'error');
+            });
         }
 
         // ========== APPLY REFERRAL ==========

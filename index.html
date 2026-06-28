@@ -7132,6 +7132,7 @@ async function signInWithGoogle() {
 
             if (!currentUser) { showToast(t('خطأ','Error'),'error'); hideLoading(); return; }
             showLoading();
+            const photoURL = currentUser.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=random";
             const code = genCode();
             const ts = Date.now();
             const profile = {
@@ -7140,7 +7141,7 @@ async function signInWithGoogle() {
                 phone: phone,
                 country: country,
                 dialCode: dialCode,
-                photoURL: (currentUser.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=random"),
+                photoURL: photoURL,
                 balance: 0,
                 streak: 0,
                 lastClaimAt: 0,
@@ -7182,7 +7183,7 @@ async function signInWithGoogle() {
                                 // Set referredBy INSIDE updates BEFORE writing
                                 updates['users/' + uid + '/referredBy'] = refUid;
                                 updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email || '',
-                                    displayName: name, photoURL: photoURL };
+                                    displayName: name, photoURL: photoURL, level: 1 };
                                 resolve(refUid);
                                 return;
                             }
@@ -7233,7 +7234,7 @@ async function signInWithGoogle() {
                                     return d;
                                 }).then(r => { console.log('[NDOG] L2 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                 db.ref('referrals/' + l2Uid + '/' + uid).set({ referredAt: ts,
-                                    email: currentUser.email || '', displayName: name, photoURL: photoURL });
+                                    email: currentUser.email || '', displayName: name, photoURL: photoURL, level: 2 });
                                 // L3 bonus
                                 db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
                                     if (s3.exists()) {
@@ -7245,7 +7246,7 @@ async function signInWithGoogle() {
                                             return d;
                                         }).then(r => { console.log('[NDOG] L3 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                         db.ref('referrals/' + l3Uid + '/' + uid).set({ referredAt: ts,
-                                            email: currentUser.email || '', displayName: name, photoURL: photoURL });
+                                            email: currentUser.email || '', displayName: name, photoURL: photoURL, level: 3 });
                                     }
                                 });
                             }

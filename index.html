@@ -4238,63 +4238,71 @@
 
         /* ═══ PREDICTION CONTEST ═══ */
         .match-card {
-            background: var(--surface, #0D1321);
-            border: 1px solid var(--border, rgba(255,255,255,0.06));
-            border-radius: var(--radius-xl, 16px);
-            padding: 20px 16px;
-            margin-bottom: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 22px 16px 18px;
+            margin-bottom: 18px;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
         .match-card.match-finished { opacity: 0.85; }
-        .match-card.match-finished::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.15);
-            pointer-events: none;
-        }
         .match-date-time {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .match-date {
-            font-size: 13px;
-            color: var(--text-3, rgba(255,255,255,0.45));
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
             margin-bottom: 2px;
         }
         .match-time {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
-            color: var(--text-1, #fff);
+            color: #fff;
+            letter-spacing: 1px;
+        }
+        .match-countdown {
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 14px;
+            padding: 4px 0;
+        }
+        .match-countdown .cd-digits {
+            color: #fff;
+            font-weight: 700;
+            font-size: 15px;
             letter-spacing: 1px;
         }
         .match-teams {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             margin-bottom: 16px;
-            gap: 8px;
+            gap: 12px;
         }
         .match-team {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .match-team-flag {
-            width: 56px;
-            height: 40px;
-            border-radius: 6px;
+            width: 52px;
+            height: 38px;
+            border-radius: 8px;
             object-fit: cover;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            background: var(--surface-2, #151B2E);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.06);
         }
         .match-team-name {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            color: var(--text-1, #fff);
+            color: #fff;
             text-align: center;
             line-height: 1.3;
             max-width: 100%;
@@ -4305,17 +4313,17 @@
         .match-score-box {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             flex-shrink: 0;
-            background: rgba(239,68,68,.08);
-            border: 1.5px solid rgba(239,68,68,.35);
-            border-radius: 10px;
-            padding: 6px 10px;
-            min-width: 72px;
+            background: rgba(255,255,255,0.06);
+            border: 1.5px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px 14px;
+            min-width: 76px;
             justify-content: center;
         }
         .match-score-box .sb-num {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: #fff;
             min-width: 18px;
@@ -4323,127 +4331,127 @@
             line-height: 1;
         }
         .match-score-box .sb-sep {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
-            color: rgba(255,255,255,.35);
+            color: rgba(255,255,255,.3);
         }
         .match-score-box.sb-live {
-            border-color: rgba(239,68,68,.7);
-            background: rgba(239,68,68,.15);
+            border-color: rgba(239,68,68,.6);
+            background: rgba(239,68,68,.1);
             animation: sbPulse 1.5s ease-in-out infinite;
         }
         .match-score-box.sb-finished {
-            border-color: rgba(245,158,11,.5);
-            background: rgba(245,158,11,.08);
+            border-color: rgba(245,158,11,.4);
+            background: rgba(245,158,11,.06);
         }
         @keyframes sbPulse {
             0%,100%{ box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
             50%{ box-shadow: 0 0 0 6px rgba(239,68,68,0); }
         }
-        /* Prediction Bar */
-        .pred-bar-container {
-            margin-bottom: 14px;
-        }
-        .pred-bar {
-            display: flex;
-            height: 32px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: var(--surface-2, #151B2E);
-            position: relative;
-        }
-        .pred-bar-seg {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            color: #fff;
-            transition: width 0.6s ease;
-            min-width: 0;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-        .pred-bar-seg.seg-team1 { background: linear-gradient(90deg, #16A34A, #22C55E); }
-        .pred-bar-seg.seg-draw { background: linear-gradient(90deg, #6B7280, #9CA3AF); }
-        .pred-bar-seg.seg-team2 { background: linear-gradient(90deg, #EF4444, #DC2626); }
-        .pred-bar-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 6px;
-            font-size: 11px;
-            color: var(--text-3, rgba(255,255,255,0.4));
-        }
-        .pred-bar-labels span { display: flex; align-items: center; gap: 4px; }
-        .pred-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .pred-dot.green { background: #22C55E; }
-        .pred-dot.gray { background: #9CA3AF; }
-        .pred-dot.red { background: #EF4444; }
-        /* Prediction Buttons */
+        /* Gradient Prediction Buttons */
         .pred-buttons {
             display: flex;
+            flex-direction: column;
             gap: 8px;
+            margin-bottom: 14px;
         }
         .pred-btn {
-            flex: 1;
-            padding: 10px 4px;
-            border-radius: 10px;
-            border: 2px solid var(--border, rgba(255,255,255,0.08));
-            background: var(--surface-2, #151B2E);
-            color: var(--text-1, #fff);
-            font-size: 13px;
-            font-weight: 600;
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(90deg, #EF4444 0%, #22C55E 100%);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
-        .pred-btn .pred-btn-pct {
-            font-size: 20px;
-            font-weight: 800;
-        }
-        .pred-btn:active { transform: scale(0.96); }
-        .pred-btn.btn-team1:hover, .pred-btn.btn-team1.selected { border-color: #22C55E; background: rgba(34,197,94,0.12); }
-        .pred-btn.btn-draw:hover, .pred-btn.btn-draw.selected { border-color: #9CA3AF; background: rgba(156,163,175,0.12); }
-        .pred-btn.btn-team2:hover, .pred-btn.btn-team2.selected { border-color: #EF4444; background: rgba(239,68,68,0.12); }
-        .pred-btn.disabled { opacity: 0.4; pointer-events: none; }
-        .pred-btn.selected { pointer-events: none; }
-        .pred-btn.selected::after {
-            content: '✓';
+        .pred-btn::before {
+            content: '';
             position: absolute;
-            top: 4px;
-            right: 8px;
-            font-size: 12px;
-            color: #22C55E;
+            inset: 0;
+            background: rgba(0,0,0,0.15);
+            border-radius: 14px;
         }
-        .pred-btn { position: relative; }
-        /* User prediction result badge */
-        :root {--gold2: #FFD700;}
-.pred-btn-prize {display:block;font-size:10px;color:var(--gold2);margin-top:2px;font-weight:700;letter-spacing:0.3px;}
-.pred-buttons {display:grid !important;gap:8px;}
-.pred-buttons:has(.btn-draw) {grid-template-columns:1fr 1fr 1fr !important;}
-.pred-buttons:not(:has(.btn-draw)) {grid-template-columns:1fr 1fr !important;}
-.pred-result-badge {
+        .pred-btn:active { transform: scale(0.97); opacity: 0.9; }
+        .pred-btn .pred-btn-prize {
+            font-size: 11px;
+            font-weight: 700;
+            color: #FFD700;
+            text-shadow: none;
+            background: rgba(0,0,0,0.25);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        /* Stat boxes below buttons */
+        .pred-stat-boxes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .pred-stat-box {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+        }
+        .pred-stat-box .stat-pct {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.2;
+        }
+        .pred-stat-box .stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.55);
+            margin-top: 2px;
+        }
+        .pred-stat-box .stat-prize {
+            font-size: 13px;
+            font-weight: 700;
+            color: #FFD700;
+            margin-top: 4px;
+        }
+        /* Result label styles */
+        .fs-result-label {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .fs-result-label.rw { background: rgba(34,197,94,.15); color: #22C55E; }
+        .fs-result-label.rd { background: rgba(239,68,68,.15); color: #EF4444; }
+        .fs-result-label.rg { background: rgba(148,163,184,.15); color: #94A3B8; }
+        .pred-result-badge {
             text-align: center;
             padding: 10px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 700;
-            margin-top: 10px;
+            margin-bottom: 10px;
         }
         .pred-result-badge.win { background: rgba(34,197,94,0.12); color: #22C55E; border: 1px solid rgba(34,197,94,0.2); }
         .pred-result-badge.lose { background: rgba(239,68,68,0.12); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
-        .pred-result-badge.waiting { background: rgba(212,160,23,0.12); color: var(--gold); border: 1px solid rgba(212,160,23,0.2); }
-        /* Prize info */
+        .pred-result-badge.waiting { background: rgba(212,160,23,0.12); color: #D4A017; border: 1px solid rgba(212,160,23,0.2); }
         .match-prize {
             text-align: center;
             font-size: 12px;
-            color: var(--gold, #D4A017);
-            margin-bottom: 14px;
+            color: #D4A017;
+            margin-bottom: 12px;
             font-weight: 600;
         }
+        
         /* WhatsApp unlock gate */
         .pred-blur-wrap {
             position: relative;
@@ -5827,11 +5835,7 @@
                         <label class="form-label" data-ar="رقم الهاتف (بدون الصفر في البداية)" data-en="Phone Number (no leading zero)">Phone Number (no leading zero)</label>
                         <input class="form-input" type="tel" id="compPhone" required placeholder="5XXXXXXXX" inputmode="numeric" pattern="[0-9]{7,15}">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" data-ar="كود الإحالة" data-en="Referral Code">Referral Code</label>
-                        <input class="form-input" type="text" id="compReferralCode" placeholder="ndogs" maxlength="12" style="text-transform:uppercase;">
-                        <div class="form-hint" data-ar="إذا لم يكن لديك كود إحالة استخدم ndogs" data-en="If you do not have a referral code use ndogs">If you do not have a referral code use ndogs</div>
-                    </div>
+
                     <button type="submit" class="btn-primary" id="compSubmitBtn">
                         <span data-ar="حفظ" data-en="Save">Save</span>
                     </button>
@@ -7079,13 +7083,10 @@ async function signInWithGoogle() {
             modal.style.display = 'flex';
             // Pre-fill name and email from Google
             document.getElementById('compName').value = user.displayName || '';
-            // Pre-fill referral code from URL (saved in localStorage by detectRefFromUrl)
-            // Double-check: also read directly from URL in case localStorage failed (PWA standalone)
+            // Read referral code from URL and store for later use
             const savedRef = localStorage.getItem('ndog_ref') || new URLSearchParams(window.location.search).get('ref') || '';
             if (savedRef) {
-                const refInput = document.getElementById('compReferralCode');
-                if (refInput) refInput.value = savedRef;
-                localStorage.setItem('ndog_ref', savedRef); // keep it safe
+                localStorage.setItem('ndog_ref', savedRef);
             }
             // Set country and dial code lists
             populateCompCountries();
@@ -7122,8 +7123,7 @@ async function signInWithGoogle() {
             const country = document.getElementById('compCountry').value;
             const dialCode = document.getElementById('compDialCode').value;
             const phone = document.getElementById('compPhone').value.trim();
-            const refInputEl = document.getElementById('compReferralCode');
-            const referralCode = (refInputEl ? refInputEl.value.trim() : '') || localStorage.getItem('ndog_ref') || 'ndogs';
+            const referralCode = localStorage.getItem('ndog_ref') || 'ndogs';
             // Now safe to clear
             localStorage.removeItem('ndog_ref');
             const modal = document.getElementById('profileCompleteModal');
@@ -9714,20 +9714,8 @@ async function signInWithGoogle() {
                     html += '<div style="text-align:center;margin-bottom:6px"><span class="fs-result-label ' + resClass + '">' + resLabel + '</span></div>';
                 }
                 html += '<div class="match-prize">\uD83C\uDFC6 ' + prize.toLocaleString() + ' NDOG</div>';
-                // Bar
-                html += '<div class="pred-bar-container"><div class="pred-bar">';
-                html += '<div class="pred-bar-seg seg-team1" style="width:' + Math.max(t1Pct,2) + '%">' + (t1Pct>=8?t1Pct+'%':'') + '</div>';
-                if (drawEnabled) {
-                    html += '<div class="pred-bar-seg seg-draw" style="width:' + Math.max(drawPct,2) + '%">' + (drawPct>=8?drawPct+'%':'') + '</div>';
-                    }
-                html += '<div class="pred-bar-seg seg-team2" style="width:' + Math.max(t2Pct,2) + '%">' + (t2Pct>=8?t2Pct+'%':'') + '</div>';
-                html += '</div><div class="pred-bar-labels">';
-                html += '<span><span class="pred-dot green"></span>' + t1Pct + '%</span>';
-                if (drawEnabled) { html += '<span><span class="pred-dot gray"></span>' + drawPct + '%</span>'; }
-                html += '<span><span class="pred-dot red"></span>' + t2Pct + '%</span>';
-                html += '</div></div>';
 
-                // Buttons / Result
+                // Gradient buttons + stat boxes
                 if (isFinished && match.result) {
                     if (hasPredicted) {
                         var won = myPred.choice === match.result;
@@ -9747,14 +9735,25 @@ async function signInWithGoogle() {
                     var cl = myPred.choice==='team1' ? t('\u0641\u0648\u0632','Win')+' '+match.team1 : myPred.choice==='draw' ? t('\u062A\u0639\u0627\u062F\u0644','Draw') : t('\u0641\u0648\u0632','Win')+' '+match.team2;
                     html += '<div class="pred-result-badge waiting">\u2705 ' + t('\u062A\u0648\u0642\u0639\u0643:','Your prediction:') + ' ' + cl + '</div>';
                 } else {
+                    // Gradient prediction buttons
                     html += '<div class="pred-buttons">';
-                    html += '<button class="pred-btn btn-team1" onclick="submitPrediction(\''+match.id+'\',\'team1\')"><span class="pred-btn-pct">'+t1Pct+'%</span><span>'+t('\u0641\u0648\u0632','Win')+' '+esc1+'</span><span class="pred-btn-prize">'+potentialPrize['team1'].toLocaleString()+' \uD83D\uDCB0</span></button>';
+                    html += '<button class="pred-btn" onclick="submitPrediction(\''+match.id+'\',\'team1\')"><span>'+t('\u0641\u0648\u0632','Win')+' '+esc1+'</span><span class="pred-btn-prize">'+potentialPrize['team1'].toLocaleString()+' \uD83D\uDCB0</span></button>';
                     if (drawEnabled) {
-                    html += '<button class="pred-btn btn-draw" onclick="submitPrediction(\''+match.id+'\',\'draw\')"><span class="pred-btn-pct">'+drawPct+'%</span><span>'+t('\u062A\u0639\u0627\u062F\u0644','Draw')+'</span><span class="pred-btn-prize">'+potentialPrize['draw'].toLocaleString()+' \uD83D\uDCB0</span></button>';
+                    html += '<button class="pred-btn" onclick="submitPrediction(\''+match.id+'\',\'draw\')"><span>'+t('\u062A\u0639\u0627\u062F\u0644','Draw')+'</span><span class="pred-btn-prize">'+potentialPrize['draw'].toLocaleString()+' \uD83D\uDCB0</span></button>';
                     }
-                    html += '<button class="pred-btn btn-team2" onclick="submitPrediction(\''+match.id+'\',\'team2\')"><span class="pred-btn-pct">'+t2Pct+'%</span><span>'+t('\u0641\u0648\u0632','Win')+' '+esc2+'</span><span class="pred-btn-prize">'+potentialPrize['team2'].toLocaleString()+' \uD83D\uDCB0</span></button>';
+                    html += '<button class="pred-btn" onclick="submitPrediction(\''+match.id+'\',\'team2\')"><span>'+t('\u0641\u0648\u0632','Win')+' '+esc2+'</span><span class="pred-btn-prize">'+potentialPrize['team2'].toLocaleString()+' \uD83D\uDCB0</span></button>';
                     html += '</div>';
                 }
+
+                // Stat boxes (always visible)
+                var statCols = drawEnabled ? 3 : 2;
+                html += '<div class="pred-stat-boxes" style="grid-template-columns:repeat('+statCols+',1fr)">';
+                html += '<div class="pred-stat-box"><div class="stat-pct">' + t1Pct + '%</div><div class="stat-label">' + t('\u0641\u0648\u0632','Win') + ' ' + esc1 + '</div><div class="stat-prize">'+potentialPrize['team1'].toLocaleString()+' \uD83D\uDCB0</div></div>';
+                if (drawEnabled) {
+                html += '<div class="pred-stat-box"><div class="stat-pct">' + drawPct + '%</div><div class="stat-label">' + t('\u062A\u0639\u0627\u062F\u0644','Draw') + '</div><div class="stat-prize">'+potentialPrize['draw'].toLocaleString()+' \uD83D\uDCB0</div></div>';
+                }
+                html += '<div class="pred-stat-box"><div class="stat-pct">' + t2Pct + '%</div><div class="stat-label">' + t('\u0641\u0648\u0632','Win') + ' ' + esc2 + '</div><div class="stat-prize">'+potentialPrize['team2'].toLocaleString()+' \uD83D\uDCB0</div></div>';
+                html += '</div>';
 
                 // Predictors list
                 if (predKeys.length > 0) {
@@ -9841,8 +9840,7 @@ async function signInWithGoogle() {
         document.addEventListener('click', function(e) {
             var btn = e.target.closest('#predShareWABtn');
             if (!btn) return;
-            var shareText = t('\uD83D\uDC15 \u0627\u0646\u0636\u0645 \u0625\u0644\u0649 NDOG Coin \u0648\u0627\u062D\u0635\u0644 \u0639\u0644\u0649 \u0639\u0645\u0644\u0627\u062A \u0645\u062C\u0627\u0646\u064A\u0629! \u062A\u0648\u0642\u0639 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0645\u0628\u0627\u0631\u064A\u0627\u062A \u0648\u0627\u0631\u0628\u062D 10,000 \u0639\u0645\u0644\u0629! \uD83C\uDFC6\n\u0640 ',
-                '\uD83D\uDC15 Join NDOG Coin and get free coins! Predict match results and win 10,000 coins! \uD83C\uDFC6\n');
+            var shareText = 'مرحبا *ياصديقي* اريدك تكون من الأغنياء معي ادخل وعدن العملة المجانية nodgs فهي عملة المستقبل التى ستباع بأعلى الأسعار مستقبلياً \nhttps://ndogcoin.com/';
             var url = window.location.origin || 'https://ndogcoin.com';
             window.open('https://wa.me/?text=' + encodeURIComponent(shareText + url), '_blank');
             if (currentUser) {

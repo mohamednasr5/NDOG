@@ -1955,3 +1955,88 @@ html[dir="ltr"] .level-threshold { font-family: var(--font-mono); }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 0; }
+
+/* ══════════════════════════════════════════════════════════
+   NEW: Transparent currency symbol on balance card
+   ══════════════════════════════════════════════════════════ */
+.balance-card-currency-bg {
+    position: absolute;
+    top: 50%;
+    right: -10px;
+    transform: translateY(-50%) rotate(-15deg);
+    font-size: 90px;
+    font-weight: 900;
+    color: rgba(212, 160, 23, 0.06);
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: -2px;
+    white-space: nowrap;
+    user-select: none;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NEW: P2P Transfer Modal
+   ══════════════════════════════════════════════════════════ */
+#p2pTransferModal .modal-sheet {
+    border-radius: 20px 20px 0 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NEW: Referral tree members
+   ══════════════════════════════════════════════════════════ */
+.ref-tree-member {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-2);
+    border-radius: 20px;
+    padding: 4px 12px 4px 4px;
+    margin: 3px;
+    font-size: 12px;
+}
+.ref-member-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #000;
+    flex-shrink: 0;
+}
+.ref-member-name {
+    color: var(--text-2);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NEW: Biometric section
+   ══════════════════════════════════════════════════════════ */
+#biometricSection .btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NEW: Staking plan grid improvements
+   ══════════════════════════════════════════════════════════ */
+.plan-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+}
+@media (min-width: 420px) {
+    .plan-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}

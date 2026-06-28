@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- EARLY TELEGRAM DETECTION — runs BEFORE anything else                     -->
+    <!-- Uses User-Agent (synchronous, 100% reliable in Telegram WebView)         -->
+    <!-- Hides Google login button IMMEDIATELY so user never sees it              -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <script>
+    (function() {
+        var ua = navigator.userAgent || '';
+        var isTG = /Telegram/i.test(ua) || !!(window.Telegram && window.Telegram.WebApp);
+        window.__tgEarlyDetect = isTG;
+        window.__tgDetected = isTG; // compat with existing checks
+        if (isTG) {
+            // Inject CSS to hide auth screen INSTANTLY
+            var s = document.createElement('style');
+            s.id = 'tg-early-hide';
+            s.textContent = '#authScreens{display:none!important;}#globalLoading.active{display:flex!important;}';
+            document.head.appendChild(s);
+            // Try pre-injected WebApp object (Telegram injects it before page scripts run)
+            try {
+                var tw = window.Telegram && window.Telegram.WebApp;
+                if (tw && tw.initData) {
+                    window.__tgEarlyInitData = tw.initData;
+                    window.__tgEarlyUser = tw.initDataUnsafe && tw.initDataUnsafe.user;
+                    tw.ready();
+                    tw.expand();
+                    console.log('[NDOG] Early Telegram detected, user:', window.__tgEarlyUser);
+                }
+            } catch(e) {}
+        }
+    })();
+    </script>
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -2111,10 +2143,44 @@
         .wallet-action-btn:hover {
             background: rgba(255, 255, 255, 0.15);
         }
+        /* P2P button — active/available style with neon glow */
+        .wallet-action-btn#walletP2PBtn {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.35);
+            color: #4ADE80;
+            animation: p2pNeonPulse 2.5s ease-in-out infinite;
+            position: relative;
+        }
+        .wallet-action-btn#walletP2PBtn::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: var(--radius);
+            background: transparent;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.25), inset 0 0 8px rgba(34, 197, 94, 0.08);
+            pointer-events: none;
+            animation: p2pNeonGlow 2.5s ease-in-out infinite;
+        }
+        .wallet-action-btn#walletP2PBtn:active {
+            animation: none;
+            background: rgba(34, 197, 94, 0.22);
+        }
+        .wallet-action-btn#walletP2PBtn:active::after {
+            animation: none;
+            box-shadow: 0 0 16px rgba(34, 197, 94, 0.5), inset 0 0 12px rgba(34, 197, 94, 0.15);
+        }
+        @keyframes p2pNeonPulse {
+            0%, 100% { border-color: rgba(34, 197, 94, 0.3); }
+            50% { border-color: rgba(34, 197, 94, 0.6); }
+        }
+        @keyframes p2pNeonGlow {
+            0%, 100% { box-shadow: 0 0 6px rgba(34, 197, 94, 0.2), inset 0 0 6px rgba(34, 197, 94, 0.06); }
+            50% { box-shadow: 0 0 18px rgba(34, 197, 94, 0.4), inset 0 0 10px rgba(34, 197, 94, 0.12); }
+        }
         .coming-soon-tag {
             font-size: 8px;
-            color: var(--text-3);
-            background: rgba(255, 255, 255, 0.05);
+            color: #22C55E;
+            background: rgba(34, 197, 94, 0.12);
             padding: 1px 6px;
             border-radius: 99px;
         }
@@ -2476,22 +2542,39 @@
             margin-left: 6px;
         }
         .lb-my-rank {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 14px;
+            background: linear-gradient(135deg, rgba(212,160,23,0.08), rgba(26,107,219,0.08));
+            border: 1px solid rgba(212,160,23,0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-top: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
             font-size: 13px;
+        }
+        .lb-my-rank .lb-mr-left,
+        .lb-my-rank .lb-mr-right {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .lb-my-rank .lb-mr-right {
+            align-items: flex-end;
         }
         .lb-my-rank .lb-mr-label {
             color: var(--text-3);
+            font-size: 11px;
         }
         .lb-my-rank .lb-mr-value {
             font-weight: 700;
+            font-size: 18px;
             color: var(--gold);
+        }
+        .lb-my-rank .lb-mr-balance {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--accent);
         }
 
         .lb-tabs {
@@ -2848,46 +2931,91 @@
         .loading-overlay.active {
             display: flex;
         }
-        .loading-coin {
-            font-size: 56px;
-            animation: loadingCoin 1.5s ease-in-out infinite;
-            filter: drop-shadow(0 0 20px rgba(212, 160, 23, 0.5));
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
         }
-        @keyframes loadingCoin {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1) rotate(10deg);
-            }
+        .loading-logo {
+            filter: drop-shadow(0 0 30px rgba(212, 160, 23, 0.4));
+            animation: logoFloat 3s ease-in-out infinite;
         }
-        .loading-bar {
-            width: 160px;
-            height: 3px;
-            background: var(--surface-3);
-            border-radius: 99px;
-            overflow: hidden;
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
         }
-        .loading-progress {
-            height: 100%;
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-            border-radius: 99px;
-            animation: loadingBar 1.5s ease-in-out infinite;
+        .ring-outer {
+            animation: spinOuter 8s linear infinite;
+            transform-origin: 50px 50px;
         }
-        @keyframes loadingBar {
-            0% {
-                width: 0%;
-                margin-left: 0%;
-            }
-            50% {
-                width: 60%;
-                margin-left: 20%;
-            }
-            100% {
-                width: 0%;
-                margin-left: 100%;
-            }
+        @keyframes spinOuter {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .ring-inner {
+            animation: spinInner 5s linear infinite reverse;
+            transform-origin: 50px 50px;
+        }
+        @keyframes spinInner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .emoji-dog {
+            animation: bounceEmoji 1.2s ease-in-out infinite;
+            transform-origin: 50px 60px;
+        }
+        @keyframes bounceEmoji {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.15) rotate(5deg); }
+        }
+        .loading-text {
+            text-align: center;
+            gap: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .loading-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-light), var(--blue-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            margin: 0;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+        @keyframes titlePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .loading-subtitle {
+            font-size: 14px;
+            color: var(--text-3);
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        .loading-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold-light), var(--blue-light));
+            animation: dotBounce 1.4s ease-in-out infinite;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: 0s; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        .loading-dots span:nth-child(4) { animation-delay: 0.6s; }
+        @keyframes dotBounce {
+            0%, 100% { transform: translateY(0px); opacity: 0.4; }
+            50% { transform: translateY(-12px); opacity: 1; }
         }
 
         .bottom-nav {
@@ -2897,12 +3025,14 @@
             right: 0;
             z-index: 100;
             padding-bottom: var(--home-inset);
+            padding-top: 30px;
         }
         .bottom-nav-inner {
             display: flex;
             align-items: flex-end;
             justify-content: space-around;
             padding: 6px 6px 6px;
+            padding-top: 10px;
             background: linear-gradient(180deg, rgba(7, 11, 20, 0.92) 0%, rgba(7, 11, 20, 0.98) 100%);
             backdrop-filter: blur(24px) saturate(1.4);
             -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -2915,7 +3045,7 @@
             flex-direction: column;
             align-items: center;
             gap: 3px;
-            padding: 8px 2px 6px;
+            padding: 8px 4px 6px;
             color: var(--text-3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -2976,12 +3106,14 @@
             width: 28px;
         }
         .nav-center-spacer {
-            flex: 1.3;
+            width: 0;
+            flex: none;
+            overflow: hidden;
         }
         .nav-center-btn {
             position: absolute;
             left: 50%;
-            bottom: calc(var(--home-inset) + 16px);
+            bottom: calc(var(--nav-h) + var(--home-inset));
             transform: translateX(-50%);
             width: 60px;
             height: 60px;
@@ -3453,22 +3585,8 @@
             line-height: 1.7;
         }
 
-        .notif-bell {
-            position: fixed;
-            top: calc(var(--status-bar) + 12px);
-            right: 16px;
-            z-index: 50;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-2);
-            transition: all 0.2s;
-            cursor: pointer;
+        .notif-bell-inline {
+            position: relative;
         }
         .notif-bell:hover {
             background: var(--surface-2);
@@ -4064,6 +4182,315 @@
             transition: all 0.2s;
         }
 
+
+        /* ═══ Crypto Watermark on Balance/Wallet Cards ═══ */
+
+        .crypto-watermark {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .cw-coin {
+            position: absolute;
+            font-weight: 900;
+            line-height: 1;
+            user-select: none;
+        }
+        .cw-btc {
+            right: -8px;
+            top: -12px;
+            font-size: 110px;
+            color: #F7931A;
+            opacity: 0.06;
+            transform: rotate(12deg);
+        }
+        .cw-eth {
+            left: -5px;
+            bottom: -8px;
+            font-size: 75px;
+            color: #627EEA;
+            opacity: 0.05;
+            transform: rotate(-8deg);
+        }
+        .cw-usdt {
+            right: 35px;
+            bottom: 5px;
+            font-size: 55px;
+            color: #26A17B;
+            opacity: 0.05;
+            transform: rotate(5deg);
+        }
+        .cw-doge {
+            left: 40%;
+            top: -5px;
+            font-size: 40px;
+            color: #C3A634;
+            opacity: 0.04;
+            transform: rotate(-20deg);
+        }
+        html[dir="rtl"] .cw-btc { right: auto; left: -8px; }
+        html[dir="rtl"] .cw-eth { left: auto; right: -5px; }
+        html[dir="rtl"] .cw-usdt { right: auto; left: 35px; }
+
+        .wallet-card .crypto-watermark .cw-coin { opacity: 0.04; }
+
+        /* ═══ PREDICTION CONTEST ═══ */
+        .match-card {
+            background: var(--surface, #0D1321);
+            border: 1px solid var(--border, rgba(255,255,255,0.06));
+            border-radius: var(--radius-xl, 16px);
+            padding: 20px 16px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .match-card.match-finished { opacity: 0.85; }
+        .match-card.match-finished::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+        .match-date-time {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .match-date {
+            font-size: 13px;
+            color: var(--text-3, rgba(255,255,255,0.45));
+            margin-bottom: 2px;
+        }
+        .match-time {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-1, #fff);
+            letter-spacing: 1px;
+        }
+        .match-teams {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 8px;
+        }
+        .match-team {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .match-team-flag {
+            width: 56px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            background: var(--surface-2, #151B2E);
+        }
+        .match-team-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-1, #fff);
+            text-align: center;
+            line-height: 1.3;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-vs {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--gold, #D4A017);
+            flex-shrink: 0;
+            padding: 0 4px;
+        }
+        /* Prediction Bar */
+        .pred-bar-container {
+            margin-bottom: 14px;
+        }
+        .pred-bar {
+            display: flex;
+            height: 32px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--surface-2, #151B2E);
+            position: relative;
+        }
+        .pred-bar-seg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            transition: width 0.6s ease;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .pred-bar-seg.seg-team1 { background: linear-gradient(90deg, #16A34A, #22C55E); }
+        .pred-bar-seg.seg-draw { background: linear-gradient(90deg, #6B7280, #9CA3AF); }
+        .pred-bar-seg.seg-team2 { background: linear-gradient(90deg, #EF4444, #DC2626); }
+        .pred-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-3, rgba(255,255,255,0.4));
+        }
+        .pred-bar-labels span { display: flex; align-items: center; gap: 4px; }
+        .pred-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .pred-dot.green { background: #22C55E; }
+        .pred-dot.gray { background: #9CA3AF; }
+        .pred-dot.red { background: #EF4444; }
+        /* Prediction Buttons */
+        .pred-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .pred-btn {
+            flex: 1;
+            padding: 10px 4px;
+            border-radius: 10px;
+            border: 2px solid var(--border, rgba(255,255,255,0.08));
+            background: var(--surface-2, #151B2E);
+            color: var(--text-1, #fff);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .pred-btn .pred-btn-pct {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .pred-btn:active { transform: scale(0.96); }
+        .pred-btn.btn-team1:hover, .pred-btn.btn-team1.selected { border-color: #22C55E; background: rgba(34,197,94,0.12); }
+        .pred-btn.btn-draw:hover, .pred-btn.btn-draw.selected { border-color: #9CA3AF; background: rgba(156,163,175,0.12); }
+        .pred-btn.btn-team2:hover, .pred-btn.btn-team2.selected { border-color: #EF4444; background: rgba(239,68,68,0.12); }
+        .pred-btn.disabled { opacity: 0.4; pointer-events: none; }
+        .pred-btn.selected { pointer-events: none; }
+        .pred-btn.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: 12px;
+            color: #22C55E;
+        }
+        .pred-btn { position: relative; }
+        /* User prediction result badge */
+        .pred-result-badge {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .pred-result-badge.win { background: rgba(34,197,94,0.12); color: #22C55E; border: 1px solid rgba(34,197,94,0.2); }
+        .pred-result-badge.lose { background: rgba(239,68,68,0.12); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
+        .pred-result-badge.waiting { background: rgba(212,160,23,0.12); color: var(--gold); border: 1px solid rgba(212,160,23,0.2); }
+        /* Prize info */
+        .match-prize {
+            text-align: center;
+            font-size: 12px;
+            color: var(--gold, #D4A017);
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+        /* WhatsApp unlock gate */
+        .pred-unlock-gate {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .pred-unlock-gate .lock-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+        .pred-unlock-gate h3 {
+            font-size: 18px;
+            color: var(--text-1, #fff);
+            margin-bottom: 8px;
+        }
+        .pred-unlock-gate p {
+            font-size: 13px;
+            color: var(--text-3, rgba(255,255,255,0.45));
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .btn-whatsapp-share {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #25D366;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-whatsapp-share:active { transform: scale(0.96); opacity: 0.85; }
+        .btn-whatsapp-share svg { width: 22px; height: 22px; }
+        /* Prediction Leaderboard */
+        .pred-leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface, #0D1321);
+            border: 1px solid var(--border, rgba(255,255,255,0.06));
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .pred-lb-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .pred-lb-rank.gold { background: linear-gradient(135deg, #F59E0B, #D97706); color: #fff; }
+        .pred-lb-rank.silver { background: linear-gradient(135deg, #9CA3AF, #6B7280); color: #fff; }
+        .pred-lb-rank.bronze { background: linear-gradient(135deg, #D97706, #92400E); color: #fff; }
+        .pred-lb-rank.normal { background: var(--surface-2, #151B2E); color: var(--text-2, rgba(255,255,255,0.6)); }
+        .pred-lb-info { flex: 1; min-width: 0; }
+        .pred-lb-name { font-size: 13px; font-weight: 600; color: var(--text-1, #fff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pred-lb-stat { font-size: 11px; color: var(--text-3, rgba(255,255,255,0.4)); }
+        .pred-lb-score { font-size: 16px; font-weight: 800; color: var(--gold, #D4A017); flex-shrink: 0; }
+        .pred-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-3, rgba(255,255,255,0.4));
+            font-size: 14px;
+        }
+        .pred-empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .pred-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-1, #fff);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         </style>
 </head>
 <body itemscope itemtype="https://schema.org/WebPage" itemid="https://ndogcoin.com/">
@@ -4104,18 +4531,43 @@
 
     <!-- ========== LOADING OVERLAY ========== -->
     <div id="globalLoading" class="loading-overlay active">
-        <div class="loading-coin">🐕</div>
-        <div class="loading-bar"><div class="loading-progress"></div></div>
+        <div class="loading-container">
+            <svg class="loading-logo" viewBox="0 0 100 100" width="80" height="80">
+                <!-- Outer rotating ring -->
+                <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradGold)" stroke-width="2" opacity="0.6" class="ring-outer"/>
+                <!-- Inner pulsing circle -->
+                <circle cx="50" cy="50" r="35" fill="none" stroke="url(#gradBlue)" stroke-width="2.5" class="ring-inner"/>
+                <!-- Animated dog emoji background -->
+                <text x="50" y="60" text-anchor="middle" font-size="40" class="emoji-dog">🐕</text>
+                <defs>
+                    <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#D4A017;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#1A6BDB;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2E89FF;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="loading-text">
+                <h2 class="loading-title">NDOG</h2>
+                <p class="loading-subtitle">جاري التحميل...</p>
+            </div>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
     </div>
 
     <!-- ========== TOAST STACK ========== -->
     <div id="toastStack" class="toast-stack" aria-live="polite"></div>
 
     <!-- ========== NOTIFICATION BELL ========== -->
-    <button class="notif-bell" id="notifBellBtn" type="button" aria-label="Notifications" style="display:none;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
-    </button>
+
 
     <!-- ============================================================= -->
     <!-- AUTH SCREEN (Login with Google) -->
@@ -4186,6 +4638,7 @@
         </div>
     </div>
 
+
     <!-- ============================================================= -->
     <!-- MAIN APPLICATION -->
     <!-- ============================================================= -->
@@ -4199,9 +4652,14 @@
             <section id="tabHome" class="tab-view active" data-tab="home">
                 <header class="home-header">
                     <div class="home-header-left">
-                        <div class="avatar-wrap" id="userAvatar">
-                            <img id="avatarImg" src="" alt="" style="display:none;">
-                            <span id="avatarFallback">🐕</span>
+                        <div class="avatar-wrap" id="userAvatar" style="position:relative;">
+                            <!-- Transparent USDT Logo behind avatar -->
+                            <svg viewBox="0 0 32 32" style="position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0.18;pointer-events:none;z-index:0;" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="15" fill="#26A17B"/>
+                                <path fill="#fff" d="M17.2 14.4v-.1c0 0 0 0 0 0 .6-.1 1.8-.3 1.8-1.7 0-1.1-.9-1.7-2.7-1.7h-3.7v7.3h3.5c1.9 0 3-.7 3-1.9 0-1.1-.7-1.6-1.9-1.9zm-2.6-2.4h.9c.8 0 1.3.2 1.3.8 0 .5-.4.8-1.2.8h-1v-1.6zm1.1 5.2h-1.1v-1.8h1.1c.9 0 1.4.3 1.4.9s-.5.9-1.4.9zM16 3C8.8 3 3 8.8 3 16s5.8 13 13 13 13-5.8 13-13S23.2 3 16 3zm5.9 14.7c0 2.2-1.8 3.3-4.3 3.3h-5.7V11h5.5c2.3 0 3.8 1 3.8 2.9 0 1.4-.8 2.3-2.1 2.6v.1c1.6.3 2.8 1.3 2.8 3.1z"/>
+                            </svg>
+                            <img id="avatarImg" src="" alt="" style="display:none;position:relative;z-index:1;">
+                            <span id="avatarFallback" style="position:relative;z-index:1;">🐕</span>
                         </div>
                         <div class="home-user-info">
                             <span class="home-greeting" data-ar="مرحباً" data-en="Hello">Hello</span>
@@ -4212,6 +4670,10 @@
                         <button class="icon-btn" id="langBtnApp" title="Language" type="button">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
                         </button>
+                        <button class="icon-btn notif-bell-inline" id="notifBellBtn" type="button" aria-label="Notifications">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+                        </button>
                         <button class="icon-btn" id="logoutBtn" title="Logout" type="button">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
                         </button>
@@ -4221,6 +4683,13 @@
                 <!-- Balance Card -->
                 <div class="balance-card">
                     <div class="balance-card-bg"></div>
+                <div class="balance-card-currency-bg">NDOG</div>
+                <div class="crypto-watermark">
+                    <span class="cw-coin cw-btc">₿</span>
+                    <span class="cw-coin cw-eth">Ξ</span>
+                    <span class="cw-coin cw-usdt">₮</span>
+                    <span class="cw-coin cw-doge">Ð</span>
+                </div>
                     <div class="balance-label" data-ar="رصيد NDOG" data-en="NDOG Balance">NDOG Balance</div>
                     <div class="balance-amount-wrap">
                         <div class="balance-amount" id="dashBalance">0</div>
@@ -4388,6 +4857,12 @@
 
                 <div class="wallet-card">
                     <div class="wallet-card-bg"></div>
+                    <div class="crypto-watermark">
+                        <span class="cw-coin cw-btc">₿</span>
+                        <span class="cw-coin cw-eth">Ξ</span>
+                        <span class="cw-coin cw-usdt">₮</span>
+                        <span class="cw-coin cw-doge">Ð</span>
+                    </div>
                     <div class="wallet-label" data-ar="الرصيد الكلي" data-en="Total Balance">Total Balance</div>
                     <div class="wallet-amount-wrap">
                         <div class="wallet-amount" id="walletBalance">0</div>
@@ -4418,7 +4893,6 @@
                         <button class="wallet-action-btn" id="walletP2PBtn" type="button">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                             <span data-ar="تحويل P2P" data-en="P2P Transfer">P2P Transfer</span>
-                            <small class="coming-soon-tag" data-ar="قريباً" data-en="Soon">Soon</small>
                         </button>
                     </div>
                 </div>
@@ -4487,6 +4961,18 @@
                             <div class="plan-days" data-ar="180 يوم" data-en="180 Days">180 Days</div>
                             <div class="plan-apr">25% APR</div>
                             <div class="plan-min" data-ar="حد أدنى 2000" data-en="Min 2K">Min 2K</div>
+                        </label>
+                        <label class="plan-card" data-plan="365_days">
+                            <input type="radio" name="stakePlan" value="365">
+                            <div class="plan-days" data-ar="سنة كاملة" data-en="1 Year">1 Year</div>
+                            <div class="plan-apr">50% APR</div>
+                            <div class="plan-min" data-ar="حد أدنى 5000" data-en="Min 5K">Min 5K</div>
+                        </label>
+                        <label class="plan-card" data-plan="1095_days">
+                            <input type="radio" name="stakePlan" value="1095">
+                            <div class="plan-days" data-ar="3 سنوات" data-en="3 Years">3 Years</div>
+                            <div class="plan-apr">100% APR</div>
+                            <div class="plan-min" data-ar="حد أدنى 10,000" data-en="Min 10K">Min 10K</div>
                         </label>
                     </div>
                     <div class="stake-input-row">
@@ -4783,15 +5269,21 @@
                             <span data-ar="إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>30 يوم متتالي</strong> تحصل على <strong>30 عملة NDOG</strong> مكافأة" data-en="If you stay <strong>#1</strong> for <strong>30 consecutive days</strong> you get <strong>30 NDOG</strong> reward">إذا ظللت <strong>المتصدر الأول</strong> لمدة <strong>30 يوم متتالي</strong> تحصل على <strong>30 عملة NDOG</strong> مكافأة</span>
                         </div>
                     </div>
-                    <div id="lbMyRank" class="lb-my-rank" style="display:none;">
-                        <span class="lb-mr-label" data-ar="ترتيبك" data-en="Your Rank">ترتيبك</span>
-                        <span class="lb-mr-value" id="lbMyRankVal">—</span>
-                    </div>
                     <div class="lb-tabs">
                         <button class="lb-tab active" data-lb="alltime" type="button" data-ar="كل الأوقات" data-en="All Time">All Time</button>
                         <button class="lb-tab" data-lb="monthly" type="button" data-ar="شهري" data-en="Monthly">Monthly</button>
                     </div>
                     <div id="topBalanceList" class="leader-list"></div>
+                    <div id="lbMyRank" class="lb-my-rank" style="display:none;">
+                        <div class="lb-mr-left">
+                            <span class="lb-mr-label" data-ar="ترتيبك" data-en="Your Rank">ترتيبك</span>
+                            <span class="lb-mr-value" id="lbMyRankVal">—</span>
+                        </div>
+                        <div class="lb-mr-right">
+                            <span class="lb-mr-label" data-ar="رصيدك" data-en="Your Balance">رصيدك</span>
+                            <span class="lb-mr-balance" id="lbMyRankBalance">— NDOG</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Airdrop -->
@@ -4816,6 +5308,41 @@
                         <button type="button" class="card-header-clear" id="clearNewsBtn" data-ar="مسح الكل" data-en="Clear All">Clear All</button>
                     </div>
                     <div id="newsList" class="news-list"></div>
+                </div>
+
+                <div class="home-bottom-spacer"></div>
+            </section>
+
+
+            <!-- ─── PREDICTIONS TAB ─── -->
+            <section id="tabPredictions" class="tab-view" data-tab="predictions">
+                <div class="page-header">
+                    <h2 class="page-title" data-ar="توقعات المباريات" data-en="Match Predictions">Match Predictions</h2>
+                </div>
+
+                <div id="predUnlockGate" class="pred-unlock-gate" style="display:none;">
+                    <div class="lock-icon">🔒</div>
+                    <h3 data-ar="شارك لتفتح التوقعات" data-en="Share to Unlock Predictions">شارك لتفتح التوقعات</h3>
+                    <p data-ar="أرسل رابط NDOG Coin على الواتساب لصديقك لتفعيل ميزة التوقعات والفوز بـ 10,000 عملة!" data-en="Share the NDOG Coin link on WhatsApp with a friend to activate predictions and win 10,000 coins!">أرسل رابط NDOG Coin على الواتساب لصديقك لتفعيل ميزة التوقعات والفوز بـ 10,000 عملة!</p>
+                    <button class="btn-whatsapp-share" id="predShareWABtn" type="button">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        <span data-ar="شارك على الواتساب" data-en="Share on WhatsApp">شارك على الواتساب</span>
+                    </button>
+                </div>
+
+                <div id="predMatchList"></div>
+
+                <div id="predLeaderboardSection" style="margin-top:20px;">
+                    <div class="pred-section-title">
+                        <span>🏆</span>
+                        <span data-ar="ترتيب المتوقعين" data-en="Predictors Leaderboard">ترتيب المتوقعين</span>
+                    </div>
+                    <div id="predLeaderboardList">
+                        <div class="pred-empty">
+                            <div class="pred-empty-icon">🏆</div>
+                            <div data-ar="لا توجد توقعات بعد" data-en="No predictions yet">لا توجد توقعات بعد</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="home-bottom-spacer"></div>
@@ -4927,12 +5454,12 @@
                         <span class="card-header-icon">📄</span>
                         <span class="card-header-title" data-ar="الورقة البيضاء" data-en="Whitepaper">Whitepaper</span>
                     </div>
-                    <a href="./whitepaper-en.html" target="_blank" rel="noopener" class="profile-link-row">
+                    <a href="./whitepaper-en.html" target="_blank" rel="noopener" class="profile-link-row" onclick="if(typeof trackWhitepaperRead==='function')trackWhitepaperRead();">
                         <div class="profile-link-icon">🇬🇧</div>
                         <span class="profile-link-label" data-ar="الورقة البيضاء - إنجليزي" data-en="Whitepaper — English">Whitepaper — English</span>
                         <svg class="profile-link-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </a>
-                    <a href="./whitepaper-ar.html" target="_blank" rel="noopener" class="profile-link-row">
+                    <a href="./whitepaper-ar.html" target="_blank" rel="noopener" class="profile-link-row" onclick="if(typeof trackWhitepaperRead==='function')trackWhitepaperRead();">
                         <div class="profile-link-icon">🇸🇦</div>
                         <span class="profile-link-label" data-ar="الورقة البيضاء - عربي" data-en="Whitepaper — Arabic">Whitepaper — Arabic</span>
                         <svg class="profile-link-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
@@ -4970,6 +5497,8 @@
                     <div class="nav-indicator"></div>
                 </button>
 
+                <div class="nav-center-spacer"></div>
+
                 <button class="nav-item" data-tab="referrals" type="button">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -4981,7 +5510,15 @@
                     <div class="nav-indicator"></div>
                 </button>
 
-                <div class="nav-center-spacer"></div>
+
+                <button class="nav-item" data-tab="predictions" type="button">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M8 12l2.5 2.5L16 9"/>
+                    </svg>
+                    <span class="nav-label" data-ar="توقعات" data-en="Predict">Predict</span>
+                    <div class="nav-indicator"></div>
+                </button>
 
                 <button class="nav-item" data-tab="rewards" type="button">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -5073,6 +5610,33 @@
         </div>
     </div>
 
+
+    <!-- P2P Transfer Modal -->
+    <div id="p2pTransferModal" class="modal-overlay" style="display:none;">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title" data-ar="تحويل P2P" data-en="P2P Transfer">تحويل P2P</div>
+            <div style="padding:0 20px 20px;">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" data-ar="كود دعوة المستلم" data-en="Recipient Referral Code">كود دعوة المستلم</label>
+                    <input class="form-input" type="text" id="p2pReferralCode" maxlength="12" placeholder="XXXXX" autocomplete="off" style="text-transform:uppercase;">
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" data-ar="المبلغ (الحد الأدنى 5000 NDOG)" data-en="Amount (Min 5000 NDOG)">المبلغ (الحد الأدنى 5000 NDOG)</label>
+                    <input class="form-input" type="number" id="p2pAmount" min="5000" placeholder="5000" inputmode="decimal">
+                </div>
+                <div style="background:var(--surface-2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:var(--text-3);">
+                    <span data-ar="⚠️ التحويل فوري ولا يمكن التراجع عنه. تأكد من كود الدعوة الصحيح." data-en="⚠️ Transfer is instant and cannot be reversed. Verify the code.">⚠️ التحويل فوري ولا يمكن التراجع عنه. تأكد من كود الدعوة الصحيح.</span>
+                </div>
+                <button class="btn-primary" id="p2pTransferSubmitBtn" type="button">
+                    <span data-ar="إرسال" data-en="Send">إرسال</span>
+                </button>
+                <button class="btn-secondary" id="p2pTransferCloseBtn" type="button" style="margin-top:8px;">
+                    <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Profile Completion Modal (for new users) -->
     <div id="profileCompleteModal" class="modal-overlay profile-complete-modal" style="display:none;">
         <div class="modal-sheet">
@@ -5116,6 +5680,83 @@
     </div>
 
     <!-- ============================================================= -->
+    <!-- TELEGRAM MINI APP SDK — Enhanced with early UA detection    -->
+    <!-- ============================================================= -->
+    <script>
+    (function() {
+        var _resolve;
+        window.__tgPromise = new Promise(function(r) { _resolve = r; });
+        window.__tgResult = null;
+        window.__tgDone = false;
+
+        function tryDetect() {
+            var tg = window.Telegram && window.Telegram.WebApp;
+            if (!tg) return false;
+            var initData = tg.initData;
+            if (!initData) return false;
+            tg.ready();
+            tg.expand();
+            window.__tgResult = { WebApp: tg, initData: initData, user: tg.initDataUnsafe && tg.initDataUnsafe.user };
+            window.__tgDone = true;
+            console.log('[NDOG] Telegram SDK detected, user:', window.__tgResult.user);
+            return true;
+        }
+
+        function resolveWith(data) {
+            if (window.__tgDone) return;
+            window.__tgResult = data;
+            window.__tgDone = true;
+            _resolve(data);
+        }
+
+        // PRIORITY 1: Early UA detection already got initData — use it
+        if (window.__tgEarlyDetect && window.__tgEarlyInitData) {
+            console.log('[NDOG] Using early-detected Telegram initData');
+            var tw = window.Telegram && window.Telegram.WebApp;
+            if (tw) {
+                resolveWith({ WebApp: tw, initData: tw.initData, user: tw.initDataUnsafe && tw.initDataUnsafe.user });
+            } else {
+                // Have initData but need SDK for full WebApp — load async
+                var s2 = document.createElement('script');
+                s2.src = 'https://telegram.org/js/telegram-web-app.js';
+                s2.async = true;
+                s2.onload = function() { tryDetect() || resolveWith(null); };
+                s2.onerror = function() { resolveWith(null); };
+                document.head.appendChild(s2);
+                setTimeout(function() { resolveWith(null); }, 5000);
+            }
+        }
+        // PRIORITY 2: Try synchronous detection (WebApp pre-injected)
+        else if (tryDetect()) {
+            _resolve(window.__tgResult);
+        }
+        // PRIORITY 3: Early UA detected but no initData yet — load SDK
+        else if (window.__tgEarlyDetect) {
+            console.log('[NDOG] Telegram UA detected, loading SDK for initData...');
+            var s = document.createElement('script');
+            s.src = 'https://telegram.org/js/telegram-web-app.js';
+            s.async = true;
+            s.onload = function() {
+                if (!tryDetect()) {
+                    console.warn('[NDOG] SDK loaded but no initData');
+                    resolveWith(null);
+                }
+            };
+            s.onerror = function() {
+                console.warn('[NDOG] Telegram SDK failed to load');
+                resolveWith(null);
+            };
+            document.head.appendChild(s);
+            setTimeout(function() { resolveWith(null); }, 5000);
+        }
+        // PRIORITY 4: Not Telegram at all
+        else {
+            resolveWith(null);
+        }
+    })();
+    </script>
+
+    <!-- ============================================================= -->
     <!-- FIREBASE & QR LIBRARIES -->
     <!-- ============================================================= -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js">
@@ -5127,8 +5768,19 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
     </script>
 
-    <!-- ONESIGNAL WEB SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <!-- ONESIGNAL WEB SDK — skipped in Telegram WebView (not supported) -->
+    <script>
+    // OneSignal requires Service Workers which are NOT supported in Telegram WebView
+    // Only load in normal browser, detected by waiting for tgPromise
+    window.__tgPromise.then(function(tgResult) {
+        if (!tgResult) {
+            var os = document.createElement('script');
+            os.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+            os.defer = true;
+            document.head.appendChild(os);
+        }
+    });
+    </script>
 
     <!-- ============================================================= -->
     <!-- FIREBASE CONFIG & APP LOGIC -->
@@ -5150,19 +5802,148 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
+        // ========== TELEGRAM MINI APP STATE ==========
+        const WORKER_URL = 'https://ndogtg.ads4ads2029.workers.dev';
+        let tgApp         = null;
+        let isTelegramEnv = false;
+        let tgAuthDone    = false;
+
+        // __tgPromise resolves when Telegram SDK detection is complete (success or failure)
+        // This eliminates ALL race conditions between SDK loading and auth state
+        window.__tgPromise.then(function(tgResult) {
+            if (tgResult) {
+                tgApp = tgResult.WebApp;
+                isTelegramEnv = true;
+                console.log('[NDOG] Telegram env confirmed, triggering auth if needed');
+                if (!currentUser && !tgAuthDone) {
+                    doTelegramAuth();
+                }
+            } else if (window.__tgEarlyDetect) {
+                // UA says Telegram but SDK/SDK failed to get initData
+                console.warn('[NDOG] Telegram UA detected but no initData available');
+                isTelegramEnv = true;
+                if (!currentUser && !tgAuthDone) {
+                    hideLoading();
+                    showTelegramError(currentLang === 'ar'
+                        ? 'لم يتم الكشف عن بيانات التليجرام. يرجى فتح التطبيق من البوت مباشرة.'
+                        : 'Telegram data not detected. Please open the app from the bot directly.');
+                }
+            }
+        });
+
+        // ========== GLOBAL ERROR HANDLER (prevents blank page) ==========
+        window.__ndogErrors = [];
+        window.addEventListener('error', function(e) {
+            console.error('[NDOG] Global error:', e.message, e.filename, e.lineno);
+            window.__ndogErrors.push(e.message);
+            if (e.filename && (e.filename.includes('onesignal') || e.filename.includes('OneSignal'))) {
+                e.preventDefault();
+            }
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('[NDOG] Unhandled rejection:', e.reason);
+        });
+
+        // ========== TELEGRAM AUTH (no login screen) ==========
+        async function doTelegramAuth() {
+            if (tgAuthDone) return;
+            tgAuthDone = true;
+
+            // Hide auth screen — show ONLY loading in Telegram
+            var authEl = document.getElementById('authScreens');
+            if (authEl) authEl.style.display = 'none';
+            showLoading();
+
+            // Get initData from WebApp OR from early detection
+            var initData = (tgApp && tgApp.initData) || window.__tgEarlyInitData || '';
+            if (!initData) {
+                hideLoading();
+                showTelegramError(currentLang === 'ar'
+                    ? 'لا توجد بيانات مصادقة تليجرام'
+                    : 'No Telegram auth data');
+                tgAuthDone = false;
+                return;
+            }
+
+            try {
+                console.log('[NDOG] Sending Telegram auth to Worker...');
+                var response = await fetch(
+                    WORKER_URL + '/api/auth?initData=' + encodeURIComponent(initData)
+                );
+
+                if (!response.ok) throw new Error('Worker status ' + response.status);
+
+                var data = await response.json();
+                if (!data.ok || !data.customToken) throw new Error(data.error || 'auth_failed');
+
+                console.log('[NDOG] Got custom token, signing in...');
+                var result = await auth.signInWithCustomToken(data.customToken);
+                currentUser = result.user;
+
+                if (data.user) {
+                    userData = Object.assign({ uid: data.uid }, data.user);
+                    hideLoading();
+                    showApp();
+                } else {
+                    var snap = await db.ref('users/' + currentUser.uid).once('value');
+                    hideLoading();
+                    if (snap.exists()) {
+                        userData = Object.assign({ uid: currentUser.uid }, snap.val());
+                        showApp();
+                    } else {
+                        showApp(); // Will create profile on first interaction
+                    }
+                }
+            } catch (err) {
+                tgAuthDone = false;
+                hideLoading();
+                console.error('[NDOG] Telegram auth error:', err);
+                showTelegramError(err.message || 'Connection failed');
+            }
+        }
+
+        function showTelegramError(msg) {
+            var authEl = document.getElementById('authScreens');
+            if (authEl) {
+                authEl.style.display = 'flex';
+                authEl.innerHTML =
+                    '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 20px;text-align:center;width:100%">' +
+                    '<div style="font-size:64px">🐕</div>' +
+                    '<div style="font-size:22px;font-weight:700;color:var(--text-1)">NDOG Coin</div>' +
+                    '<div style="font-size:14px;color:var(--red)">' + (currentLang === 'ar' ? 'فشل الاتصال' : 'Connection failed') + '</div>' +
+                    '<div style="font-size:12px;color:var(--text-3)">' + (msg || '') + '</div>' +
+                    '<button onclick="document.getElementById(\'authScreens\').style.display=\'none\';showLoading();tgAuthDone=false;doTelegramAuth()" ' +
+                    'style="margin-top:10px;padding:12px 32px;background:var(--gold);color:#000;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer">' +
+                    (currentLang === 'ar' ? 'إعادة المحاولة' : 'Retry') + '</button>' +
+                    '</div>';
+            }
+        }
+
         // ========== ONESIGNAL PUSH NOTIFICATIONS ==========
         let oneSignalInitialized = false;
 
         async function initOneSignal() {
+            // Guard: لا نعيد التهيئة أبداً إذا تمت مرة واحدة
             if (oneSignalInitialized || !currentUser) return;
-            try {
-                if (typeof OneSignal === 'undefined') {
-                    console.warn('[NDOG] OneSignal SDK not loaded yet, retrying...');
-                    setTimeout(initOneSignal, 1000);
-                    return;
-                }
 
-                OneSignal.init({
+            // Skip OneSignal entirely in Telegram WebView (Service Workers not supported)
+            if (isTelegramEnv || window.__tgDetected) {
+                console.log('[NDOG] Skipping OneSignal in Telegram environment');
+                return;
+            }
+
+            if (typeof OneSignal === 'undefined') {
+                console.warn('[NDOG] OneSignal SDK not loaded yet, retrying...');
+                setTimeout(initOneSignal, 1000);
+                return;
+            }
+
+            // وضع العلم أولاً لمنع أي استدعاء متزامن ثانٍ
+            oneSignalInitialized = true;
+
+            try {
+                // OneSignal v16 — init مرة واحدة فقط
+                await OneSignal.init({
                     appId: '84479925-fa80-47df-a5c8-599c56739791',
                     notifyButton: { enable: false },
                     allowLocalhostAsSecureOrigin: true,
@@ -5186,29 +5967,27 @@
                     }
                 });
 
-                OneSignal.login(currentUser.uid);
+                // OneSignal v16: ربط المستخدم بـ externalId
+                await OneSignal.login(currentUser.uid);
 
-                // Save OneSignal external ID to Firebase for admin targeting
-                OneSignal.User.PushSubscription.getIdAsync().then(id => {
-                    if (id) {
-                        const platform = getPlatform();
-                        db.ref('onesignalIds/' + currentUser.uid).set({
-                            subscriptionId: id,
-                            platform: platform,
-                            updatedAt: firebase.database.ServerValue.TIMESTAMP
-                        });
-                        console.log('[NDOG] OneSignal subscription saved:', id);
-                    }
-                });
+                // OneSignal v16 API الصحيحة لجلب subscription ID
+                // getIdAsync أُزيلت — نستخدم id property مباشرةً
+                const subId = OneSignal.User.PushSubscription.id;
+                if (subId) {
+                    db.ref('onesignalIds/' + currentUser.uid).set({
+                        subscriptionId: subId,
+                        platform: getPlatform(),
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    console.log('[NDOG] OneSignal subscription saved:', subId);
+                }
 
-                // Handle foreground notifications from OneSignal
-                OneSignal.Notifications.addEventListener('click', (event) => {
-                    console.log('[NDOG] OneSignal notification clicked:', event);
+                // الاستماع للإشعارات في المقدمة
+                OneSignal.Notifications.addEventListener('click', () => {
                     loadNotificationsEnhanced();
                 });
 
                 OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
-                    console.log('[NDOG] OneSignal foreground notification:', event);
                     const notif = event.notification;
                     if (notif && currentUser) {
                         db.ref('notifications/' + currentUser.uid).push({
@@ -5224,9 +6003,10 @@
                     loadNotificationsEnhanced();
                 });
 
-                oneSignalInitialized = true;
                 console.log('[NDOG] OneSignal initialized for user:', currentUser.uid);
             } catch(err) {
+                // إذا فشل الـ init نعيد الفرصة للمحاولة لاحقاً
+                oneSignalInitialized = false;
                 console.warn('[NDOG] OneSignal init error:', err);
             }
         }
@@ -5484,13 +6264,18 @@
                     if (typeof showToast === 'function') {
                         showToast('🔔 ' + (n.title || '') + ': ' + (n.message || ''), 'info');
                     }
-                    if (Notification.permission === 'granted') {
-                        new Notification(n.title || 'NDOG Coin', {
-                            body: n.message || '',
-                            icon: './icons/icon-192.png',
-                            badge: './icons/icon-72.png',
-                            tag: 'ndog-rtdb-' + Date.now(),
-                        });
+                    // Guard: Notification API not available in Telegram WebView
+                    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                        try {
+                            new Notification(n.title || 'NDOG Coin', {
+                                body: n.message || '',
+                                icon: './icons/icon-192.png',
+                                badge: './icons/icon-72.png',
+                                tag: 'ndog-rtdb-' + Date.now(),
+                            });
+                        } catch(notifErr) {
+                            console.warn('[NDOG] Notification failed:', notifErr);
+                        }
                     }
                     loadNotificationsEnhanced();
                 }
@@ -5944,13 +6729,15 @@
 
         const STREAK_MULTS = { 2: 1.2, 3: 1.5, 5: 1.8, 7: 2, 14: 2.5, 30: 3 };
         const BASE_REWARD = 10;
-        const WHEEL_PRIZES = [5, 10, 15, 20, 25, 50, 75, 100];
-        const WHEEL_COLORS = ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#8B5CF6', '#EC4899', '#F59E0B'];
+        const WHEEL_PRIZES = [5, 10, 15, 20, 25, 50, 75, 100, 0, 0];
+        const WHEEL_COLORS = ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#8B5CF6', '#EC4899', '#F59E0B', '#6B7280', '#4B5563'];
         const STAKING = {
             '7_days': { apr: 0.05, days: 7, min: 100 },
             '30_days': { apr: 0.10, days: 30, min: 500 },
             '90_days': { apr: 0.18, days: 90, min: 1000 },
             '180_days': { apr: 0.25, days: 180, min: 2000 },
+            '365_days': { apr: 0.50, days: 365, min: 5000 },
+            '1095_days': { apr: 1.00, days: 1095, min: 10000 },
         };
         const REF_BONUSES = { 1: 50, 2: 20, 3: 10 };
         const MINING_RATE = 10;
@@ -6061,7 +6848,7 @@
                 const val = el.getAttribute('data-' + currentLang);
                 if (val !== null) {
                     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = val;
-                    else el.textContent = val;
+                    else el.innerHTML = val;
                 }
             });
             applyI18n(currentLang);
@@ -6079,39 +6866,51 @@
             }
         }
 
-        // ========== GOOGLE SIGN-IN ==========
-        function signInWithGoogle() {
-            showLoading();
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(result => {
-                    const user = result.user;
-                    currentUser = user;
-                    // Check if user exists in DB
-                    db.ref('users/' + user.uid).once('value').then(snap => {
-                        if (snap.exists()) {
-                            userData = { ...snap.val(), uid: user.uid };
-                            showApp();
-                            hideLoading();
-                        } else {
-                            // New user: show profile completion modal
-                            hideLoading();
-                            showProfileCompleteModal(user);
-                        }
-                    }).catch(err => {
-                        hideLoading();
-                        showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                    });
-                })
-                .catch(err => {
-                    hideLoading();
-                    const msgs = {
-                        'auth/popup-blocked': t('يُرجى السماح بالنوافذ المنبثقة', 'Please allow popups'),
-                        'auth/unauthorized-domain': t('نطاق غير مصرح به', 'Unauthorized domain'),
-                    };
-                    showToast(msgs[err.code] || t('فشل الدخول: ' + err.message, 'Login failed: ' + err.message), 'error');
-                });
-        }
+// ========== GOOGLE / TELEGRAM SIGN-IN ==========
+// ========== GOOGLE / TELEGRAM SIGN-IN ==========
+async function signInWithGoogle() {
+
+    // ===== Telegram: delegate to doTelegramAuth (no login screen ever) =====
+    if (isTelegramEnv) {
+        doTelegramAuth();
+        return;
+    }
+
+    // ===== Google Login — Popup (normal browser only) =====
+
+    showLoading();
+
+    try {
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope("profile");
+        provider.addScope("email");
+
+        await auth.signInWithPopup(provider);
+        // onAuthStateChanged يتولى الباقي تلقائياً
+
+    } catch (err) {
+
+        hideLoading();
+        console.error(err);
+
+        const msgs = {
+            "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
+            "auth/popup-closed-by-user":    t("تم إغلاق نافذة تسجيل الدخول", "Popup closed"),
+            "auth/cancelled-popup-request": t("تم إلغاء الطلب", "Popup cancelled"),
+            "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
+            "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
+        };
+
+        showToast(
+            msgs[err.code] ||
+            t("فشل الدخول: " + err.message, "Login failed: " + err.message),
+            "error"
+        );
+
+    }
+
+}
 
         // ========== PROFILE COMPLETION ==========
         function showProfileCompleteModal(user) {
@@ -6120,10 +6919,12 @@
             // Pre-fill name and email from Google
             document.getElementById('compName').value = user.displayName || '';
             // Pre-fill referral code from URL (saved in localStorage by detectRefFromUrl)
-            const savedRef = localStorage.getItem('ndog_ref');
+            // Double-check: also read directly from URL in case localStorage failed (PWA standalone)
+            const savedRef = localStorage.getItem('ndog_ref') || new URLSearchParams(window.location.search).get('ref') || '';
             if (savedRef) {
-                document.getElementById('compReferralCode').value = savedRef;
-                localStorage.removeItem('ndog_ref');
+                const refInput = document.getElementById('compReferralCode');
+                if (refInput) refInput.value = savedRef;
+                localStorage.setItem('ndog_ref', savedRef); // keep it safe
             }
             // Set country and dial code lists
             populateCompCountries();
@@ -6160,7 +6961,10 @@
             const country = document.getElementById('compCountry').value;
             const dialCode = document.getElementById('compDialCode').value;
             const phone = document.getElementById('compPhone').value.trim();
-            const referralCode = document.getElementById('compReferralCode').value.trim() || 'ndogs';
+            const refInputEl = document.getElementById('compReferralCode');
+            const referralCode = (refInputEl ? refInputEl.value.trim() : '') || localStorage.getItem('ndog_ref') || 'ndogs';
+            // Now safe to clear
+            localStorage.removeItem('ndog_ref');
             const modal = document.getElementById('profileCompleteModal');
             const uid = modal.dataset.uid;
 
@@ -6176,7 +6980,7 @@
                 phone: phone,
                 country: country,
                 dialCode: dialCode,
-                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+                photoURL: currentUser.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=random",
                 balance: 0,
                 streak: 0,
                 lastClaimAt: 0,
@@ -6194,7 +6998,8 @@
                 referralEarnings: 0,
                 rewardEarnings: 0,
                 stakingEarnings: 0,
-                isPro: false
+                isPro: false,
+                platform: isTelegramEnv ? "telegram" : "web"
             };
 
             const updates = {};
@@ -6216,8 +7021,8 @@
                             if (refUid && refUid !== uid) {
                                 // Set referredBy INSIDE updates BEFORE writing
                                 updates['users/' + uid + '/referredBy'] = refUid;
-                                updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email,
-                                    level: 1 };
+                                updates['referrals/' + refUid + '/' + uid] = { referredAt: ts, email: currentUser.email || '',
+                                    displayName: name, photoURL: photoURL };
                                 resolve(refUid);
                                 return;
                             }
@@ -6241,13 +7046,21 @@
 
                     // Give referral bonuses AFTER profile is written
                     if (refUid) {
-                        // L1 bonus to referrer (balance + referralEarnings in single transaction)
+                        // L1 bonus to referrer
                         db.ref('users/' + refUid).transaction(d => {
                             if (!d) return d;
                             d.balance = (Number(d.balance) || 0) + 50;
                             d.referralEarnings = (Number(d.referralEarnings) || 0) + 50;
                             return d;
                         }).then(r => { console.log('[NDOG] L1 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
+
+                        // Give 50 NDOG to the new user too
+                        db.ref('users/' + uid).transaction(d => {
+                            if (!d) return d;
+                            d.balance = (Number(d.balance) || 0) + 50;
+                            d.totalClaimed = (Number(d.totalClaimed) || 0) + 50;
+                            return d;
+                        });
 
                         // L2 bonus
                         db.ref('users/' + refUid + '/referredBy').once('value').then(s2 => {
@@ -6260,7 +7073,7 @@
                                     return d;
                                 }).then(r => { console.log('[NDOG] L2 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                 db.ref('referrals/' + l2Uid + '/' + uid).set({ referredAt: ts,
-                                    email: currentUser.email, level: 2 });
+                                    email: currentUser.email || '', displayName: name, photoURL: photoURL });
                                 // L3 bonus
                                 db.ref('users/' + l2Uid + '/referredBy').once('value').then(s3 => {
                                     if (s3.exists()) {
@@ -6272,7 +7085,7 @@
                                             return d;
                                         }).then(r => { console.log('[NDOG] L3 referral bonus:', r.committed ? 'OK' : 'FAILED'); });
                                         db.ref('referrals/' + l3Uid + '/' + uid).set({ referredAt: ts,
-                                            email: currentUser.email, level: 3 });
+                                            email: currentUser.email || '', displayName: name, photoURL: photoURL });
                                     }
                                 });
                             }
@@ -6287,7 +7100,12 @@
 
         // ========== LOGOUT ==========
         function logoutUser() {
-            if (!confirm(t('هل تريد تسجيل الخروج؟', 'Sign out?'))) return;
+            // Guard: confirm() may not work in Telegram WebView
+            if (typeof confirm === 'function' && !confirm(t('هل تريد تسجيل الخروج؟', 'Sign out?'))) return;
+            if (isTelegramEnv) {
+                showToast(t('لا يمكن تسجيل الخروج داخل تيليجرام', 'Cannot sign out inside Telegram'), 'info');
+                return;
+            }
             if (cooldownInterval) clearInterval(cooldownInterval);
             // Mining persists in Firebase — do NOT stop miningInterval here
             // It will resume on next login via savedMiningStart
@@ -6345,13 +7163,15 @@
             setupNotificationListener();
             listenForNewNotifications();
 
-            // Request native notification permission (critical for Android background notifications)
-            if ('Notification' in window && Notification.permission === 'default') {
-                setTimeout(() => {
-                    Notification.requestPermission().then(perm => {
-                        console.log('[NDOG] Notification permission:', perm);
-                    });
-                }, 2000); // 2s delay so the user sees the app first
+            // Request native notification permission (skip in Telegram - not supported)
+            if (!isTelegramEnv && 'Notification' in window && Notification.permission === 'default') {
+                try {
+                    setTimeout(() => {
+                        Notification.requestPermission().then(perm => {
+                            console.log('[NDOG] Notification permission:', perm);
+                        }).catch(function(){});
+                    }, 2000);
+                } catch(e) {}
             }
 
             switchTab('home');
@@ -6780,7 +7600,9 @@
                 ctx.font = 'bold 12px "Space Grotesk", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 4;
-                ctx.fillText(prize, r * 0.65, 4);
+                var _segTxt = prize === 0 ? (currentLang === 'ar' ? 'حظ أوفر' : 'Try Again') : ('' + prize);
+                ctx.font = prize === 0 ? 'bold 9px "Tajawal", sans-serif' : 'bold 12px "Space Grotesk", sans-serif';
+                ctx.fillText(_segTxt, r * 0.65, 4);
                 ctx.restore();
             });
 
@@ -6823,6 +7645,7 @@
 
             const prizeIdx = Math.floor(Math.random() * WHEEL_PRIZES.length);
             const prize = WHEEL_PRIZES[prizeIdx];
+            const isLose = prize === 0;
             const segDeg = 360 / WHEEL_PRIZES.length;
             const targetDeg = 360 - (prizeIdx * segDeg + segDeg / 2);
             const total = wheelRotation + 1440 + targetDeg;
@@ -6835,15 +7658,28 @@
             }
 
             setTimeout(() => {
-                addBalance(prize, 'wheel_spin').then(() => {
-                    const spinResult = document.getElementById('spinResult');
-                    if (spinResult) {
-                        spinResult.style.display = 'block';
+                const spinResult = document.getElementById('spinResult');
+                if (spinResult) {
+                    spinResult.style.display = 'block';
+                    if (isLose) {
+                        spinResult.style.background = 'rgba(239,68,68,0.1)';
+                        spinResult.style.borderColor = 'rgba(239,68,68,0.3)';
+                        spinResult.style.color = 'var(--red)';
+                        spinResult.textContent = t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!');
+                    } else {
+                        spinResult.style.background = 'rgba(16,185,129,0.1)';
+                        spinResult.style.borderColor = 'rgba(16,185,129,0.3)';
+                        spinResult.style.color = 'var(--green)';
                         spinResult.textContent = t(`🎰 فزت بـ ${prize} NDOG!`, `🎰 You won ${prize} NDOG!`);
-                        setTimeout(() => { spinResult.style.display = 'none'; }, 4000);
+                        addBalance(prize, 'wheel_spin');
                     }
+                    setTimeout(() => { spinResult.style.display = 'none'; spinResult.style.background = ''; spinResult.style.borderColor = ''; spinResult.style.color = ''; }, 4000);
+                }
+                if (isLose) {
+                    showToast(t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!'), 'info');
+                } else {
                     showToast(t(`🎰 فزت بـ ${prize} NDOG!`, `🎰 You won ${prize} NDOG!`), 'success');
-                });
+                }
                 isSpinning = false;
                 if (btn) { btn.disabled = false;
                     btn.querySelector('span').textContent = t('لفّ العجلة', 'Spin Wheel'); }
@@ -6894,7 +7730,8 @@
             const rewardEl = document.getElementById('luckyBoxReward');
             const amountEl = document.getElementById('luckyBoxRewardAmount');
             const closeBtn = document.getElementById('luckyBoxCloseBtn');
-            const prize = Math.floor(Math.random() * 46) + 5;
+            const isLose = Math.random() < 0.20;
+            const prize = isLose ? 0 : Math.floor(Math.random() * 46) + 5;
 
             modal.style.display = 'flex';
             chest.classList.remove('open');
@@ -6905,18 +7742,26 @@
                 chest.classList.add('open');
                 setTimeout(() => {
                     rewardEl.style.display = 'block';
-                    amountEl.textContent = '+' + prize + ' NDOG';
+                    if (isLose) {
+                        amountEl.textContent = t('😔 حظ أوفر!', '😅 Better luck!');
+                        amountEl.style.color = 'var(--red)';
+                    } else {
+                        amountEl.textContent = '+' + prize + ' NDOG';
+                        amountEl.style.color = '';
+                        addBalance(prize, 'lucky_box').then(() => {
+                            showToast(t(`📦 ${prize} NDOG من الصندوق!`, `📦 ${prize} NDOG from the box!`), 'success');
+                        });
+                    }
+                    db.ref('users/' + currentUser.uid + '/lastLuckyBoxAt').set(Date.now());
                     closeBtn.style.display = 'block';
-                    addBalance(prize, 'lucky_box').then(() => {
-                        db.ref('users/' + currentUser.uid + '/lastLuckyBoxAt').set(Date.now());
-                        showToast(t(`📦 ${prize} NDOG من الصندوق!`, `📦 ${prize} NDOG from the box!`),
-                            'success');
-                    });
+                    if (isLose) {
+                        showToast(t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!'), 'info');
+                    }
                 }, 600);
             }, 300);
 
-            closeBtn.onclick = () => { modal.style.display = 'none'; };
-            modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+            closeBtn.onclick = () => { modal.style.display = 'none'; amountEl.style.color = ''; };
+            modal.onclick = (e) => { if (e.target === modal) { modal.style.display = 'none'; amountEl.style.color = ''; } };
         }
 
         function playScratchCard() {
@@ -6938,10 +7783,17 @@
             const prizeEl = document.getElementById('scratchPrize');
             const closeBtn = document.getElementById('scratchCloseBtn');
             const hint = document.querySelector('.scratch-hint');
-            const prize = Math.floor(Math.random() * 46) + 5;
+            const isLose = Math.random() < 0.20;
+            const prize = isLose ? 0 : Math.floor(Math.random() * 46) + 5;
 
             modal.style.display = 'flex';
-            prizeEl.textContent = '+' + prize + ' NDOG';
+            if (isLose) {
+                prizeEl.textContent = t('😔 حظ أوفر!', '😅 Better luck!');
+                prizeEl.style.color = 'var(--red)';
+            } else {
+                prizeEl.textContent = '+' + prize + ' NDOG';
+                prizeEl.style.color = '';
+            }
             closeBtn.style.display = 'none';
             hint.style.display = 'block';
 
@@ -6983,11 +7835,14 @@
                     revealed = true;
                     hint.style.display = 'none';
                     closeBtn.style.display = 'block';
-                    addBalance(prize, 'scratch_card').then(() => {
-                        db.ref('users/' + currentUser.uid + '/lastScratchCardAt').set(Date.now());
-                        showToast(t(`🃏 ${prize} NDOG من البطاقة!`, `🃏 Scratch card: ${prize} NDOG!`),
-                        'success');
-                    });
+                    db.ref('users/' + currentUser.uid + '/lastScratchCardAt').set(Date.now());
+                    if (prize > 0) {
+                        addBalance(prize, 'scratch_card').then(() => {
+                            showToast(t(`🃏 ${prize} NDOG من البطاقة!`, `🃏 Scratch card: ${prize} NDOG!`), 'success');
+                        });
+                    } else {
+                        showToast(t('😔 حظ أوفر في المرة القادمة!', '😅 Better luck next time!'), 'info');
+                    }
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
@@ -7560,7 +8415,7 @@
         function renderLeaderboard(users) {
             var el = document.getElementById('topBalanceList');
             if (!el) return;
-            var top = users.slice(0, 20);
+            var top = users.slice(0, 10);
             el.innerHTML = '';
 
             // Show "My Rank" card
@@ -7571,7 +8426,11 @@
                 if (myIdx >= 0) {
                     var myRankNum = myIdx + 1;
                     var myEmoji = myRankNum === 1 ? '🥇' : myRankNum === 2 ? '🥈' : myRankNum === 3 ? '🥉' : '#' + myRankNum;
-                    myRankVal.innerHTML = myEmoji + ' ' + myRankNum + ' <span style="color:var(--text-3);font-weight:400">/ ' + users.length + '</span>';
+                    myRankVal.innerHTML = myEmoji + ' ' + myRankNum + ' <span style="color:var(--text-3);font-weight:400;font-size:12px">/ ' + users.length + '</span>';
+                    var myBalanceEl = document.getElementById('lbMyRankBalance');
+                    if (myBalanceEl) {
+                        myBalanceEl.textContent = fmt(users[myIdx].balance || 0) + ' NDOG';
+                    }
                     myRankDiv.style.display = 'flex';
                 } else {
                     myRankDiv.style.display = 'none';
@@ -7601,7 +8460,7 @@
                             }
                         }
                     }
-                });
+                }).catch(function() { /* lb_streak not in rules yet — silent */ });
             }
 
             top.forEach(function(u, i) {
@@ -7625,7 +8484,7 @@
             if (!topUser || topUser.uid !== currentUser.uid) return; // Not #1
 
             var streakRef = db.ref('lb_streak/' + currentUser.uid);
-            streakRef.once('value').then(function(snap) {
+            streakRef.once('value').catch(function() { return { val: function(){ return {}; }, exists: function(){ return false; } }; }).then(function(snap) {
                 var data = snap.val() || {};
                 var lastDate = data.lastDate || '';
                 var days = data.days || 0;
@@ -7722,7 +8581,9 @@
 
             // First, load user's dismissed news IDs
             const dismissedPromise = currentUser
-                ? db.ref('dismissedNews/' + currentUser.uid).once('value').then(s => s.val() || {})
+                ? db.ref('dismissedNews/' + currentUser.uid).once('value')
+                    .then(s => s.val() || {})
+                    .catch(() => ({}))
                 : Promise.resolve({});
 
             dismissedPromise.then(dismissed => {
@@ -7819,6 +8680,7 @@
                 else { updateMiningUI(); }
             }
             if (tabName === 'referrals') { loadReferralTree(); }
+            if (tabName === 'predictions') { loadPredictionMatches(); loadPredictionLeaderboard(); }
         }
 
         // ========== BACKGROUND CANVAS ==========
@@ -7924,7 +8786,8 @@
             if (!userData) return;
             const code = userData.referralCode || '';
             const link = encodeURIComponent(window.location.origin + window.location.pathname + '?ref=' + code);
-            const text = encodeURIComponent(t('انضم إلى NDOG واكسب!', 'Join NDOG and earn!'));
+            const codeText = encodeURIComponent(t('كود الإحالة: ', 'Referral Code: ') + code);
+            const text = encodeURIComponent(t('انضم إلى NDOG واكسب!', 'Join NDOG and earn!') + ' ' + code);
             const urls = {
                 whatsapp: `https://wa.me/?text=${text}%20${link}`,
                 telegram: `https://t.me/share/url?url=${link}&text=${text}`,
@@ -7980,7 +8843,6 @@
             document.getElementById('miningBtn').addEventListener('click', toggleMining);
             document.getElementById('navMineBtn').addEventListener('click', function() {
                 switchTab('mining');
-                setTimeout(() => document.getElementById('miningBtn')?.click(), 100);
             });
 
             // Boost
@@ -8024,16 +8886,16 @@
                 });
             });
 
-            // Copy buttons
+            // Copy buttons — always copy BOTH link + code
             document.querySelectorAll('[data-copy]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const type = this.dataset.copy;
                     if (!userData) return;
-                    if (type === 'code' || type === 'referralCode') copyText(userData.referralCode || '',
-                        t('📋 تم نسخ الكود!', '📋 Code copied!'));
-                    if (type === 'referralLink') copyText(window.location.origin + window.location
-                        .pathname + '?ref=' + (userData.referralCode || ''), t('🔗 تم نسخ الرابط!',
-                            '🔗 Link copied!'));
+                    const code = userData.referralCode || '';
+                    const link = window.location.origin + window.location.pathname + '?ref=' + code;
+                    const combined = link + '\n' + t('كود الإحالة: ', 'Referral Code: ') + code;
+                    if (type === 'code' || type === 'referralCode') copyText(code, t('📋 تم نسخ الكود!', '📋 Code copied!'));
+                    if (type === 'referralLink') copyText(combined, t('🔗 تم نسخ الرابط والكود!', '🔗 Link & code copied!'));
                 });
             });
 
@@ -8090,8 +8952,14 @@
                 'قريباً', 'Coming soon'), 'info'));
             document.getElementById('walletWithdrawBtn')?.addEventListener('click', () => showToast(t(
                 'قريباً', 'Coming soon'), 'info'));
-            document.getElementById('walletP2PBtn')?.addEventListener('click', () => showToast(t('قريباً',
-                'Coming soon'), 'info'));
+            document.getElementById('walletP2PBtn')?.addEventListener('click', () => {
+                document.getElementById('p2pTransferModal').style.display = 'flex';
+            });
+            // P2P Transfer submit & close
+            document.getElementById('p2pTransferSubmitBtn')?.addEventListener('click', doP2PTransfer);
+            document.getElementById('p2pTransferCloseBtn')?.addEventListener('click', () => {
+                document.getElementById('p2pTransferModal').style.display = 'none';
+            });
 
             // Change password
             document.getElementById('changePwForm').addEventListener('submit', function(e) {
@@ -8133,6 +9001,78 @@
 
             // QR Download
             document.getElementById('downloadQrBtn').addEventListener('click', downloadQR);
+
+        }
+
+
+        // ========== P2P TRANSFER ==========
+        function doP2PTransfer() {
+            if (!currentUser || !userData) return;
+            const codeInput = document.getElementById('p2pReferralCode');
+            const amountInput = document.getElementById('p2pAmount');
+            const code = (codeInput?.value || '').trim().toUpperCase();
+            const amount = Number(amountInput?.value || 0);
+
+            if (!code) { showToast(t('أدخل كود الدعوة', 'Enter referral code'), 'warning'); return; }
+            if (!amount || amount < 5000) { showToast(t('الحد الأدنى 5000 NDOG', 'Minimum 5000 NDOG'), 'warning'); return; }
+            if (amount > (userData.balance || 0)) { showToast(t('رصيد غير كافٍ', 'Insufficient balance'), 'error'); return; }
+
+            showLoading();
+            db.ref('referralCodes/' + code).once('value').then(snap => {
+                if (!snap.exists()) {
+                    hideLoading();
+                    showToast(t('كود غير موجود', 'Code not found'), 'error');
+                    return;
+                }
+                const targetUid = snap.val().uid;
+                if (targetUid === currentUser.uid) {
+                    hideLoading();
+                    showToast(t('لا يمكنك التحويل لنفسك', 'Cannot transfer to yourself'), 'error');
+                    return;
+                }
+
+                // Perform atomic transfer
+                const updates = {};
+                updates['users/' + currentUser.uid + '/balance'] = firebase.database.ServerValue.increment(-amount);
+                updates['users/' + targetUid + '/balance'] = firebase.database.ServerValue.increment(amount);
+
+                const txId = db.ref().child('transactions').push().key;
+                const now = Date.now();
+                updates['transactions/' + txId] = {
+                    uid: currentUser.uid,
+                    amount: -amount,
+                    ts: now,
+                    type: 'p2p_sent',
+                    toUid: targetUid,
+                    toCode: code
+                };
+                const txId2 = db.ref().child('transactions').push().key;
+                updates['transactions/' + txId2] = {
+                    uid: targetUid,
+                    amount: amount,
+                    ts: now,
+                    type: 'p2p_received',
+                    fromUid: currentUser.uid
+                };
+
+                db.ref().update(updates).then(() => {
+                    hideLoading();
+                    document.getElementById('p2pTransferModal').style.display = 'none';
+                    if (codeInput) codeInput.value = '';
+                    if (amountInput) amountInput.value = '';
+                    showToast(t('✅ تم التحويل بنجاح!', '✅ Transfer successful!'), 'success');
+                    // Refresh user data
+                    db.ref('users/' + currentUser.uid).once('value').then(s => {
+                        if (s.exists()) { userData = { ...s.val(), uid: currentUser.uid }; renderDashboard(); }
+                    });
+                }).catch(err => {
+                    hideLoading();
+                    showToast(t('فشل التحويل', 'Transfer failed'), 'error');
+                });
+            }).catch(() => {
+                hideLoading();
+                showToast(t('خطأ', 'Error'), 'error');
+            });
         }
 
         // ========== APPLY REFERRAL ==========
@@ -8212,30 +9152,75 @@
             setTimeout(buildWheel, 500);
 
             // Auth state listener
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    // Check if user has profile in DB
-                    db.ref('users/' + user.uid).once('value').then(snap => {
-                        if (snap.exists()) {
-                            userData = { ...snap.val(), uid: user.uid };
-                            showApp();
-                            hideLoading();
-                        } else {
-                            // Show profile completion
-                            hideLoading();
-                            showProfileCompleteModal(user);
+            auth.onAuthStateChanged(function(user) {
+                try {
+                    if (user) {
+                        currentUser = user;
+
+                        // In Telegram: link account if logged in via custom token
+                        if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
+                            linkTelegramToCurrentAccount().catch(function() {});
                         }
-                    }).catch(err => {
+
+                        // Check if user has profile in DB
+                        db.ref('users/' + user.uid).once('value').then(function(snap) {
+                            if (snap.exists()) {
+                                userData = Object.assign({}, snap.val(), { uid: user.uid });
+                                // Auto-login: Firebase session persists via IndexedDB/localStorage.
+                                // User goes straight to app if session exists.
+                                // Only shows login screen again if session/cookies are cleared.
+                                showApp();
+
+                                // Init OneSignal only for non-Telegram
+                                if (!isTelegramEnv) {
+                                    initOneSignal();
+                                }
+                            } else {
+                                hideLoading();
+                                // In Telegram: create profile automatically with Telegram data
+                                if (isTelegramEnv && ((tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser)) {
+                                    var tgU = (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser;
+                                    var tgName = [tgU.first_name, tgU.last_name].filter(Boolean).join(' ');
+                                    if (tgName) {
+                                        db.ref('users/' + user.uid + '/displayName').set(tgName);
+                                    }
+                                    db.ref('users/' + user.uid + '/telegramUsername').set(tgU.username || '');
+                                    showApp();
+                                } else {
+                                    showProfileCompleteModal(user);
+                                }
+                            }
+                        }).catch(function(err) {
+                            console.error('[NDOG] User data load error:', err);
+                            hideLoading();
+                            if (typeof showToast === 'function') showToast(t('خطأ في التحميل', 'Load error'), 'error');
+                        });
+                    } else {
+                        currentUser = null;
+                        userData = null;
+                        var mainAppEl = document.getElementById('mainApp');
+                        var authEl = document.getElementById('authScreens');
+                        var notifEl = document.getElementById('notifBellBtn');
+                        if (mainAppEl) mainAppEl.style.display = 'none';
+                        if (notifEl) notifEl.style.display = 'none';
                         hideLoading();
-                        showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                    });
-                } else {
-                    currentUser = null;
-                    userData = null;
-                    document.getElementById('mainApp').style.display = 'none';
-                    document.getElementById('authScreens').style.display = 'flex';
-                    document.getElementById('notifBellBtn').style.display = 'none';
+
+                        // In Telegram (by SDK or UA): NEVER show login screen
+                        // In normal browser: show login screen
+                        if (!isTelegramEnv && !window.__tgEarlyDetect) {
+                            if (authEl) authEl.style.display = 'flex';
+                        } else {
+                            if (authEl) authEl.style.display = 'none';
+                        }
+                        // If Telegram was already detected
+                        if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
+                            console.log('[NDOG] No user + Telegram detected, triggering auth...');
+                            doTelegramAuth();
+                        }
+                        // If Telegram not yet detected, __tgPromise will trigger auth when ready
+                    }
+                } catch(authErr) {
+                    console.error('[NDOG] onAuthStateChanged error:', authErr);
                     hideLoading();
                 }
             });
@@ -8341,7 +9326,8 @@
         })();
 
         // ========== SERVICE WORKER (Standalone PWA) ==========
-        if ('serviceWorker' in navigator) {
+        // Skip SW registration entirely in Telegram WebView — not supported and causes issues
+        if ('serviceWorker' in navigator && !isTelegramEnv && !window.__tgDetected) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).then((reg) => {
                     console.log('[NDOG] SW registered with FCM:', reg.scope);
@@ -8379,9 +9365,288 @@
                     console.warn('[NDOG] SW registration failed:', err);
                 });
             });
+        } else if (isTelegramEnv) {
+            console.log('[NDOG] Skipping Service Worker in Telegram WebView');
         }
 
+        // ========== AUTH TIMEOUT (prevents forever-loading in Telegram) ==========
+        setTimeout(function() {
+            if ((isTelegramEnv || window.__tgEarlyDetect) && !currentUser && !tgAuthDone) {
+                console.warn('[NDOG] Auth timeout — showing error');
+                hideLoading();
+                showTelegramError(currentLang === 'ar' ? 'انتهت مهلة الاتصال' : 'Connection timeout');
+            }
+        }, 15000); // 15 seconds timeout
+
         console.log('🐕 NDOG Coin v3.0 (Google Auth) loaded');
+
+        // ========== PREDICTION CONTEST ==========
+        const COUNTRY_CODES = {
+            "egypt":"eg","australia":"au","brazil":"br","argentina":"ar","germany":"de","france":"fr",
+            "spain":"es","england":"gb-eng","italy":"it","portugal":"pt","morocco":"ma","saudi arabia":"sa",
+            "usa":"us","united states":"us","mexico":"mx","japan":"jp","south korea":"kr","canada":"ca",
+            "south africa":"za","nigeria":"ng","ghana":"gh","cameroon":"cm","algeria":"dz","tunisia":"tn",
+            "senegal":"sn","ivory coast":"ci","cote d'ivoire":"ci","dr congo":"cd","congo":"cg",
+            "colombia":"co","uruguay":"uy","chile":"cl","peru":"pe","ecuador":"ec","paraguay":"py",
+            "venezuela":"ve","bolivia":"bo","costa rica":"cr","panama":"pa","honduras":"hn",
+            "jamaica":"jm","haiti":"ht","cuba":"cu","guatemala":"gt","el salvador":"sv","nicaragua":"ni",
+            "china":"cn","india":"in","indonesia":"id","malaysia":"my","thailand":"th","vietnam":"vn",
+            "philippines":"ph","iraq":"iq","iran":"ir","uae":"ae","qatar":"qa","kuwait":"kw",
+            "bahrain":"bh","oman":"om","jordan":"jo","lebanon":"lb","syria":"sy","palestine":"ps",
+            "yemen":"ye","sudan":"sd","libya":"ly","ethiopia":"et","kenya":"ke","tanzania":"tz",
+            "uganda":"ug","zimbabwe":"zw","zambia":"zm","angola":"ao","mozambique":"mz","mali":"ml",
+            "burkina faso":"bf","niger":"ne","chad":"td","guinea":"gn","equatorial guinea":"gq",
+            "benin":"bj","togo":"tg","sierra leone":"sl","liberia":"lr","madagascar":"mg",
+            "russia":"ru","ukraine":"ua","poland":"pl","netherlands":"nl","belgium":"be","switzerland":"ch",
+            "austria":"at","czech republic":"cz","croatia":"hr","serbia":"rs","turkey":"tr",
+            "greece":"gr","sweden":"se","norway":"no","denmark":"dk","finland":"fi","iceland":"is",
+            "ireland":"ie","scotland":"gb-sct","wales":"gb-wls","hungary":"hu","romania":"ro",
+            "bulgaria":"bg","slovakia":"sk","slovenia":"si","czechia":"cz","bosnia":"ba",
+            "montenegro":"me","albania":"al","north macedonia":"mk","kosovo":"xk",
+            "israel":"il","armenia":"am","azerbaijan":"az","georgia":"ge",
+            "new zealand":"nz","fiji":"fj","samoa":"ws","tonga":"to",
+            "north korea":"kp","taiwan":"tw","hong kong":"hk","singapore":"sg",
+            "myanmar":"mm","bangladesh":"bd","pakistan":"pk","afghanistan":"af","nepal":"np",
+            "sri lanka":"lk","maldives":"mv","cambodia":"kh","laos":"la","mongolia":"mn",
+            "dominican republic":"do","puerto rico":"pr","trinidad":"tt","guyana":"gy",
+            "suriname":"sr"
+        };
+
+        function getCountryCode(name) {
+            if (!name) return null;
+            const key = name.toLowerCase().trim();
+            return COUNTRY_CODES[key] || null;
+        }
+        function getFlagUrl(code) {
+            if (!code) return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='40'%3E%3Crect width='56' height='40' rx='6' fill='%23151B2E'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' fill='%23555' font-size='18'%3E%3F%3C/text%3E%3C/svg%3E";
+            const c = code.startsWith('gb-') ? 'gb' : code;
+            return 'https://flagcdn.com/w80/' + c + '.png';
+        }
+        function getTeamCode(teamName) {
+            let code = getCountryCode(teamName);
+            if (!code) {
+                const key = teamName.toLowerCase().trim();
+                for (const [name, c] of Object.entries(COUNTRY_CODES)) {
+                    if (key.includes(name) || name.includes(key)) { code = c; break; }
+                }
+            }
+            return code;
+        }
+
+        let predictionUnlocked = false;
+        let predMatchesCache = [];
+
+        function checkPredictionUnlocked() {
+            return new Promise(function(resolve) {
+                if (!currentUser) { resolve(false); return; }
+                if (localStorage.getItem('ndog_pred_unlocked') === 'true') { resolve(true); return; }
+                db.ref('users/' + currentUser.uid + '/predictionUnlocked').once('value').then(function(snap) {
+                    const val = snap.val() === true;
+                    if (val) localStorage.setItem('ndog_pred_unlocked', 'true');
+                    resolve(val);
+                }).catch(function() { resolve(false); });
+            });
+        }
+
+        function loadPredictionMatches() {
+            if (!currentUser) return;
+            var listEl = document.getElementById('predMatchList');
+            var gateEl = document.getElementById('predUnlockGate');
+            checkPredictionUnlocked().then(function(unlocked) {
+                predictionUnlocked = unlocked;
+                if (!unlocked) {
+                    if (gateEl) gateEl.style.display = 'block';
+                    if (listEl) listEl.innerHTML = '';
+                    return;
+                }
+                if (gateEl) gateEl.style.display = 'none';
+                db.ref('matches').orderByChild('matchTimestamp').startAt(Date.now() - 86400000*7).once('value').then(function(snap) {
+                    predMatchesCache = [];
+                    snap.forEach(function(child) {
+                        predMatchesCache.push(Object.assign({id: child.key}, child.val()));
+                    });
+                    predMatchesCache.sort(function(a, b) { return (a.matchTimestamp || 0) - (b.matchTimestamp || 0); });
+                    renderPredictionMatches();
+                });
+            });
+        }
+
+        function renderPredictionMatches() {
+            var listEl = document.getElementById('predMatchList');
+            if (!listEl) return;
+            if (predMatchesCache.length === 0) {
+                listEl.innerHTML = '<div class="pred-empty"><div class="pred-empty-icon">⚽</div><div data-ar="لا توجد مباريات حالياً" data-en="No matches available right now">لا توجد مباريات حالياً</div></div>';
+                return;
+            }
+            var html = '';
+            predMatchesCache.forEach(function(match) {
+                var now = Date.now();
+                var isFinished = match.status === 'finished' || (match.matchTimestamp && now > match.matchTimestamp + 7200000);
+                var isStarted = now > (match.matchTimestamp || 0);
+                var team1Code = match.team1Code || getTeamCode(match.team1);
+                var team2Code = match.team2Code || getTeamCode(match.team2);
+                var flag1 = getFlagUrl(team1Code);
+                var flag2 = getFlagUrl(team2Code);
+                var preds = match.predictions || {};
+                var predKeys = Object.keys(preds);
+                var t1Count = 0, drawCount = 0, t2Count = 0;
+                predKeys.forEach(function(uid) {
+                    var c = preds[uid].choice;
+                    if (c === 'team1') t1Count++;
+                    else if (c === 'draw') drawCount++;
+                    else if (c === 'team2') t2Count++;
+                });
+                var total = predKeys.length || 1;
+                var t1Pct = Math.round((t1Count / total) * 100);
+                var drawPct = Math.round((drawCount / total) * 100);
+                var t2Pct = 100 - t1Pct - drawPct;
+                var myPred = currentUser ? preds[currentUser.uid] : null;
+                var hasPredicted = !!myPred;
+                var esc1 = (match.team1||'Team 1').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+                var esc2 = (match.team2||'Team 2').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+
+                html += '<div class="match-card' + (isFinished ? ' match-finished' : '') + '" data-match-id="' + match.id + '">';
+                html += '<div class="match-date-time"><div class="match-date">' + (match.matchDate||'') + '</div><div class="match-time">' + (match.matchTime||'') + '</div></div>';
+                html += '<div class="match-teams">';
+                html += '<div class="match-team"><img class="match-team-flag" src="' + flag1 + '" alt="" onerror="this.style.background=\'%23151B2E\'"><div class="match-team-name">' + esc1 + '</div></div>';
+                html += '<div class="match-vs">VS</div>';
+                html += '<div class="match-team"><img class="match-team-flag" src="' + flag2 + '" alt="" onerror="this.style.background=\'%23151B2E\'"><div class="match-team-name">' + esc2 + '</div></div>';
+                html += '</div>';
+                html += '<div class="match-prize">\uD83C\uDFC6 ' + (match.prize||10000) + ' NDOG</div>';
+                html += '<div class="pred-bar-container"><div class="pred-bar">';
+                html += '<div class="pred-bar-seg seg-team1" style="width:' + Math.max(t1Pct,2) + '%">' + (t1Pct>=8?t1Pct+'%':'') + '</div>';
+                html += '<div class="pred-bar-seg seg-draw" style="width:' + Math.max(drawPct,2) + '%">' + (drawPct>=8?drawPct+'%':'') + '</div>';
+                html += '<div class="pred-bar-seg seg-team2" style="width:' + Math.max(t2Pct,2) + '%">' + (t2Pct>=8?t2Pct+'%':'') + '</div>';
+                html += '</div><div class="pred-bar-labels">';
+                html += '<span><span class="pred-dot green"></span>' + t1Pct + '%</span>';
+                html += '<span><span class="pred-dot gray"></span>' + drawPct + '%</span>';
+                html += '<span><span class="pred-dot red"></span>' + t2Pct + '%</span>';
+                html += '</div></div>';
+
+                if (isFinished && match.result) {
+                    if (hasPredicted) {
+                        var won = myPred.choice === match.result;
+                        html += '<div class="pred-result-badge ' + (won?'win':'lose') + '">';
+                        html += won ? '\uD83C\uDF89 ' + t('فزت! +10,000 NDOG','Won! +10,000 NDOG') : '\uD83D\uDE1E ' + t('خسرت التوقع','Lost the prediction');
+                        html += '</div>';
+                    } else {
+                        html += '<div class="pred-result-badge waiting">\u23F0 ' + t('انتهت المباراة','Match ended') + '</div>';
+                    }
+                } else if (isStarted && !isFinished) {
+                    html += '<div class="pred-result-badge waiting">\u26BD ' + t('المباراة جارية...','Match in progress...') + '</div>';
+                } else if (hasPredicted) {
+                    var cl = myPred.choice==='team1' ? t('فوز','Win')+' '+match.team1 : myPred.choice==='draw' ? t('تعادل','Draw') : t('فوز','Win')+' '+match.team2;
+                    html += '<div class="pred-result-badge waiting">\u2705 ' + t('توقعك:','Your prediction:') + ' ' + cl + '</div>';
+                } else {
+                    html += '<div class="pred-buttons">';
+                    html += '<button class="pred-btn btn-team1" onclick="submitPrediction(\''+match.id+'\',\'team1\')"><span class="pred-btn-pct">'+t1Pct+'%</span><span>'+t('فوز','Win')+' '+esc1+'</span></button>';
+                    html += '<button class="pred-btn btn-draw" onclick="submitPrediction(\''+match.id+'\',\'draw\')"><span class="pred-btn-pct">'+drawPct+'%</span><span>'+t('تعادل','Draw')+'</span></button>';
+                    html += '<button class="pred-btn btn-team2" onclick="submitPrediction(\''+match.id+'\',\'team2\')"><span class="pred-btn-pct">'+t2Pct+'%</span><span>'+t('فوز','Win')+' '+esc2+'</span></button>';
+                    html += '</div>';
+                }
+                html += '</div>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        function submitPrediction(matchId, choice) {
+            if (!currentUser) { showToast(t('سجّل دخولك أولاً','Sign in first'),'warning'); return; }
+            db.ref('matches/' + matchId + '/predictions/' + currentUser.uid).once('value').then(function(snap) {
+                if (snap.exists()) { showToast(t('لقد قمت بالتوقع مسبقاً','You already predicted'),'warning'); return; }
+                db.ref('matches/' + matchId + '/matchTimestamp').once('value').then(function(ts) {
+                    if (ts.val() && Date.now() > ts.val()) { showToast(t('بدأت المباراة بالفعل!','Match already started!'),'error'); return; }
+                    db.ref('matches/' + matchId + '/predictions/' + currentUser.uid).set({
+                        choice: choice, timestamp: Date.now(), displayName: userData.displayName || ''
+                    }).then(function() {
+                        db.ref('users/' + currentUser.uid + '/predictionTotal').transaction(function(v) { return (v||0)+1; });
+                        showToast(t('✅ تم تسجيل توقعك!','✅ Prediction submitted!'),'success');
+                        if (navigator.vibrate) navigator.vibrate(50);
+                        loadPredictionMatches();
+                    }).catch(function() { showToast(t('خطأ','Error'),'error'); });
+                });
+            });
+        }
+
+        function loadPredictionLeaderboard() {
+            var listEl = document.getElementById('predLeaderboardList');
+            if (!listEl) return;
+            db.ref('users').orderByChild('predictionWins').limitToLast(50).once('value').then(function(snap) {
+                var users = [];
+                snap.forEach(function(child) {
+                    var d = child.val();
+                    if ((d.predictionWins||0)>0 || (d.predictionTotal||0)>0) users.push(Object.assign({uid:child.key},d));
+                });
+                users.sort(function(a,b){ return (b.predictionWins||0)-(a.predictionWins||0); });
+                var top = users.slice(0,20);
+                if (top.length===0) {
+                    listEl.innerHTML = '<div class="pred-empty"><div class="pred-empty-icon">\uD83C\uDFC6</div><div>'+t('لا توجد توقعات بعد','No predictions yet')+'</div></div>';
+                    return;
+                }
+                var html = '';
+                top.forEach(function(u,i) {
+                    var rank = i+1;
+                    var rc = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'normal';
+                    html += '<div class="pred-leaderboard-item"><div class="pred-lb-rank '+rc+'">'+rank+'</div>';
+                    html += '<div class="pred-lb-info"><div class="pred-lb-name">'+(u.displayName||'User')+'</div>';
+                    html += '<div class="pred-lb-stat">'+(u.predictionWins||0)+' '+t('فوز من','wins of')+' '+(u.predictionTotal||0)+' '+t('توقع','predictions')+'</div></div>';
+                    html += '<div class="pred-lb-score">'+(u.predictionWins||0)+'\u2705</div></div>';
+                });
+                listEl.innerHTML = html;
+            });
+        }
+
+        // WhatsApp share to unlock
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('#predShareWABtn');
+            if (!btn) return;
+            var shareText = t('\uD83D\uDC15 \u0627\u0646\u0636\u0645 \u0625\u0644\u0649 NDOG Coin \u0648\u0627\u062D\u0635\u0644 \u0639\u0644\u0649 \u0639\u0645\u0644\u0627\u062A \u0645\u062C\u0627\u0646\u064A\u0629! \u062A\u0648\u0642\u0639 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0645\u0628\u0627\u0631\u064A\u0627\u062A \u0648\u0627\u0631\u0628\u062D 10,000 \u0639\u0645\u0644\u0629! \uD83C\uDFC6\n\u0640 ',
+                '\uD83D\uDC15 Join NDOG Coin and get free coins! Predict match results and win 10,000 coins! \uD83C\uDFC6\n');
+            var url = window.location.origin || 'https://ndogcoin.com';
+            window.open('https://wa.me/?text=' + encodeURIComponent(shareText + url), '_blank');
+            if (currentUser) {
+                localStorage.setItem('ndog_pred_unlocked','true');
+                db.ref('users/' + currentUser.uid + '/predictionUnlocked').set(true);
+                predictionUnlocked = true;
+                setTimeout(function() {
+                    var gateEl = document.getElementById('predUnlockGate');
+                    if (gateEl) gateEl.style.display = 'none';
+                    loadPredictionMatches();
+                }, 1000);
+            }
+        });
+
+        // Auto-distribute prizes when match result is set
+        function initPredictionPrizeListener() {
+            db.ref('matches').on('child_changed', function(snap) {
+                var match = snap.val();
+                if (match.status === 'finished' && match.result && !match.winnerProcessed) {
+                    distributePredictionPrizes(snap.key, match);
+                }
+            });
+        }
+        function distributePredictionPrizes(matchId, match) {
+            if (!match.predictions) return;
+            var prize = match.prize || 10000;
+            var winners = [];
+            Object.keys(match.predictions).forEach(function(uid) {
+                if (match.predictions[uid].choice === match.result) winners.push(uid);
+            });
+            if (winners.length === 0) return;
+            db.ref('matches/' + matchId + '/winnerProcessed').set(true);
+            winners.forEach(function(uid) {
+                db.ref('users/' + uid).transaction(function(d) {
+                    if (!d) return d;
+                    d.balance = (Number(d.balance)||0) + prize;
+                    d.predictionWins = (Number(d.predictionWins)||0) + 1;
+                    d.rewardEarnings = (Number(d.rewardEarnings)||0) + prize;
+                    return d;
+                });
+                var txId = db.ref().child('transactions').push().key;
+                db.ref('transactions/' + txId).set({ uid:uid, amount:prize, ts:Date.now(), type:'prediction_win', description:'Prediction: '+match.team1+' vs '+match.team2 });
+            });
+        }
+        setTimeout(initPredictionPrizeListener, 3000);
+
     </script>
 
     <!-- CRYPTO SCANLINES -->
@@ -8522,5 +9787,3 @@
     <div id="cryptoCoinsBg" aria-hidden="true"></div>
 </body>
 </html>
-
-        

@@ -477,6 +477,7 @@ select.field-input{cursor:pointer}
         <button class="nav-item" data-page="notifications" onclick="switchPage('notifications',this)"><span class="nav-icon">🔔</span>الإشعارات</button>
         <button class="nav-item" data-page="news" onclick="switchPage('news',this)"><span class="nav-icon">📰</span>الأخبار</button>
         <button class="nav-item" data-page="gifts" onclick="switchPage('gifts',this)"><span class="nav-icon">🎁</span>الهدايا والعملات</button>
+        <button class="nav-item" data-page="matches" onclick="switchPage('matches',this)"><span class="nav-icon">⚽</span>المباريات والتوقعات</button>
         <div class="nav-section">متقدم</div>
         <button class="nav-item" data-page="referrals" onclick="switchPage('referrals',this)"><span class="nav-icon">🔗</span>الإحالات</button>
         <button class="nav-item" data-page="leaderboard" onclick="switchPage('leaderboard',this)"><span class="nav-icon">🏆</span>المتصدرون</button>
@@ -704,6 +705,68 @@ select.field-input{cursor:pointer}
         </div>
       </div>
 
+
+      <!-- ===== MATCHES / PREDICTIONS PAGE ===== -->
+      <div id="page-matches" class="page">
+        <!-- Add Match Form -->
+        <div class="form-card">
+          <div class="form-card-title">➕ إضافة مباراة جديدة</div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label-sm">الفريق الأول (إنجليزي)</label>
+              <input class="field-input" type="text" id="matchTeam1" placeholder="Egypt" oninput="previewFlag('team1')">
+              <div id="flagPreview1" style="margin-top:6px;text-align:center"></div>
+            </div>
+            <div style="padding-bottom:4px;font-weight:800;color:var(--gold);font-size:20px;text-align:center">VS</div>
+            <div class="form-group">
+              <label class="form-label-sm">الفريق الثاني (إنجليزي)</label>
+              <input class="field-input" type="text" id="matchTeam2" placeholder="Australia" oninput="previewFlag('team2')">
+              <div id="flagPreview2" style="margin-top:6px;text-align:center"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label-sm">تاريخ المباراة</label>
+              <input class="field-input" type="date" id="matchDate">
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">وقت المباراة (توقيت مصر)</label>
+              <input class="field-input" type="time" id="matchTime">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label-sm">الجائزة (NDOG)</label>
+              <input class="field-input" type="number" id="matchPrize" value="10000" min="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label-sm">الحالة</label>
+              <select class="field-input" id="matchStatus">
+                <option value="upcoming">قادمة</option>
+                <option value="live">جارية الآن</option>
+                <option value="finished">انتهت</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:16px" id="resultGroup" hidden>
+            <label class="form-label-sm">النتيجة</label>
+            <select class="field-input" id="matchResult">
+              <option value="">-- اختر النتيجة --</option>
+              <option value="team1">فوز الفريق الأول</option>
+              <option value="draw">تعادل</option>
+              <option value="team2">فوز الفريق الثاني</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="saveMatch()">⚽ حفظ المباراة</button>
+        </div>
+
+        <!-- Matches List -->
+        <div class="form-card" style="margin-top:16px">
+          <div class="form-card-title">📋 المباريات المضافة</div>
+          <div id="matchesList" style="color:var(--text3);text-align:center;padding:20px">جارٍ التحميل...</div>
+        </div>
+      </div>
+
       <!-- ===== ANALYTICS PAGE ===== -->
       <div id="page-analytics" class="page">
         <div class="stats-grid" id="analyticsStats">
@@ -791,6 +854,10 @@ select.field-input{cursor:pointer}
       <button class="bmm-item" onclick="bnavGo('news')">
         <i class="fas fa-newspaper"></i>
         <span>الأخبار</span>
+      </button>
+      <button class="bmm-item" onclick="bnavGo('matches')">
+        <i class="fas fa-futbol"></i>
+        <span>المباريات</span>
       </button>
       <button class="bmm-item" onclick="bnavGo('referrals')">
         <i class="fas fa-link"></i>
@@ -1010,7 +1077,7 @@ function showToast(msg, type="info"){
 const pageTitles = {
   overview:"📊 نظرة عامة", users:"👥 إدارة المستخدمين", notifications:"🔔 الإشعارات",
   news:"📰 الأخبار", gifts:"🎁 الهدايا والعملات", referrals:"🔗 الإحالات",
-  leaderboard:"🏆 المتصدرون", analytics:"📈 التحليلات", export:"💾 تصدير البيانات"
+  leaderboard:"🏆 المتصدرون", analytics:"📈 التحليلات", export:"💾 تصدير البيانات", matches:"⚽ المباريات والتوقعات"
 };
 
 function switchPage(name, desktopBtn = null){
@@ -1056,6 +1123,7 @@ function switchPage(name, desktopBtn = null){
   if(name==="notifications") loadNotifHistory();
   if(name==="news") loadNews();
   if(name==="gifts") loadGiftsHistory();
+  if(name==="matches") loadMatches();
 }
 
 function bnavGo(name){
@@ -1556,6 +1624,205 @@ function downloadCSV(headers,rows,filename){
   const csv="\uFEFF"+[headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
   const a=document.createElement("a"); a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv); a.download=filename; a.click();
   showToast("تم تنزيل الملف 💾","success");
+}
+
+
+// ==================== MATCHES / PREDICTIONS ====================
+const ADMIN_COUNTRY_CODES = {
+    "egypt":"eg","australia":"au","brazil":"br","argentina":"ar","germany":"de","france":"fr",
+    "spain":"es","england":"gb-eng","italy":"it","portugal":"pt","morocco":"ma","saudi arabia":"sa",
+    "usa":"us","united states":"us","mexico":"mx","japan":"jp","south korea":"kr","canada":"ca",
+    "south africa":"za","nigeria":"ng","ghana":"gh","cameroon":"cm","algeria":"dz","tunisia":"tn",
+    "senegal":"sn","colombia":"co","uruguay":"uy","chile":"cl","peru":"pe","ecuador":"ec",
+    "china":"cn","india":"in","indonesia":"id","malaysia":"my","thailand":"th","vietnam":"vn",
+    "philippines":"ph","iraq":"iq","iran":"ir","uae":"ae","qatar":"qa","kuwait":"kw",
+    "turkey":"tr","greece":"gr","russia":"ru","ukraine":"ua","poland":"pl","netherlands":"nl",
+    "belgium":"be","switzerland":"ch","austria":"at","croatia":"hr","serbia":"rs","denmark":"dk",
+    "sweden":"se","norway":"no","finland":"fi","czech republic":"cz","romania":"ro","hungary":"hu",
+    "new zealand":"nz","costa rica":"cr","panama":"pa","jamaica":"jm","ivory coast":"ci",
+    "dr congo":"cd","congo":"cg","venezuela":"ve","paraguay":"py","bolivia":"bo"
+};
+
+function adminGetCode(name) {
+    if (!name) return null;
+    const k = name.toLowerCase().trim();
+    if (ADMIN_COUNTRY_CODES[k]) return ADMIN_COUNTRY_CODES[k];
+    for (const [n, c] of Object.entries(ADMIN_COUNTRY_CODES)) {
+        if (k.includes(n) || n.includes(k)) return c;
+    }
+    return null;
+}
+
+function previewFlag(which) {
+    const input = document.getElementById('matchTeam' + (which === 'team1' ? '1' : '2'));
+    const preview = document.getElementById('flagPreview' + (which === 'team1' ? '1' : '2'));
+    const code = adminGetCode(input.value);
+    if (code && preview) {
+        const c = code.startsWith('gb-') ? 'gb' : code;
+        preview.innerHTML = '<img src="https://flagcdn.com/w80/' + c + '.png" style="width:48px;height:34px;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,0.3)">';
+    } else if (preview) {
+        preview.innerHTML = '';
+    }
+}
+
+// Show/hide result field based on status
+document.addEventListener('change', function(e) {
+    if (e.target.id === 'matchStatus') {
+        const rg = document.getElementById('resultGroup');
+        if (rg) rg.hidden = e.target.value !== 'finished';
+    }
+});
+
+let editingMatchId = null;
+
+function saveMatch() {
+    const team1 = document.getElementById('matchTeam1').value.trim();
+    const team2 = document.getElementById('matchTeam2').value.trim();
+    const matchDate = document.getElementById('matchDate').value;
+    const matchTime = document.getElementById('matchTime').value;
+    const prize = Number(document.getElementById('matchPrize').value) || 10000;
+    const status = document.getElementById('matchStatus').value;
+    const result = document.getElementById('matchResult').value || null;
+
+    if (!team1 || !team2) { showToast('أدخل اسمي الفريقين', 'error'); return; }
+    if (!matchDate || !matchTime) { showToast('أدخل التاريخ والوقت', 'error'); return; }
+
+    const team1Code = adminGetCode(team1);
+    const team2Code = adminGetCode(team2);
+
+    // Calculate timestamp in Egypt timezone (UTC+2 or UTC+3 for DST)
+    const egyptOffset = 2; // hours
+    const dateParts = matchDate.split('-');
+    const timeParts = matchTime.split(':');
+    const localDate = new Date(Number(dateParts[0]), Number(dateParts[1])-1, Number(dateParts[2]),
+        Number(timeParts[0]), Number(timeParts[1]), 0, 0);
+    const matchTimestamp = localDate.getTime() - (egyptOffset * 3600000);
+
+    const matchData = {
+        team1, team2, team1Code: team1Code || '', team2Code: team2Code || '',
+        matchDate, matchTime, matchTimestamp, prize, status,
+        result: status === 'finished' ? result : null,
+        winnerProcessed: false,
+        createdAt: Date.now()
+    };
+
+    showLoader();
+
+    if (editingMatchId) {
+        delete matchData.createdAt;
+        db.ref('matches/' + editingMatchId).update(matchData).then(function() {
+            hideLoader();
+            showToast('✅ تم تحديث المباراة', 'success');
+            editingMatchId = null;
+            clearMatchForm();
+            loadMatches();
+        }).catch(function(err) {
+            hideLoader();
+            showToast('خطأ: ' + err.message, 'error');
+        });
+    } else {
+        db.ref('matches').push(matchData).then(function() {
+            hideLoader();
+            showToast('✅ تم إضافة المباراة', 'success');
+            clearMatchForm();
+            loadMatches();
+        }).catch(function(err) {
+            hideLoader();
+            showToast('خطأ: ' + err.message, 'error');
+        });
+    }
+}
+
+function clearMatchForm() {
+    document.getElementById('matchTeam1').value = '';
+    document.getElementById('matchTeam2').value = '';
+    document.getElementById('matchDate').value = '';
+    document.getElementById('matchTime').value = '';
+    document.getElementById('matchPrize').value = '10000';
+    document.getElementById('matchStatus').value = 'upcoming';
+    document.getElementById('matchResult').value = '';
+    document.getElementById('resultGroup').hidden = true;
+    document.getElementById('flagPreview1').innerHTML = '';
+    document.getElementById('flagPreview2').innerHTML = '';
+    editingMatchId = null;
+}
+
+function loadMatches() {
+    const listEl = document.getElementById('matchesList');
+    if (!listEl) return;
+    db.ref('matches').orderByChild('createdAt').once('value').then(function(snap) {
+        const matches = [];
+        snap.forEach(function(child) {
+            matches.push(Object.assign({id: child.key}, child.val()));
+        });
+        matches.reverse();
+
+        if (matches.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3)">لا توجد مباريات بعد</div>';
+            return;
+        }
+
+        let html = '<table><thead><tr><th>#</th><th>الفريق 1</th><th>الفريق 2</th><th>التاريخ</th><th>الوقت</th><th>التوقعات</th><th>النتيجة</th><th>إجراءات</th></tr></thead><tbody>';
+        matches.forEach(function(m, i) {
+            const predCount = m.predictions ? Object.keys(m.predictions).length : 0;
+            const statusBadge = m.status === 'finished'
+                ? '<span style="color:#22C55E;font-weight:600">انتهت</span>'
+                : m.status === 'live'
+                ? '<span style="color:#F59E0B;font-weight:600">جارية</span>'
+                : '<span style="color:#60A5FA;font-weight:600">قادمة</span>';
+            const resultText = m.result
+                ? (m.result === 'team1' ? 'فوز ' + m.team1 : m.result === 'draw' ? 'تعادل' : 'فوز ' + m.team2)
+                : '—';
+
+            html += '<tr>';
+            html += '<td>' + (i+1) + '</td>';
+            html += '<td><b>' + m.team1 + '</b></td>';
+            html += '<td><b>' + m.team2 + '</b></td>';
+            html += '<td>' + (m.matchDate||'') + '</td>';
+            html += '<td>' + (m.matchTime||'') + '</td>';
+            html += '<td>' + predCount + '</td>';
+            html += '<td>' + resultText + '</td>';
+            html += '<td style="white-space:nowrap">';
+            html += '<button class="btn btn-info" style="padding:4px 10px;font-size:11px;margin:2px" onclick="editMatch('' + m.id + '')">✏️</button>';
+            html += '<button class="btn btn-danger" style="padding:4px 10px;font-size:11px;margin:2px" onclick="deleteMatch('' + m.id + '')">🗑️</button>';
+            html += '</td></tr>';
+        });
+        html += '</tbody></table>';
+        listEl.innerHTML = html;
+    });
+}
+
+function editMatch(matchId) {
+    db.ref('matches/' + matchId).once('value').then(function(snap) {
+        const m = snap.val();
+        if (!m) return;
+        editingMatchId = matchId;
+        document.getElementById('matchTeam1').value = m.team1 || '';
+        document.getElementById('matchTeam2').value = m.team2 || '';
+        document.getElementById('matchDate').value = m.matchDate || '';
+        document.getElementById('matchTime').value = m.matchTime || '';
+        document.getElementById('matchPrize').value = m.prize || 10000;
+        document.getElementById('matchStatus').value = m.status || 'upcoming';
+        document.getElementById('matchResult').value = m.result || '';
+        document.getElementById('resultGroup').hidden = m.status !== 'finished';
+        previewFlag('team1');
+        previewFlag('team2');
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        showToast('✏️ جاري تعديل المباراة', 'info');
+    });
+}
+
+function deleteMatch(matchId) {
+    if (!confirm('هل أنت متأكد من حذف هذه المباراة؟ سيتم حذف جميع التوقعات المرتبطة.')) return;
+    showLoader();
+    db.ref('matches/' + matchId).remove().then(function() {
+        hideLoader();
+        showToast('🗑️ تم حذف المباراة', 'success');
+        loadMatches();
+    }).catch(function(err) {
+        hideLoader();
+        showToast('خطأ: ' + err.message, 'error');
+    });
 }
 
 document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ document.querySelectorAll(".modal-overlay.open").forEach(m=>m.classList.remove("open")); closeMoreMenu(); }});

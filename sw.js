@@ -2,9 +2,9 @@
 // NDOG Coin — Service Worker v3.1 (OneSignal + Push + In-App)
 // ═══════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ndog-v3.1.0';
-const STATIC_CACHE = 'ndog-static-v3.1.0';
-const DYNAMIC_CACHE = 'ndog-dynamic-v3.1.0';
+const CACHE_NAME = 'ndog-v3.2.0';
+const STATIC_CACHE = 'ndog-static-v3.2.0';
+const DYNAMIC_CACHE = 'ndog-dynamic-v3.2.0';
 const GOOGLE_FONTS_CACHE = 'ndog-fonts-v1';
 
 // Static assets to pre-cache for instant offline loading
@@ -235,9 +235,8 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http(s)
   if (!url.protocol.startsWith('http')) return;
 
-  // OneSignal: network-only
-  if (url.hostname.includes('onesignal.com')) {
-    event.respondWith(fetch(request));
+  // OneSignal: network-only (don't cache, don't intercept failures)
+  if (url.hostname.includes('onesignal.com') || url.hostname.includes('os.tc')) {
     return;
   }
 
@@ -254,13 +253,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Firebase Auth: network-only
+  // Firebase Auth: DO NOT intercept — let the browser handle it natively.
+  // Intercepting auth requests causes login failures after clearing cookies.
   if (url.hostname.includes('googleapis.com') && url.pathname.includes('identitytoolkit')) {
-    event.respondWith(fetch(request).catch(() => {
-      return new Response(JSON.stringify({ error: 'auth_offline' }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }));
     return;
   }
 
@@ -299,8 +294,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Local static assets: cache-first with network fallback
+  // Local static assets: cache-first for images/CSS/JS, network-first for HTML
   if (url.origin === self.location.origin) {
+    // Always fetch HTML fresh from network to get latest auth/version
+    if (request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+      event.respondWith(
+        fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        }).catch(() => {
+          return caches.match('./index.html');
+        })
+      );
+      return;
+    }
+    // Other local assets (images, CSS, JS, etc.): cache-first
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
@@ -310,10 +321,6 @@ self.addEventListener('fetch', (event) => {
             caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
           }
           return response;
-        }).catch(() => {
-          if (request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
         });
       })
     );

@@ -5965,11 +5965,12 @@
 
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        // Keep user signed in even after closing the browser (30 days)
-        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(err) {
-            console.error('[NDOG] setPersistence error:', err);
-        });
         const db = firebase.database();
+        // NOTE: setPersistence must complete before getRedirectResult
+        // We call it here but do NOT await — it's best-effort
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(err) {
+            console.warn('[NDOG] setPersistence error (non-critical):', err);
+        });
 
         // ========== TELEGRAM MINI APP STATE ==========
         const WORKER_URL = 'https://ndogtg.ads4ads2029.workers.dev';
@@ -7045,28 +7046,46 @@ async function signInWithGoogle() {
         return;
     }
 
-    // ===== Google Login — Redirect (avoids COOP/popup-blocked issues) =====
+    // ===== Google Login — Popup first, redirect fallback =====
+    showLoading();
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope("profile");
+    provider.addScope("email");
+    provider.setCustomParameters({ prompt: 'select_account' });
 
     try {
-
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.addScope("profile");
-        provider.addScope("email");
-
-        await auth.signInWithRedirect(provider);
-        // Page will reload — onAuthStateChanged handles the rest
+        // Popup is instant and works on all modern browsers
+        const result = await auth.signInWithPopup(provider);
+        console.log('[NDOG] Popup sign-in success:', result.user.uid);
+        // onAuthStateChanged will fire automatically
 
     } catch (err) {
-
         hideLoading();
-        console.error(err);
+        console.error('[NDOG] signInWithPopup error:', err.code, err.message);
+
+        if (err.code === 'auth/popup-blocked') {
+            // Popup blocked by browser — fall back to redirect
+            try {
+                showLoading();
+                await auth.signInWithRedirect(provider);
+                return;
+            } catch (redirectErr) {
+                hideLoading();
+                showToast(t("فشل الدخول، يرجى المحاولة مرة أخرى", "Login failed, please try again"), "error");
+                return;
+            }
+        }
+
+        if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+            // User closed popup — do nothing, just hide loading
+            return;
+        }
 
         const msgs = {
-            "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
-            "auth/popup-closed-by-user":    t("تم إغلاق نافذة تسجيل الدخول", "Popup closed"),
-            "auth/cancelled-popup-request": t("تم إلغاء الطلب", "Popup cancelled"),
-            "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
-            "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
+            "auth/unauthorized-domain":    t("النطاق غير مصرح به في Firebase — راجع الإعدادات", "Unauthorized domain in Firebase — check settings"),
+            "auth/operation-not-allowed":  t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled"),
+            "auth/network-request-failed": t("خطأ في الاتصال بالإنترنت", "Network error, check your connection")
         };
 
         showToast(
@@ -7074,7 +7093,6 @@ async function signInWithGoogle() {
             t("فشل الدخول: " + err.message, "Login failed: " + err.message),
             "error"
         );
-
     }
 
 }
@@ -9320,114 +9338,87 @@ async function signInWithGoogle() {
             initBgCanvas();
             setTimeout(buildWheel, 500);
 
-            // ===== FIX: Process redirect result FIRST, then register onAuthStateChanged =====
-            // This prevents the login screen flash caused by onAuthStateChanged firing
-            // with user=null BEFORE the Google redirect result is resolved.
-            // We also block the login screen from showing while the redirect is pending.
+            // ===== AUTH STATE LISTENER =====
+            // Using popup-based sign-in, so no getRedirectResult() race condition.
+            // onAuthStateChanged fires reliably after signInWithPopup completes.
 
-            var redirectProcessed = false;
+            auth.onAuthStateChanged(function(user) {
+                try {
+                    if (user) {
+                        currentUser = user;
+                        console.log('[NDOG] Auth state: signed in as', user.uid);
 
-            // Block login screen immediately — redirect is being processed
-            var authElTemp = document.getElementById('authScreens');
-            if (authElTemp) authElTemp.style.display = 'none';
-
-            function registerAuthStateListener() {
-                auth.onAuthStateChanged(function(user) {
-                    try {
-                        if (user) {
-                            currentUser = user;
-
-                            // In Telegram: link account if logged in via custom token
-                            if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
-                                linkTelegramToCurrentAccount().catch(function() {});
-                            }
-
-                            // Check if user has profile in DB
-                            db.ref('users/' + user.uid).once('value').then(function(snap) {
-                                if (snap.exists()) {
-                                    userData = Object.assign({}, snap.val(), { uid: user.uid });
-                                    showApp();
-                                    if (!isTelegramEnv) {
-                                        initOneSignal();
-                                    }
-                                } else {
-                                    hideLoading();
-                                    if (isTelegramEnv && ((tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser)) {
-                                        var tgU = (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser;
-                                        var tgName = [tgU.first_name, tgU.last_name].filter(Boolean).join(' ');
-                                        if (tgName) {
-                                            db.ref('users/' + user.uid + '/displayName').set(tgName);
-                                        }
-                                        db.ref('users/' + user.uid + '/telegramUsername').set(tgU.username || '');
-                                        showApp();
-                                    } else {
-                                        showProfileCompleteModal(user);
-                                    }
-                                }
-                            }).catch(function(err) {
-                                console.error('[NDOG] User data load error:', err);
-                                hideLoading();
-                                if (typeof showToast === 'function') showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                            });
-                        } else {
-                            // user = null — only show login screen if redirect was already processed
-                            // and no redirect user was found
-                            currentUser = null;
-                            userData = null;
-                            var mainAppEl = document.getElementById('mainApp');
-                            var authEl = document.getElementById('authScreens');
-                            var notifEl = document.getElementById('notifBellBtn');
-                            if (mainAppEl) mainAppEl.style.display = 'none';
-                            if (notifEl) notifEl.style.display = 'none';
-                            hideLoading();
-
-                            // Only show auth screen after redirect processing is confirmed done
-                            // and no user came back from the redirect
-                            if (!redirectProcessed) {
-                                // Still waiting on redirect — do nothing, getRedirectResult will handle it
-                                return;
-                            }
-
-                            setTimeout(function() {
-                                if (currentUser) return;
-                                if (!isTelegramEnv && !window.__tgEarlyDetect) {
-                                    if (authEl) authEl.style.display = 'flex';
-                                } else {
-                                    if (authEl) authEl.style.display = 'none';
-                                }
-                                if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
-                                    console.log('[NDOG] No user + Telegram detected, triggering auth...');
-                                    doTelegramAuth();
-                                }
-                            }, 300);
+                        // In Telegram: link account if logged in via custom token
+                        if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
+                            linkTelegramToCurrentAccount().catch(function() {});
                         }
-                    } catch(authErr) {
-                        console.error('[NDOG] onAuthStateChanged error:', authErr);
-                        hideLoading();
-                    }
-                });
-            }
 
-            // Process Google redirect result first, then start listening to auth state
-            auth.getRedirectResult().then(function(result) {
-                redirectProcessed = true;
-                if (result && result.user) {
-                    console.log('[NDOG] Redirect sign-in resolved for:', result.user.uid);
-                    currentUser = result.user;
+                        // Check if user has profile in DB
+                        db.ref('users/' + user.uid).once('value').then(function(snap) {
+                            if (snap.exists()) {
+                                userData = Object.assign({}, snap.val(), { uid: user.uid });
+                                showApp();
+                                if (!isTelegramEnv) {
+                                    initOneSignal();
+                                }
+                            } else {
+                                hideLoading();
+                                if (isTelegramEnv && ((tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser)) {
+                                    var tgU = (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser;
+                                    var tgName = [tgU.first_name, tgU.last_name].filter(Boolean).join(' ');
+                                    if (tgName) {
+                                        db.ref('users/' + user.uid + '/displayName').set(tgName);
+                                    }
+                                    db.ref('users/' + user.uid + '/telegramUsername').set(tgU.username || '');
+                                    showApp();
+                                } else {
+                                    // New user: show profile completion modal
+                                    showProfileCompleteModal(user);
+                                }
+                            }
+                        }).catch(function(err) {
+                            console.error('[NDOG] User data load error:', err);
+                            hideLoading();
+                            if (typeof showToast === 'function') showToast(t('خطأ في التحميل', 'Load error'), 'error');
+                        });
+
+                    } else {
+                        // No user signed in
+                        currentUser = null;
+                        userData = null;
+                        var mainAppEl = document.getElementById('mainApp');
+                        var authEl = document.getElementById('authScreens');
+                        var notifEl = document.getElementById('notifBellBtn');
+                        if (mainAppEl) mainAppEl.style.display = 'none';
+                        if (notifEl) notifEl.style.display = 'none';
+                        hideLoading();
+
+                        if (!isTelegramEnv && !window.__tgEarlyDetect) {
+                            if (authEl) authEl.style.display = 'flex';
+                        } else {
+                            if (authEl) authEl.style.display = 'none';
+                            if (!tgAuthDone) {
+                                console.log('[NDOG] Telegram detected, no user — triggering auth...');
+                                doTelegramAuth();
+                            }
+                        }
+                    }
+                } catch(authErr) {
+                    console.error('[NDOG] onAuthStateChanged error:', authErr);
+                    hideLoading();
                 }
-                // Now it's safe to register the auth state listener
-                registerAuthStateListener();
+            });
+
+            // Handle redirect result (fallback for popup-blocked browsers)
+            auth.getRedirectResult().then(function(result) {
+                if (result && result.user) {
+                    console.log('[NDOG] Redirect fallback sign-in resolved:', result.user.uid);
+                    // onAuthStateChanged will fire automatically
+                }
             }).catch(function(err) {
-                redirectProcessed = true;
-                console.error('[NDOG] getRedirectResult error:', err);
-                var msgs = {
-                    "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
-                    "auth/unauthorized-domain":     t("النطاق غير مصرح به", "Unauthorized domain"),
-                    "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
-                };
-                if (typeof showToast === 'function') showToast(msgs[err.code] || t("فشل الدخول","Login failed"), "error");
-                // Still register auth state listener even on error
-                registerAuthStateListener();
+                if (err.code && err.code !== 'auth/no-auth-event') {
+                    console.error('[NDOG] getRedirectResult error:', err.code);
+                }
             });
 
             // Generate QR when user data is ready

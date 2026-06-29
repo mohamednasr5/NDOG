@@ -5965,6 +5965,10 @@
 
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        // Keep user signed in even after closing the browser (30 days)
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(err) {
+            console.error('[NDOG] setPersistence error:', err);
+        });
         const db = firebase.database();
 
         // ========== TELEGRAM MINI APP STATE ==========
@@ -9719,7 +9723,10 @@ async function signInWithGoogle() {
                 }
                 // Score display between teams
                 var dispS1 = 0, dispS2 = 0;
-                if ((isStarted || isFinished) && (match.score1 != null || match.score2 != null)) {
+                if (isFinished && match.result) {
+                    dispS1 = match.score1 != null ? match.score1 : '?';
+                    dispS2 = match.score2 != null ? match.score2 : '?';
+                } else if (isStarted && (match.score1 != null || match.score2 != null)) {
                     dispS1 = match.score1 != null ? match.score1 : 0;
                     dispS2 = match.score2 != null ? match.score2 : 0;
                 }

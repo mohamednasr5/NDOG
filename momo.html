@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>NDOG Admin Panel</title>
+<title>لوحة التحكم - NDOG</title>
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -132,21 +132,58 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-/* STATS GRID */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-.stat-card{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;position:relative;overflow:hidden;transition:.2s;
+/* FORMS */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+.form-col{display:flex;flex-direction:column}
+.form-input{
+  width:100%;padding:12px;background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:.2s;
 }
-.stat-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.stat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:.2s;background:linear-gradient(135deg,rgba(245,158,11,.05),transparent)}
-.stat-card:hover::before{opacity:1}
-.stat-icon{font-size:28px;margin-bottom:10px}
-.stat-value{font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px}
-.stat-label{font-size:13px;color:var(--text2)}
-.stat-change{font-size:12px;margin-top:6px}
-.stat-change.up{color:var(--green)}
-.stat-change.down{color:var(--red)}
+.form-input:focus{border-color:var(--accent)}
+.form-select{
+  width:100%;padding:12px;background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:14px;outline:none;cursor:pointer;
+}
+.form-select:focus{border-color:var(--accent)}
+
+/* LIVE SCORE INPUT SECTION */
+.live-score-section{
+  background:rgba(245,158,11,.1);border:2px solid var(--accent);border-radius:var(--radius);
+  padding:18px;margin:16px 0;display:none;
+}
+.live-score-section.show{display:block;animation:slideDown .3s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.live-score-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;color:var(--accent);font-weight:600;
+}
+.live-score-header i{font-size:18px}
+.score-inputs{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;
+}
+.score-input-box{
+  display:flex;flex-direction:column}
+.score-input-box label{font-size:12px;color:var(--text3);margin-bottom:6px}
+.score-input-box input{
+  font-size:20px;font-weight:700;padding:10px;background:var(--bg2);border:2px solid var(--accent);
+  border-radius:8px;color:var(--accent);text-align:center;outline:none;
+}
+.score-separator{
+  font-size:24px;color:var(--accent);font-weight:700}
+
+/* BUTTONS */
+.btn{
+  padding:10px 18px;border:none;border-radius:8px;font-size:14px;cursor:pointer;
+  transition:.2s;font-family:inherit;font-weight:600;
+}
+.btn-primary{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#000}
+.btn-primary:hover{opacity:.9;transform:translateY(-2px)}
+.btn-info{background:rgba(59,130,246,.2);color:#3b82f6}
+.btn-info:hover{background:rgba(59,130,246,.3)}
+.btn-danger{background:rgba(239,68,68,.2);color:#ef4444}
+.btn-danger:hover{background:rgba(239,68,68,.3)}
+.btn-success{background:rgba(34,197,94,.2);color:#22c55e}
+.btn-success:hover{background:rgba(34,197,94,.3)}
 
 /* TABLES */
 .table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;max-width:100%;}
@@ -158,1713 +195,561 @@ th{background:var(--bg2);padding:11px 14px;text-align:right;font-size:12px;color
 td{padding:11px 14px;border-top:1px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle}
 tr:hover td{background:rgba(255,255,255,.02)}
 
-/* SEARCH & FILTER */
-.search-input{
-  padding:9px 14px;background:var(--bg2);border:1.5px solid var(--border);
-  border-radius:8px;color:var(--text);font-size:13px;outline:none;
-  min-width:220px;font-family:inherit;transition:.2s;
+/* TOAST NOTIFICATION */
+.toast-container{position:fixed;bottom:20px;left:20px;z-index:10000}
+.toast{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:12px;
+  animation:slideIn .3s ease;min-width:280px}
+.toast.success{border-color:var(--green)}
+.toast.error{border-color:var(--red)}
+.toast.info{border-color:var(--blue)}
+@keyframes slideIn{from{transform:translateX(-350px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* LOADER */
+.global-loader{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9998}
+.global-loader.active{display:flex}
+.spinner{width:50px;height:50px;border:4px solid rgba(245,158,11,.2);border-top:4px solid var(--accent);
+  border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MATCH STATUS BADGE */
+.status-badge{
+  display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;
 }
-.search-input:focus{border-color:var(--accent)}
-.filter-select{
-  padding:9px 12px;background:var(--bg2);border:1.5px solid var(--border);
-  border-radius:8px;color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:inherit;
-}
+.status-upcoming{background:rgba(59,130,246,.2);color:#3b82f6}
+.status-live{background:rgba(245,158,11,.2);color:var(--accent);animation:blink 1.5s infinite}
+.status-finished{background:rgba(34,197,94,.2);color:var(--green)}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.6}}
 
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-active{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
-.badge-banned{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
-.badge-founder{background:rgba(245,158,11,.15);color:var(--accent);border:1px solid rgba(245,158,11,.3)}
-
-/* ACTION BUTTONS */
-.action-btns{display:flex;gap:6px;flex-wrap:wrap}
-.btn{padding:6px 12px;border-radius:7px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}
-.btn:hover{opacity:.85;transform:translateY(-1px)}
-.btn-sm{padding:5px 10px;font-size:11px}
-.btn-primary{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000}
-.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
-.btn-success{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
-.btn-info{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
-.btn-purple{background:rgba(139,92,246,.15);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
-.btn-full{width:100%;padding:13px;font-size:14px;border-radius:10px}
-
-/* FORM CARDS */
-.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
-.form-card-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:8px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-group{margin-bottom:16px}
-.form-label-sm{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
-.field-input{
-  width:100%;padding:11px 14px;background:var(--bg2);border:1.5px solid var(--border);
-  border-radius:9px;color:var(--text);font-size:14px;outline:none;transition:.2s;font-family:inherit;
-}
-.field-input:focus{border-color:var(--accent)}
-.field-input::placeholder{color:var(--text3)}
-textarea.field-input{resize:vertical;min-height:90px;line-height:1.6}
-select.field-input{cursor:pointer}
-
-/* MODAL */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999; /* عالي جداً لتغطية كل شيء */
-  display:none;align-items:center;justify-content:center;padding:16px;
-  backdrop-filter:blur(5px);
-}
-.modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
-.modal-box{
-  background:var(--card);border:1px solid var(--border);border-radius:16px;
-  padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;
-}
-.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.modal-close{margin-right:auto;background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
-.modal-footer{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
-
-/* TOAST */
-#toastStack{position:fixed;bottom:100px;left:20px;right:20px;z-index:10000;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;}
-.toast{
-  background:var(--card2);border:1px solid var(--border);border-radius:10px;
-  padding:12px 16px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px;
-  animation:slideUp .3s ease;width:max-content;max-width:100%;margin:0 auto;
-  box-shadow:0 4px 20px rgba(0,0,0,.6);pointer-events:auto;
-}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.toast.out{animation:slideDown .3s ease forwards}
-@keyframes slideDown{to{opacity:0;transform:translateY(20px)}}
-
-/* LOADING */
-.loading-dots{display:flex;gap:5px;padding:40px;justify-content:center}
-.loading-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:dotBounce .8s infinite}
-.loading-dot:nth-child(2){animation-delay:.15s}
-.loading-dot:nth-child(3){animation-delay:.3s}
-@keyframes dotBounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
-#pageLoader{position:fixed;inset:0;background:rgba(10,14,26,.9);z-index:10000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
-#pageLoader.show{display:flex}
-#pageLoader p{color:var(--text2);font-size:14px}
-
-/* USER AVATAR SMALL */
-.user-avatar-sm{
-  width:34px;height:34px;border-radius:50%;object-fit:cover;
-  background:linear-gradient(135deg,#f59e0b,#8b5cf6);
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:14px;color:#fff;font-weight:600;vertical-align:middle;flex-shrink:0;
-}
-
-/* QUICK ACTIONS */
-.quick-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
-.qa-card{
-  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:18px;text-align:center;cursor:pointer;transition:.2s;
-}
-.qa-card:hover{border-color:var(--accent);transform:translateY(-2px);background:var(--card2)}
-.qa-icon{font-size:26px;margin-bottom:8px}
-.qa-label{font-size:12px;color:var(--text2);font-weight:500}
-.section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;margin-top:24px;display:flex;align-items:center;gap:8px}
-.section-title:first-child{margin-top:0}
-.gift-amount-badge{background:rgba(245,158,11,.15);color:var(--accent);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700;white-space:nowrap;}
-.progress-bar-wrap{background:var(--border);border-radius:4px;height:6px;margin-top:6px}
-.progress-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,#ef4444);transition:.5s}
-
-
-/* ========================================= */
-/* ===== MOBILE BOTTOM NAV (THE FIX) ===== */
-/* ========================================= */
-.bottom-nav {
-  display: none; /* مخفي على الديسكتوب */
-}
-
-@media(max-width: 900px) {
-  :root { --sidebar: 0px; }
-  
-  /* 1. إخفاء القائمة الجانبية والهامبرغر تماماً لتجنب التداخل */
-  .sidebar { display: none !important; }
-  .hamburger { display: none !important; }
-  
-  /* 2. ضبط المساحات الأساسية */
-  .topbar { right: 0; padding: 0 16px; height: 56px; }
-  .main { margin-right: 0; margin-top: 56px; padding: 12px; padding-bottom: 100px; min-height: calc(100vh - 56px); }
-  
-  /* 3. إظهار الشريط السفلي وجعله ثابتاً فوق كل شيء */
-  .bottom-nav {
-    display: block;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: #0a0e1a; /* نفس لون الخلفية */
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    z-index: 2000; /* أعلى طبقة */
-    padding-bottom: env(safe-area-inset-bottom); /* لدعم هواتف الآيفون */
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.6);
-  }
-  
-  .bottom-nav-inner {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    height: 70px;
-    padding: 0 5px;
-  }
-  
-  .bnav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    border: none;
-    background: none;
-    color: var(--text3);
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-    font-family: inherit;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  .bnav-item i { font-size: 20px; transition: 0.3s; }
-  .bnav-item.active { color: var(--accent); }
-  .bnav-item.active i { transform: translateY(-3px) scale(1.1); }
-  
-  /* 4. الزر المركزي (الكلب / الهدايا) */
-  .bnav-center-wrap {
-    flex: 1.2;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    position: relative;
-  }
-  .bnav-center-btn {
-    position: absolute;
-    top: -26px; /* يبرز للأعلى */
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f59e0b, #fbbf24);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    border: 5px solid #0a0e1a;
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
-    color: #fff;
-    cursor: pointer;
-    transition: 0.3s;
-    z-index: 2010;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .bnav-center-btn:active { transform: scale(0.95); }
-  
-  /* 5. شاشة "المزيد" (Bottom Sheet) بدلاً من القائمة الجانبية */
-  .bnav-more-menu {
-    display: block;
-    position: fixed;
-    bottom: -100%; /* مخفي في البداية */
-    left: 0; right: 0;
-    background: var(--card);
-    border-top: 1px solid var(--border);
-    border-radius: 24px 24px 0 0; /* حواف دائرية علوية */
-    padding: 24px 16px;
-    z-index: 1999; /* تحت الشريط السفلي مباشرة */
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1); /* تأثير حركة ناعم */
-  }
-  .bnav-more-menu.show {
-    bottom: 70px; /* يرتفع ليكون فوق الشريط السفلي مباشرة */
-  }
-  
-  /* تحسين تصميم شبكة الأقسام */
-  .bmm-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; text-align: center; }
-  .bmm-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  .bmm-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 16px 8px;
-    border: none;
-    background: var(--bg2);
-    border-radius: 16px;
-    color: var(--text2);
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-    font-family: inherit;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .bmm-item:active { background: var(--card2); transform: scale(0.95); }
-  .bmm-item i { font-size: 22px; color: var(--accent); margin-bottom: 4px; }
-  .bmm-item.logout-btn i { color: var(--red); }
-  .bmm-item.logout-btn { color: var(--red); }
-  
-  /* خلفية ضبابية عند فتح القائمة السفلية */
-  .menu-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    z-index: 1998; display: none; backdrop-filter: blur(3px);
-  }
-  .menu-overlay.show { display: block; animation: fadeIn .3s ease; }
-
-  /* تحسينات التصميم الداخلي للشاشات الصغيرة */
-  .stats-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-  .stat-card{padding:14px}
-  .stat-icon{font-size:22px;margin-bottom:6px}
-  .stat-value{font-size:18px}
-  .quick-actions{grid-template-columns:1fr 1fr;gap:10px}
-  .qa-card{padding:14px 8px}
-  .search-input, .filter-select { width: 100%; min-width: 0; }
-  .form-row, .form-row-3 { grid-template-columns: 1fr; }
-  .table-header { flex-direction: column; align-items: stretch; }
-  .action-btns { justify-content: flex-start; }
-}
-
-@media(max-width: 380px){
-  .bnav-item span { display: none; } /* إخفاء النص على الشاشات الصغيرة جداً وترك الأيقونة */
-  .bnav-item i { font-size: 22px; }
+@media(max-width:768px){
+  .sidebar{width:200px}
+  .topbar{right:200px}
+  .main{margin-right:200px}
+  .score-inputs{grid-template-columns:1fr}
+  .score-separator{display:none}
 }
 </style>
 </head>
 <body>
 
-<!-- ===== LOGIN SCREEN ===== -->
+<!-- LOGIN SCREEN -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">🐕</div>
-    <div class="login-title">NDOG Admin Panel</div>
-    <div class="login-sub">للوصول المصرح به فقط</div>
-
-    <div id="loginStep1" class="login-step active">
-      <div id="loginError1" class="login-error"></div>
-      <div style="margin-bottom:20px">
-        <svg width="40" height="40" viewBox="0 0 48 48" style="margin-bottom:8px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    <div class="login-logo">🔐</div>
+    <div class="login-title">لوحة التحكم</div>
+    <div class="login-sub">إدارة المباريات والمستخدمين</div>
+    
+    <div id="loginError" class="login-error"></div>
+    
+    <div id="step1" class="login-step active">
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني</label>
+        <input type="email" id="adminEmail" class="form-input" placeholder="admin@example.com">
       </div>
-      <button class="btn-login" onclick="signInWithGoogle()" id="googleSignInBtn" style="background:linear-gradient(135deg,#4285F4,#34A853);display:flex;align-items:center;justify-content:center;gap:10px">
-        <i class="fab fa-google" style="color:#fff;font-size:18px;"></i>
-        تسجيل الدخول بحساب Google
-      </button>
-      <p style="font-size:12px;color:var(--text3);margin-top:14px">فقط حساب المدير المصرح له يمكنه الدخول</p>
+      <button class="btn-login" onclick="loginStep1()">التالي</button>
+    </div>
+    
+    <div id="step2" class="login-step">
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <input type="password" id="adminPassword" class="form-input" placeholder="••••••••">
+      </div>
+      <button class="btn-login" onclick="loginStep2()">دخول</button>
+      <button class="btn-login" style="margin-top:10px;background:#666" onclick="backToStep1()">رجوع</button>
     </div>
   </div>
 </div>
 
-<div id="toastStack"></div>
-<div id="pageLoader"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div><p>جارٍ التحميل...</p></div>
-
-<!-- Overlay for Mobile Menu -->
-<div class="menu-overlay" id="mobileMenuOverlay" onclick="closeMoreMenu()"></div>
-
-<!-- ===== ADMIN APP ===== -->
+<!-- ADMIN APP -->
 <div id="adminApp">
   <div class="layout">
-
-    <!-- SIDEBAR (DESKTOP ONLY) -->
-    <aside class="sidebar" id="sidebar">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
       <div class="sidebar-brand">
-        <div class="brand-logo">🐕</div>
-        <div>
-          <div class="brand-name">NDOG Admin</div>
-          <div style="font-size:11px;color:var(--text3)">لوحة التحكم الكاملة</div>
-        </div>
+        <span class="brand-logo">⚙️</span>
+        <span class="brand-name">NDOG Admin</span>
+        <span class="brand-badge">LIVE</span>
       </div>
-      <nav class="sidebar-nav">
-        <div class="nav-section">رئيسي</div>
-        <button class="nav-item active" data-page="overview" onclick="switchPage('overview',this)"><span class="nav-icon">📊</span>نظرة عامة</button>
-        <button class="nav-item" data-page="users" onclick="switchPage('users',this)"><span class="nav-icon">👥</span>إدارة المستخدمين</button>
-        <div class="nav-section">محتوى</div>
-        <button class="nav-item" data-page="notifications" onclick="switchPage('notifications',this)"><span class="nav-icon">🔔</span>الإشعارات</button>
-        <button class="nav-item" data-page="news" onclick="switchPage('news',this)"><span class="nav-icon">📰</span>الأخبار</button>
-        <button class="nav-item" data-page="gifts" onclick="switchPage('gifts',this)"><span class="nav-icon">🎁</span>الهدايا والعملات</button>
-        <button class="nav-item" data-page="matches" onclick="switchPage('matches',this)"><span class="nav-icon">⚽</span>المباريات والتوقعات</button>
-        <div class="nav-section">متقدم</div>
-        <button class="nav-item" data-page="referrals" onclick="switchPage('referrals',this)"><span class="nav-icon">🔗</span>الإحالات</button>
-        <button class="nav-item" data-page="leaderboard" onclick="switchPage('leaderboard',this)"><span class="nav-icon">🏆</span>المتصدرون</button>
-        <button class="nav-item" data-page="analytics" onclick="switchPage('analytics',this)"><span class="nav-icon">📈</span>التحليلات</button>
-        <button class="nav-item" data-page="export" onclick="switchPage('export',this)"><span class="nav-icon">💾</span>تصدير البيانات</button>
-      </nav>
+      
+      <div class="sidebar-nav">
+        <div class="nav-section">القائمة الرئيسية</div>
+        <button class="nav-item active" onclick="switchPage('matches')">
+          <span class="nav-icon">🏆</span> <span>المباريات</span>
+        </button>
+        <button class="nav-item" onclick="switchPage('users')">
+          <span class="nav-icon">👥</span> <span>المستخدمين</span>
+        </button>
+        <button class="nav-item" onclick="switchPage('config')">
+          <span class="nav-icon">⚙️</span> <span>الإعدادات</span>
+        </button>
+      </div>
+      
       <div class="sidebar-footer">
         <div class="admin-info">
-          <div class="admin-avatar">👑</div>
+          <div class="admin-avatar">👤</div>
           <div>
-            <div class="admin-name" id="desktopAdminName">المشرف الرئيسي</div>
-            <div class="admin-role">Full Access</div>
+            <div class="admin-name" id="adminNameDisplay">المسؤول</div>
+            <div class="admin-role">Admin Panel</div>
           </div>
         </div>
-        <button class="btn-signout" onclick="adminLogout()">⏻ تسجيل الخروج</button>
+        <button class="btn-signout" onclick="logout()">تسجيل الخروج</button>
       </div>
-    </aside>
-
+    </div>
+    
     <!-- TOPBAR -->
-    <header class="topbar">
-      <div style="display:flex;align-items:center;gap:12px">
-        <button class="hamburger" onclick="toggleSidebar()">☰</button>
-        <div class="topbar-title" id="pageTitle">نظرة عامة</div>
-      </div>
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">إدارة المباريات</div>
       <div class="topbar-right">
-        <div class="live-badge"><div class="live-dot"></div>مباشر</div>
-        <div style="font-size:12px;color:var(--text3);font-family:monospace" id="adminClock"></div>
-      </div>
-    </header>
-
-    <!-- MAIN -->
-    <main class="main">
-
-      <!-- ===== OVERVIEW PAGE ===== -->
-      <div id="page-overview" class="page active">
-        <div id="statsGrid" class="stats-grid">
-          <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="statUsers">—</div><div class="stat-label">إجمالي المستخدمين</div></div>
-          <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value" id="statActive">—</div><div class="stat-label">نشطون خلال 24 ساعة</div></div>
-          <div class="stat-card"><div class="stat-icon">🪙</div><div class="stat-value" id="statSupply">—</div><div class="stat-label">إجمالي NDOG الموزع</div></div>
-          <div class="stat-card"><div class="stat-icon">🔗</div><div class="stat-value" id="statReferrals">—</div><div class="stat-label">الإحالات الكلية</div></div>
-          <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-value" id="statFounders">—</div><div class="stat-label">المؤسسون</div></div>
-          <div class="stat-card"><div class="stat-icon">🚫</div><div class="stat-value" id="statBanned">—</div><div class="stat-label">محظورون</div></div>
-        </div>
-
-        <div class="section-title">⚡ إجراءات سريعة</div>
-        <div class="quick-actions">
-          <div class="qa-card" onclick="bnavGo('notifications')"><div class="qa-icon">🔔</div><div class="qa-label">إرسال إشعار</div></div>
-          <div class="qa-card" onclick="bnavGo('gifts')"><div class="qa-icon">🎁</div><div class="qa-label">إرسال هدية</div></div>
-          <div class="qa-card" onclick="bnavGo('news')"><div class="qa-icon">📰</div><div class="qa-label">إضافة خبر</div></div>
-          <div class="qa-card" onclick="bnavGo('users')"><div class="qa-icon">👥</div><div class="qa-label">إدارة المستخدمين</div></div>
-          <div class="qa-card" onclick="bnavGo('leaderboard')"><div class="qa-icon">🏆</div><div class="qa-label">المتصدرون</div></div>
-          <div class="qa-card" onclick="bnavGo('export')"><div class="qa-icon">💾</div><div class="qa-label">تصدير البيانات</div></div>
-        </div>
-
-        <div class="section-title">👥 آخر المسجلين</div>
-        <div class="table-card">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>المستخدم</th><th>البريد</th><th>الدولة</th><th>الرصيد</th><th>تاريخ التسجيل</th><th>الحالة</th></tr></thead>
-              <tbody id="recentUsersBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></td></tr></tbody>
-            </table>
-          </div>
+        <div class="live-badge">
+          <span class="live-dot"></span> LIVE DASHBOARD
         </div>
       </div>
-
-      <!-- ===== USERS PAGE ===== -->
-      <div id="page-users" class="page">
-        <div class="table-card">
-          <div class="table-header">
-            <div class="table-title">👥 جميع المستخدمين</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" class="search-input" id="userSearch" placeholder="🔍 بحث بالاسم، البريد، الكود..." oninput="filterUsers()"/>
-              <select class="filter-select" id="userFilter" onchange="filterUsers()">
-                <option value="all">جميع المستخدمين</option>
-                <option value="active">نشطون 24h</option>
-                <option value="founders">المؤسسون فقط</option>
-                <option value="banned">المحظورون</option>
-              </select>
-            </div>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>المستخدم</th><th>البريد</th><th>الكود</th><th>الرصيد</th><th>VIP</th><th>الدولة</th><th>الحالة</th><th>الإعلانات</th><th>الإجراءات</th></tr></thead>
-              <tbody id="usersTableBody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== NOTIFICATIONS PAGE ===== -->
-      <div id="page-notifications" class="page">
+    </div>
+    
+    <!-- MAIN CONTENT -->
+    <div class="main">
+      
+      <!-- MATCHES PAGE -->
+      <div id="matches" class="page active">
+        
+        <!-- ADD/EDIT MATCH FORM -->
         <div class="form-card">
-          <div class="form-card-title">🔔 إرسال إشعار جديد</div>
-          <div class="form-group">
-            <label class="form-label-sm">اختر المستلم</label>
-            <select class="field-input" id="notifTarget">
-              <option value="all">📢 إرسال للجميع</option>
-              <option value="single">👤 مستخدم محدد (UID أو البريد)</option>
-              <option value="founders">🏅 المؤسسون فقط</option>
-            </select>
-          </div>
-          <div class="form-group" id="notifTargetGroup" style="display:none">
-            <label class="form-label-sm">بريد المستخدم أو UID</label>
-            <input type="text" class="field-input" id="notifTargetUser" placeholder="البريد الإلكتروني أو UID أو كود الإحالة..."/>
-          </div>
+          <h2 style="margin-bottom:20px">➕ إضافة / تعديل مباراة</h2>
+          
           <div class="form-row">
-            <div class="form-group">
-              <label class="form-label-sm">عنوان الإشعار</label>
-              <input type="text" class="field-input" id="notifTitle" placeholder="مثال: تحديث جديد!"/>
+            <div class="form-col">
+              <label class="form-label">الفريق الأول</label>
+              <input type="text" id="matchTeam1" class="form-input" placeholder="مثال: الأهلي">
             </div>
-            <div class="form-group">
-              <label class="form-label-sm">أيقونة (إيموجي)</label>
-              <input type="text" class="field-input" id="notifIcon" placeholder="🔔" value="🔔" maxlength="4"/>
+            <div class="form-col">
+              <label class="form-label">الفريق الثاني</label>
+              <input type="text" id="matchTeam2" class="form-input" placeholder="مثال: الزمالك">
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label-sm">نص الإشعار</label>
-            <textarea class="field-input" id="notifMessage" placeholder="اكتب نص الإشعار هنا..."></textarea>
-          </div>
-          <button class="btn btn-primary btn-full" onclick="sendNotification()">📤 إرسال الإشعار</button>
-          <div id="pushStatus" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:12px;text-align:center;"></div>
-        </div>
-
-        <div class="section-title">📋 الإشعارات المرسلة مؤخراً</div>
-        <div id="notifHistory" class="table-card"><div class="table-wrap"><table><thead><tr><th>العنوان</th><th>الرسالة</th><th>المستلم</th><th>الوقت</th><th>حذف</th></tr></thead><tbody id="notifHistoryBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div></div>
-      </div>
-
-      <!-- ===== NEWS PAGE ===== -->
-      <div id="page-news" class="page">
-        <div class="form-card">
-          <div class="form-card-title">📰 إضافة خبر جديد</div>
+          
           <div class="form-row">
-            <div class="form-group">
-              <label class="form-label-sm">عنوان الخبر</label>
-              <input type="text" class="field-input" id="newsTitle" placeholder="عنوان الخبر..."/>
+            <div class="form-col">
+              <label class="form-label">التاريخ</label>
+              <input type="date" id="matchDate" class="form-input">
             </div>
-            <div class="form-group">
-              <label class="form-label-sm">أيقونة (إيموجي)</label>
-              <input type="text" class="field-input" id="newsIcon" placeholder="📰" value="📰" maxlength="4"/>
+            <div class="form-col">
+              <label class="form-label">الوقت</label>
+              <input type="time" id="matchTime" class="form-input">
+            </div>
+            <div class="form-col">
+              <label class="form-label">الجائزة</label>
+              <input type="number" id="matchPrize" class="form-input" value="10000">
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label-sm">محتوى الخبر</label>
-            <textarea class="field-input" id="newsContent" placeholder="اكتب محتوى الخبر..."></textarea>
-          </div>
+          
           <div class="form-row">
-            <div class="form-group">
-              <label class="form-label-sm">الفئة</label>
-              <select class="field-input" id="newsCategory">
-                <option value="general">عام</option>
-                <option value="update">تحديث</option>
-                <option value="event">حدث</option>
-                <option value="announcement">إعلان</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label-sm">الأهمية</label>
-              <select class="field-input" id="newsPriority">
-                <option value="normal">عادي</option>
-                <option value="important">مهم</option>
-                <option value="urgent">عاجل</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-full" onclick="publishNews()">📢 نشر الخبر</button>
-        </div>
-
-        <div class="section-title">📋 الأخبار المنشورة</div>
-        <div class="table-card"><div class="table-wrap"><table><thead><tr><th>العنوان</th><th>الفئة</th><th>الأهمية</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="newsTableBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div></div>
-      </div>
-
-      <!-- ===== GIFTS PAGE ===== -->
-      <div id="page-gifts" class="page">
-        <div class="form-card">
-          <div class="form-card-title">🎁 إرسال هدية / إدارة الرصيد</div>
-          <div class="form-group">
-            <label class="form-label-sm">المستلم</label>
-            <select class="field-input" id="giftTarget">
-              <option value="all">🌍 إرسال للجميع</option>
-              <option value="single">👤 مستخدم محدد</option>
-            </select>
-          </div>
-          <div class="form-group" id="giftTargetGroup" style="display:none">
-            <label class="form-label-sm">بريد المستخدم أو UID</label>
-            <input type="text" class="field-input" id="giftTargetUser" placeholder="البريد الإلكتروني أو UID أو كود الإحالة..."/>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label-sm">نوع العملية</label>
-              <select class="field-input" id="giftOperation">
-                <option value="add">➕ إضافة عملات</option>
-                <option value="subtract">➖ خصم عملات</option>
-                <option value="set">⚙️ تعيين رصيد محدد</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label-sm">المبلغ (NDOG)</label>
-              <input type="number" class="field-input" id="giftAmount" placeholder="مثال: 100" min="1"/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label-sm">رسالة الإشعار للمستخدم</label>
-            <input type="text" class="field-input" id="giftReason" placeholder="مثال: مكافأة خاصة من الفريق 🎉"/>
-          </div>
-          <button class="btn btn-primary btn-full" onclick="sendGift()">✅ تنفيذ العملية</button>
-        </div>
-
-        <div class="section-title">📋 سجل العمليات</div>
-        <div class="table-card"><div class="table-wrap"><table><thead><tr><th>المستلم</th><th>النوع</th><th>المبلغ</th><th>الرسالة</th><th>الوقت</th></tr></thead><tbody id="giftsHistoryBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div></div>
-      </div>
-
-      <!-- ===== REFERRALS PAGE ===== -->
-      <div id="page-referrals" class="page">
-        <div class="table-card">
-          <div class="table-header"><div class="table-title">🔗 جميع الإحالات</div></div>
-          <div class="table-wrap"><table><thead><tr><th>المُحيل</th><th>المُحال</th><th>البريد المُحال</th><th>المستوى</th><th>التاريخ</th></tr></thead><tbody id="referralsBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div>
-        </div>
-      </div>
-
-      <!-- ===== LEADERBOARD PAGE ===== -->
-      <div id="page-leaderboard" class="page">
-        <div class="table-card">
-          <div class="table-header"><div class="table-title">🏆 أعلى 50 مستخدماً بالرصيد</div></div>
-          <div class="table-wrap"><table><thead><tr><th>#</th><th>المستخدم</th><th>البريد</th><th>الرصيد</th><th>VIP</th><th>الدولة</th></tr></thead><tbody id="leaderboardBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">جارٍ التحميل...</td></tr></tbody></table></div>
-        </div>
-      </div>
-
-
-      <!-- ===== MATCHES / PREDICTIONS PAGE ===== -->
-      <div id="page-matches" class="page">
-        <!-- Add Match Form -->
-        <div class="form-card">
-          <div class="form-card-title">➕ إضافة مباراة جديدة</div>
-          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-bottom:16px">
-            <div class="form-group">
-              <label class="form-label-sm">الفريق الأول (إنجليزي)</label>
-              <input class="field-input" type="text" id="matchTeam1" placeholder="Egypt" oninput="previewFlag('team1')">
-              <div id="flagPreview1" style="margin-top:6px;text-align:center"></div>
-            </div>
-            <div style="padding-bottom:4px;font-weight:800;color:var(--gold);font-size:20px;text-align:center">VS</div>
-            <div class="form-group">
-              <label class="form-label-sm">الفريق الثاني (إنجليزي)</label>
-              <input class="field-input" type="text" id="matchTeam2" placeholder="Australia" oninput="previewFlag('team2')">
-              <div id="flagPreview2" style="margin-top:6px;text-align:center"></div>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-            <div class="form-group">
-              <label class="form-label-sm">تاريخ المباراة</label>
-              <input class="field-input" type="date" id="matchDate">
-            </div>
-            <div class="form-group">
-              <label class="form-label-sm">وقت المباراة (توقيت مصر)</label>
-              <input class="field-input" type="time" id="matchTime">
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-            <div class="form-group">
-              <label class="form-label-sm">الجائزة (NDOG)</label>
-              <input class="field-input" type="number" id="matchPrize" value="10000" min="100">
-            </div>
-            <div class="form-group">
-              <label class="form-label-sm">الحالة</label>
-              <select class="field-input" id="matchStatus">
+            <div class="form-col">
+              <label class="form-label">حالة المباراة</label>
+              <select id="matchStatus" class="form-select" onchange="updateScoreVisibility()">
                 <option value="upcoming">قادمة</option>
                 <option value="live">جارية الآن</option>
                 <option value="finished">انتهت</option>
               </select>
             </div>
           </div>
-          <div class="form-group" style="margin-bottom:16px" id="scoreGroup" hidden>
-            <label class="form-label-sm">نتيجة المباراة</label>
-            <div style="display:flex;align-items:center;gap:12px;justify-content:center;direction:ltr">
-              <div style="flex:1;text-align:center">
-                <input class="field-input" type="number" id="matchScore1" min="0" max="99" placeholder="0" style="text-align:center;font-size:22px;font-weight:700;padding:10px">
-                <div style="font-size:11px;color:var(--text3);margin-top:4px" id="scoreLabel1"></div>
+          
+          <!-- LIVE SCORE INPUT -->
+          <div id="liveScoreSection" class="live-score-section">
+            <div class="live-score-header">
+              <i class="fas fa-fire"></i> إدخال النتائج الحية
+            </div>
+            <div class="score-inputs">
+              <div class="score-input-box">
+                <label id="scoreLabel1">الفريق 1</label>
+                <input type="number" id="matchScore1" class="form-input" min="0" value="0">
               </div>
-              <div style="font-size:24px;font-weight:700;color:var(--text3);padding-bottom:18px">-</div>
-              <div style="flex:1;text-align:center">
-                <input class="field-input" type="number" id="matchScore2" min="0" max="99" placeholder="0" style="text-align:center;font-size:22px;font-weight:700;padding:10px">
-                <div style="font-size:11px;color:var(--text3);margin-top:4px" id="scoreLabel2"></div>
+              <div class="score-separator">:</div>
+              <div class="score-input-box">
+                <label id="scoreLabel2">الفريق 2</label>
+                <input type="number" id="matchScore2" class="form-input" min="0" value="0">
               </div>
             </div>
           </div>
-          <div class="form-group" style="margin-bottom:16px" id="resultGroup" hidden>
-            <label class="form-label-sm">الفائز</label>
-            <select class="field-input" id="matchResult">
-              <option value="">-- اختر الفائز --</option>
+          
+          <!-- FINAL RESULT (for finished matches) -->
+          <div id="resultSection" style="display:none;margin-top:16px">
+            <label class="form-label">نتيجة المباراة (عند الانتهاء)</label>
+            <select id="matchResult" class="form-select">
+              <option value="">-- اختر النتيجة --</option>
               <option value="team1">فوز الفريق الأول</option>
               <option value="draw">تعادل</option>
               <option value="team2">فوز الفريق الثاني</option>
             </select>
           </div>
-          <button class="btn btn-primary btn-full" onclick="saveMatch()">⚽ حفظ المباراة</button>
-        </div>
-
-        <!-- Matches List -->
-        <div class="form-card" style="margin-top:16px">
-          <div class="form-card-title">📋 المباريات المضافة</div>
-          <div id="matchesList" style="color:var(--text3);text-align:center;padding:20px">جارٍ التحميل...</div>
-        </div>
-      </div>
-
-      <!-- ===== ANALYTICS PAGE ===== -->
-      <div id="page-analytics" class="page">
-        <div class="stats-grid" id="analyticsStats">
-          <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value" id="anaDAU">—</div><div class="stat-label">نشطون اليوم</div></div>
-          <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="anaAvgBalance">—</div><div class="stat-label">متوسط الرصيد</div></div>
-          <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-value" id="anaDiamond">—</div><div class="stat-label">مستخدمو Diamond</div></div>
-          <div class="stat-card"><div class="stat-icon">📤</div><div class="stat-value" id="anaTotalGifts">—</div><div class="stat-label">إجمالي الهدايا المُرسلة</div></div>
-        </div>
-
-        <div class="form-card" style="margin-top:0">
-          <div class="form-card-title">📊 توزيع مستويات VIP</div>
-          <div id="vipDistribution"></div>
-        </div>
-      </div>
-
-      <!-- ===== EXPORT PAGE ===== -->
-      <div id="page-export" class="page">
-        <div class="form-card">
-          <div class="form-card-title">💾 تصدير البيانات</div>
-          <p style="color:var(--text2);font-size:13px;margin-bottom:20px">قم بتنزيل بيانات التطبيق كملفات CSV للتحليل الخارجي.</p>
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <button class="btn btn-info btn-full" onclick="exportCSV('users')">📥 تصدير بيانات المستخدمين CSV</button>
-            <button class="btn btn-success btn-full" onclick="exportCSV('gifts')">📥 تصدير سجل الهدايا CSV</button>
-            <button class="btn btn-purple btn-full" onclick="exportCSV('notifications')">📥 تصدير الإشعارات CSV</button>
-            <button class="btn btn-info btn-full" onclick="exportCSV('referrals')">📥 تصدير الإحالات CSV</button>
+          
+          <div style="margin-top:24px;display:flex;gap:12px">
+            <button class="btn btn-primary" onclick="saveMatch()">💾 حفظ المباراة</button>
+            <button class="btn btn-info" onclick="clearMatchForm()" style="background:var(--bg2)">🔄 إعادة تعيين</button>
           </div>
         </div>
+        
+        <!-- MATCHES LIST -->
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">📋 قائمة المباريات</div>
+          </div>
+          <div class="table-wrap" id="matchesList">
+            <!-- loaded dynamically -->
+          </div>
+        </div>
+        
       </div>
-
-    </main>
-  </div>
-
-  <!-- ========================================= -->
-  <!-- ===== MOBILE BOTTOM NAV (THE FIX) ===== -->
-  <!-- ========================================= -->
-  <nav class="bottom-nav" id="bottomNav">
-    <div class="bottom-nav-inner">
-      <button class="bnav-item active" data-bpage="overview" onclick="bnavGo('overview')">
-        <i class="fas fa-home"></i>
-        <span>الرئيسية</span>
-      </button>
-      <button class="bnav-item" data-bpage="users" onclick="bnavGo('users')">
-        <i class="fas fa-users"></i>
-        <span>المستخدمين</span>
-      </button>
-
-      <!-- الزر المركزي البارز -->
-      <div class="bnav-center-wrap">
-        <button class="bnav-center-btn" data-bpage="gifts" onclick="bnavGo('gifts')">
-          🐕
-        </button>
+      
+      <!-- USERS PAGE -->
+      <div id="users" class="page">
+        <div class="form-card">
+          <h2>👥 إدارة المستخدمين</h2>
+          <p style="margin-top:20px;color:var(--text2)">سيتم إضافة وظائف المستخدمين قريباً</p>
+        </div>
       </div>
-
-      <button class="bnav-item" data-bpage="notifications" onclick="bnavGo('notifications')">
-        <i class="fas fa-bell"></i>
-        <span>إشعارات</span>
-      </button>
-      <button class="bnav-item" id="moreMenuBtn" onclick="toggleMoreMenu()">
-        <i class="fas fa-th-large"></i>
-        <span>الأقسام</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- MOBILE BOTTOM SHEET MENU (All Sections) -->
-  <div class="bnav-more-menu" id="moreMenu">
-    <div class="bmm-title">جميع أقسام اللوحة</div>
-    <div class="bmm-grid">
-      <button class="bmm-item" onclick="bnavGo('overview')">
-        <i class="fas fa-chart-pie"></i>
-        <span>نظرة عامة</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('users')">
-        <i class="fas fa-user-shield"></i>
-        <span>المستخدمين</span>
-      </button>
-      <button class="bnav-item" onclick="bnavGo('gifts')">
-        <i class="fas fa-gift"></i>
-        <span>الهدايا</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('notifications')">
-        <i class="fas fa-bullhorn"></i>
-        <span>إشعارات</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('news')">
-        <i class="fas fa-newspaper"></i>
-        <span>الأخبار</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('matches')">
-        <i class="fas fa-futbol"></i>
-        <span>المباريات</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('referrals')">
-        <i class="fas fa-link"></i>
-        <span>الإحالات</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('leaderboard')">
-        <i class="fas fa-trophy"></i>
-        <span>المتصدرون</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('analytics')">
-        <i class="fas fa-chart-line"></i>
-        <span>التحليلات</span>
-      </button>
-      <button class="bmm-item" onclick="bnavGo('export')">
-        <i class="fas fa-file-csv"></i>
-        <span>تصدير</span>
-      </button>
-      <!-- زر خروج عريض يأخذ مساحة إضافية -->
-      <button class="bmm-item logout-btn" onclick="adminLogout()" style="grid-column: span 3; flex-direction: row; justify-content: center; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-        <i class="fas fa-sign-out-alt" style="margin:0"></i>
-        <span style="font-size:13px">تسجيل الخروج</span>
-      </button>
+      
+      <!-- CONFIG PAGE -->
+      <div id="config" class="page">
+        <div class="form-card">
+          <h2>⚙️ الإعدادات</h2>
+          <p style="margin-top:20px;color:var(--text2)">سيتم إضافة الإعدادات قريباً</p>
+        </div>
+      </div>
+      
     </div>
   </div>
 </div>
 
-<!-- ===== EDIT USER MODAL ===== -->
-<div class="modal-overlay" id="editUserModal">
-  <div class="modal-box">
-    <div class="modal-title">✏️ تعديل بيانات المستخدم <button class="modal-close" onclick="closeModal('editUserModal')">✕</button></div>
-    <input type="hidden" id="editUid"/>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label-sm">الاسم</label><input type="text" class="field-input" id="editName" placeholder="الاسم الكامل"/></div>
-      <div class="form-group"><label class="form-label-sm">الدولة</label><input type="text" class="field-input" id="editCountry" placeholder="كود الدولة (EG, SA...)"/></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label-sm">الرصيد (NDOG)</label><input type="number" class="field-input" id="editBalance" placeholder="0"/></div>
-      <div class="form-group"><label class="form-label-sm">مستوى VIP</label>
-        <select class="field-input" id="editVip">
-          <option value="bronze">🥉 Bronze</option>
-          <option value="silver">🥈 Silver</option>
-          <option value="gold">🥇 Gold</option>
-          <option value="platinum">💎 Platinum</option>
-          <option value="diamond">💠 Diamond</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-danger" onclick="closeModal('editUserModal')">إلغاء</button>
-      <button class="btn btn-primary" onclick="saveUserEdits()">💾 حفظ التغييرات</button>
-    </div>
-  </div>
+<!-- LOADER -->
+<div class="global-loader" id="globalLoader">
+  <div class="spinner"></div>
 </div>
 
-<!-- ===== VIEW USER MODAL ===== -->
-<div class="modal-overlay" id="viewUserModal">
-  <div class="modal-box">
-    <div class="modal-title">👤 تفاصيل المستخدم <button class="modal-close" onclick="closeModal('viewUserModal')">✕</button></div>
-    <div id="viewUserContent"></div>
-  </div>
-</div>
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 
 <script>
-// ==================== FIREBASE CONFIG ====================
+// Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyAwvOJCX4qSAtqcF_fcnHtQgsTArnIrrhc",
+  apiKey: "AIzaSyDoF3VDweFb3S3PYsfJvF0OhLYOYOKv8HY",
   authDomain: "ndog-a3265.firebaseapp.com",
-  databaseURL: "https://ndog-a3265-default-rtdb.europe-west1.firebasedatabase.app",
+  databaseURL: "https://ndog-a3265-default-rtdb.firebaseio.com",
   projectId: "ndog-a3265",
-  storageBucket: "ndog-a3265.firebasestorage.app",
-  messagingSenderId: "829364393352",
-  appId: "1:829364393352:web:82d0d0a99a3b3f2200163d"
+  storageBucket: "ndog-a3265.appspot.com",
+  messagingSenderId: "518330722387",
+  appId: "1:518330722387:web:c7db7c449f3a7a3f6f15d3"
 };
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.database();
+
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.database();
 
-// ==================== CONSTANTS ====================
-const ADMIN_EMAILS = ["elfannanm@gmail.com", "mohamednasrofficial@gmail.com"];
-const VIP_LEVELS = {
-  bronze:{min:0,emoji:"🥉",label:"Bronze"},
-  silver:{min:1000,emoji:"🥈",label:"Silver"},
-  gold:{min:5000,emoji:"🥇",label:"Gold"},
-  platinum:{min:20000,emoji:"💎",label:"Platinum"},
-  diamond:{min:100000,emoji:"💠",label:"Diamond"}
-};
+// ============= LOGIN SYSTEM =============
+function showErrorMsg(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
 
-// ==================== LOGIN LOGIC ====================
-let adminUser = null;
+function loginStep1() {
+  const email = document.getElementById('adminEmail').value.trim();
+  if (!email) return showErrorMsg('أدخل البريد الإلكتروني');
+  
+  // Check if email is authorized
+  const authorizedEmails = ['elfannanm@gmail.com', 'mohamednasrofficial@gmail.com'];
+  if (!authorizedEmails.includes(email)) {
+    return showErrorMsg('هذا البريد الإلكتروني غير مرخص');
+  }
+  
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+}
 
-auth.onAuthStateChanged(user => {
-  if (user && ADMIN_EMAILS.includes(user.email)) {
-    adminUser = user;
-    document.getElementById("loginScreen").style.display="none";
-    document.getElementById("adminApp").style.display="block";
-    const adName = document.getElementById("desktopAdminName");
-    if(adName) adName.textContent = user.displayName || 'المشرف';
-    initAdminApp();
-  } else if (user) {
-    auth.signOut();
+function backToStep1() {
+  document.getElementById('adminPassword').value = '';
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step1').classList.add('active');
+}
+
+function loginStep2() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  
+  if (!password) return showErrorMsg('أدخل كلمة المرور');
+  
+  showLoader();
+  
+  auth.signInWithEmailAndPassword(email, password)
+    .then(userCredential => {
+      hideLoader();
+      const user = userCredential.user;
+      
+      // Save session to localStorage
+      localStorage.setItem('adminSessionEmail', user.email);
+      localStorage.setItem('adminSessionUID', user.uid);
+      localStorage.setItem('adminSessionToken', user.refreshToken);
+      
+      // Show app
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'block';
+      document.getElementById('adminNameDisplay').textContent = user.email;
+      
+      loadMatches();
+      showToast('✅ تم دخولك بنجاح', 'success');
+    })
+    .catch(err => {
+      hideLoader();
+      showErrorMsg('خطأ: ' + (err.message || 'فشل تسجيل الدخول'));
+    });
+}
+
+function logout() {
+  if (!confirm('هل تريد تسجيل الخروج؟')) return;
+  
+  // Clear session
+  localStorage.removeItem('adminSessionEmail');
+  localStorage.removeItem('adminSessionUID');
+  localStorage.removeItem('adminSessionToken');
+  
+  auth.signOut().then(() => {
+    document.getElementById('adminApp').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminEmail').value = '';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('step1').classList.add('active');
+    document.getElementById('step2').classList.remove('active');
+    showToast('👋 تم تسجيل الخروج', 'info');
+  });
+}
+
+// Check session on page load
+window.addEventListener('load', () => {
+  const sessionEmail = localStorage.getItem('adminSessionEmail');
+  if (sessionEmail) {
+    auth.onAuthStateChanged(user => {
+      if (user && user.email === sessionEmail) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminApp').style.display = 'block';
+        document.getElementById('adminNameDisplay').textContent = user.email;
+        loadMatches();
+      } else {
+        // Session expired
+        localStorage.removeItem('adminSessionEmail');
+        localStorage.removeItem('adminSessionUID');
+        localStorage.removeItem('adminSessionToken');
+        document.getElementById('loginScreen').style.display = 'flex';
+      }
+    });
   }
 });
 
-function signInWithGoogle(){
-  const err = document.getElementById("loginError1");
-  const btn = document.getElementById("googleSignInBtn");
-  btn.disabled = true;
-  btn.innerHTML = "جارٍ التحقق...";
-  btn.style.opacity = ".6";
-
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(error => {
-    err.textContent = "حدث خطأ: " + error.message;
-    err.classList.add("show");
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fab fa-google" style="color:#fff;font-size:18px;"></i> تسجيل الدخول بحساب Google';
-    btn.style.opacity = "1";
-  });
+// ============= UTILITIES =============
+function showLoader() {
+  document.getElementById('globalLoader').classList.add('active');
 }
 
-function adminLogout(){
-  if(!confirm("هل تريد تسجيل الخروج؟")) return;
-  auth.signOut().then(() => location.reload());
+function hideLoader() {
+  document.getElementById('globalLoader').classList.remove('active');
 }
 
-// ═══════ ONESIGNAL PUSH NOTIFICATION CONFIG (via Cloudflare Worker) ═══════
-const ONESIGNAL_APP_ID = '84479925-fa80-47df-a5c8-599c56739791';
-const WORKER_URL = 'https://ndog.ads4ads2029.workers.dev';
-const WORKER_SECRET = '521988';  // ← Must match WORKER_SECRET in Worker env
-
-async function sendPushNotification(targetType, targetIds, title, message, data) {
-  if (!WORKER_URL) {
-    console.warn('[Admin] Worker URL not configured');
-    return { sent: 0, failed: 0, error: 'Worker URL not set' };
-  }
-  try {
-    const body = {
-      appId: ONESIGNAL_APP_ID,
-      title,
-      message,
-      targetType,
-      targetIds: targetIds || [],
-      data: data || { source: 'ndog-admin' },
-    };
-    const resp = await fetch(WORKER_URL + '/send-push', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + WORKER_SECRET,
-      },
-      body: JSON.stringify(body),
-    });
-    const result = await resp.json();
-    console.log('[Admin] Worker response:', result);
-    if (!resp.ok) {
-      return { sent: 0, failed: 0, error: result.error || 'Worker error' };
-    }
-    return { sent: result.sent || 0, failed: result.failed || 0, id: result.id };
-  } catch(err) {
-    console.warn('[Admin] Worker push send error:', err);
-    return { sent: 0, failed: 0, error: err.message };
-  }
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.innerHTML = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 
-// ==================== ADMIN APP INIT ====================
-let allUsers = [];
-let allUsersData = {};
-
-function initAdminApp(){
-  startAdminClock();
-  loadAllData();
-  // Listeners for dynamic forms
-
-
-  document.getElementById("notifTarget").addEventListener("change", function(){
-    document.getElementById("notifTargetGroup").style.display = this.value==="single" ? "block" : "none";
-  });
-  document.getElementById("giftTarget").addEventListener("change", function(){
-    document.getElementById("giftTargetGroup").style.display = this.value==="single" ? "block" : "none";
-  });
-}
-
-function startAdminClock(){
-  function tick(){
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2,"0");
-    const m = String(now.getMinutes()).padStart(2,"0");
-    const s = String(now.getSeconds()).padStart(2,"0");
-    const el = document.getElementById("adminClock");
-    if(el) el.textContent = h+":"+m+":"+s;
-  }
-  tick();
-  setInterval(tick, 1000);
-}
-
-function showLoader(){document.getElementById("pageLoader").classList.add("show")}
-function hideLoader(){document.getElementById("pageLoader").classList.remove("show")}
-
-function showToast(msg, type="info"){
-  const icons={success:"✅",error:"❌",info:"ℹ️",warning:"⚠️"};
-  const stack=document.getElementById("toastStack");
-  const t=document.createElement("div");
-  t.className=`toast ${type}`;
-  t.innerHTML=`<span>${icons[type]||icons.info}</span><span>${msg}</span>`;
-  stack.appendChild(t);
-  setTimeout(()=>{t.classList.add("out");setTimeout(()=>t.remove(),300)},3500);
-}
-
-// ==================== PAGE SWITCHING (Desktop & Mobile) ====================
-const pageTitles = {
-  overview:"📊 نظرة عامة", users:"👥 إدارة المستخدمين", notifications:"🔔 الإشعارات",
-  news:"📰 الأخبار", gifts:"🎁 الهدايا والعملات", referrals:"🔗 الإحالات",
-  leaderboard:"🏆 المتصدرون", analytics:"📈 التحليلات", export:"💾 تصدير البيانات", matches:"⚽ المباريات والتوقعات"
-};
-
-function switchPage(name, desktopBtn = null){
-  // 1. إخفاء كل الصفحات
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
   
-  // 2. تفعيل الصفحة المطلوبة
-  const pg = document.getElementById("page-"+name);
-  if(pg) pg.classList.add("active");
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.target.closest('.nav-item').classList.add('active');
   
-  // 3. تحديث الأزرار النشطة (Desktop)
-  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-  if(desktopBtn) desktopBtn.classList.add("active");
-  else {
-    const matchingBtn = document.querySelector(`.nav-item[data-page="${name}"]`);
-    if(matchingBtn) matchingBtn.classList.add("active");
-  }
-
-  // 4. تحديث الأزرار النشطة (Mobile Bottom Nav)
-  document.querySelectorAll(".bnav-item").forEach(n=>n.classList.remove("active"));
-  const bnav = document.querySelector(`.bnav-item[data-bpage="${name}"]`);
-  if(bnav) bnav.classList.add("active");
-  
-  // 5. تفعيل تأثير الزر المركزي إن كان هو المختار
-  const centerBtn = document.querySelector('.bnav-center-btn');
-  if(name === 'gifts') {
-    centerBtn.style.boxShadow = "0 0 30px rgba(245, 158, 11, 0.9)";
-    centerBtn.style.transform = "scale(1.05)";
-  } else {
-    centerBtn.style.boxShadow = "0 0 20px rgba(245, 158, 11, 0.5)";
-    centerBtn.style.transform = "scale(1)";
-  }
-
-  // تحديث العنوان والعودة للأعلى
-  document.getElementById("pageTitle").textContent = pageTitles[name] || name;
-  window.scrollTo({top:0,behavior:'smooth'});
-  closeMoreMenu(); // إغلاق القائمة السفلية إن كانت مفتوحة
-
-  // تحميل بيانات الصفحة المختارة
-  if(name==="referrals") loadReferrals();
-  if(name==="leaderboard") loadLeaderboard();
-  if(name==="analytics") loadAnalytics();
-  if(name==="notifications") loadNotifHistory();
-  if(name==="news") loadNews();
-  if(name==="gifts") loadGiftsHistory();
-  if(name==="matches") loadMatches();
-}
-
-function bnavGo(name){
-  switchPage(name);
-}
-
-// ==================== MOBILE MENU (BOTTOM SHEET) ====================
-function toggleMoreMenu(){
-  const menu = document.getElementById("moreMenu");
-  const overlay = document.getElementById("mobileMenuOverlay");
-  const btn = document.getElementById("moreMenuBtn");
-  
-  if(menu.classList.contains("show")){
-    closeMoreMenu();
-  } else {
-    menu.classList.add("show");
-    overlay.classList.add("show");
-    if(btn) btn.classList.add("active");
-  }
-}
-
-function closeMoreMenu(){
-  document.getElementById("moreMenu").classList.remove("show");
-  document.getElementById("mobileMenuOverlay").classList.remove("show");
-  const btn = document.getElementById("moreMenuBtn");
-  if(btn) btn.classList.remove("active");
-  
-  // إعادة تفعيل الزر النشط الصحيح في الشريط السفلي بناءً على الصفحة الحالية
-  const activePage = document.querySelector('.page.active').id.replace('page-', '');
-  const activeBnav = document.querySelector(`.bnav-item[data-bpage="${activePage}"]`);
-  if(activeBnav) activeBnav.classList.add("active");
-}
-
-// ==================== MODAL ====================
-function openModal(id){document.getElementById(id).classList.add("open")}
-function closeModal(id){document.getElementById(id).classList.remove("open")}
-
-// ==================== DATA LOADING ====================
-function loadAllData(){
-  showLoader();
-  db.ref("users").once("value").then(snap=>{
-    hideLoader();
-    allUsersData = snap.val() || {};
-    allUsers = Object.entries(allUsersData).map(([uid, u])=>({...u, uid}));
-    renderOverview();
-    renderUsersTable(allUsers);
-  }).catch(()=>{hideLoader();showToast("خطأ في تحميل البيانات","error")});
-}
-
-// ==================== FORMAT HELPERS ====================
-function fmt(n){
-  n = Number(n)||0;
-  if(n>=1000000) return (n/1000000).toFixed(2)+"M";
-  if(n>=1000) return (n/1000).toFixed(1)+"K";
-  return n.toLocaleString("ar-EG");
-}
-function fmtDate(ts){
-  if(!ts) return "—";
-  return new Date(ts).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"});
-}
-function fmtDateTime(ts){
-  if(!ts) return "—";
-  return new Date(ts).toLocaleString("ar-EG",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
-}
-function getVip(bal){
-  let tier = "bronze";
-  for(const k in VIP_LEVELS) if(bal >= VIP_LEVELS[k].min) tier = k;
-  return VIP_LEVELS[tier];
-}
-function avatarCell(u){
-  if(u.photoURL) return `<img src="${u.photoURL}" class="user-avatar-sm" onerror="this.style.display='none'">`;
-  const letter = (u.displayName||u.email||"?")[0].toUpperCase();
-  return `<div class="user-avatar-sm">${letter}</div>`;
-}
-function isActive24h(u){
-  return u.lastActive && (Date.now()-u.lastActive) < 86400000;
-}
-
-// ==================== OVERVIEW ====================
-function renderOverview(){
-  const users = allUsers;
-  const total = users.length;
-  const active = users.filter(u=>isActive24h(u)).length;
-  const supply = users.reduce((s,u)=>(s+(Number(u.balance)||0)),0);
-  const banned = users.filter(u=>u.banned).length;
-  const founders = users.filter(u=>u.founder).length;
-
-  document.getElementById("statUsers").textContent = fmt(total);
-  document.getElementById("statActive").textContent = fmt(active);
-  document.getElementById("statSupply").textContent = fmt(supply)+" NDOG";
-  document.getElementById("statBanned").textContent = banned;
-  document.getElementById("statFounders").textContent = founders;
-
-  db.ref("referrals").once("value").then(snap=>{
-    const refs = snap.val()||{};
-    let count = 0;
-    Object.values(refs).forEach(v=>count+=Object.keys(v).length);
-    document.getElementById("statReferrals").textContent = fmt(count);
-  });
-
-  const sorted = [...users].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,10);
-  const tbody = document.getElementById("recentUsersBody");
-  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">لا يوجد مستخدمون</td></tr>`;return;}
-  tbody.innerHTML = sorted.map(u=>{
-    const status = u.banned ? `<span class="badge badge-banned">🚫 محظور</span>` : u.founder ? `<span class="badge badge-founder">🏅 مؤسس</span>` : `<span class="badge badge-active">✅ نشط</span>`;
-    return `<tr>
-      <td style="display:flex;align-items:center;gap:8px">${avatarCell(u)}<span>${u.displayName||"—"}</span></td>
-      <td style="color:var(--text2)">${u.email||"—"}</td>
-      <td>${u.country||"—"}</td>
-      <td style="color:var(--accent);font-weight:600">${fmt(u.balance||0)} NDOG</td>
-      <td>${fmtDate(u.createdAt)}</td>
-      <td>${status}</td>
-    </tr>`;
-  }).join("");
-}
-
-// ==================== USERS TABLE ====================
-function renderUsersTable(users){
-  const tbody = document.getElementById("usersTableBody");
-  if(!users.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)"><div class="empty-icon">👤</div><br>لا توجد نتائج</td></tr>`;return;}
-  tbody.innerHTML = users.map(u=>{
-    const vip = getVip(u.balance||0);
-    const statusBadge = u.banned ? `<span class="badge badge-banned">🚫 محظور</span>` : isActive24h(u) ? `<span class="badge badge-active">🟢 نشط</span>` : `<span class="badge" style="background:rgba(100,116,139,.15);color:var(--text3);border:1px solid rgba(100,116,139,.3)">⚫ غير نشط</span>`;
-    const banBtn = u.banned ? `<button class="btn btn-success btn-sm" onclick="toggleBan('${u.uid}',false)">✅ رفع الحظر</button>` : `<button class="btn btn-danger btn-sm" onclick="toggleBan('${u.uid}',true)">🚫 حظر</button>`;
-    return `<tr>
-      <td><div style="display:flex;align-items:center;gap:8px">${avatarCell(u)}<span>${u.displayName||"—"}</span></div></td>
-      <td style="color:var(--text2);font-size:12px">${u.email||"—"}</td>
-      <td><code style="background:var(--bg2);padding:2px 6px;border-radius:4px;font-size:11px">${u.referralCode||"—"}</code></td>
-      <td style="color:var(--accent);font-weight:700">${fmt(u.balance||0)}</td>
-      <td>${vip.emoji} ${vip.label}</td>
-      <td>${u.country||"—"}</td>
-      <td>${statusBadge}</td>
-      <td>${u.isPro?`<span class="badge" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)">Pro</span>`:`<span class="badge" style="background:rgba(245,158,11,.1);color:var(--text3);border:1px solid var(--border)">Ads</span>`}</td>
-      <td>
-        <div class="action-btns">
-          <button class="btn btn-info btn-sm" onclick="viewUser('${u.uid}')"><i class="fas fa-eye"></i></button>
-          <button class="btn btn-purple btn-sm" onclick="editUser('${u.uid}')"><i class="fas fa-edit"></i></button>
-          <button class="btn btn-sm" style="background:${u.isPro?'rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)':'rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)'}" onclick="toggleProAds('${u.uid}',${!u.isPro})" title="${u.isPro?'Cancel Pro / Show Ads':'Activate Pro / Block Ads'}"><i class="fas ${u.isPro?'fa-ad':'fa-shield-halved'}"></i></button>
-          ${banBtn}
-          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.uid}','${(u.displayName||u.email||"").replace(/'/g,"\'")}')"><i class="fas fa-trash"></i></button>
-        </div>
-      </td>
-    </tr>`;
-  }).join("");
-}
-
-function filterUsers(){
-  const q = document.getElementById("userSearch").value.toLowerCase();
-  const f = document.getElementById("userFilter").value;
-  let filtered = allUsers.filter(u=>{
-    const matchQ = !q || (u.displayName||"").toLowerCase().includes(q) || (u.email||"").toLowerCase().includes(q) || (u.referralCode||"").toLowerCase().includes(q) || (u.country||"").toLowerCase().includes(q) || u.uid.toLowerCase().includes(q);
-    const matchF = f==="all" ? true : f==="active" ? isActive24h(u) : f==="founders" ? u.founder : f==="banned" ? u.banned : true;
-    return matchQ && matchF;
-  });
-  renderUsersTable(filtered);
-}
-
-// ==================== USER ACTIONS ====================
-function viewUser(uid){
-  const u = allUsersData[uid];
-  if(!u) return;
-  const vip = getVip(u.balance||0);
-  const html = `
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
-      ${u.photoURL?`<img src="${u.photoURL}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">`:
-        `<div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff">${(u.displayName||"?")[0].toUpperCase()}</div>`}
-      <div>
-        <div style="font-size:17px;font-weight:700">${u.displayName||"—"} ${u.isPro?`<span style="font-size:11px;font-weight:800;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:2px 8px;border-radius:99px;margin-left:6px;letter-spacing:1px">PRO</span>`:""}</div>
-        <div style="font-size:13px;color:var(--text2)">${u.email||"—"}</div>
-        ${u.banned?`<span class="badge badge-banned">🚫 محظور</span>`:`<span class="badge badge-active">✅ نشط</span>`}
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
-      ${[
-        ["🪙 الرصيد", fmt(u.balance||0)+" NDOG"], ["🏅 VIP", vip.emoji+" "+vip.label],
-        ["🌍 الدولة", u.country||"—"], ["📱 الهاتف", (u.dialCode||"")+""+(u.phone||"—")],
-        ["🔗 كود الإحالة", u.referralCode||"—"], ["📅 تاريخ التسجيل", fmtDate(u.createdAt)],
-        ["⏱️ آخر نشاط", fmtDateTime(u.lastActive)], ["⛏️ جلسات التعدين", u.miningSessionsTotal||0],
-        ["🎖️ مؤسس", u.founder?"نعم ✅":"لا"], ["🛡️ Pro (بدون إعلانات)", u.isPro?"مفعّل ✅":"غير مفعّل ❌"], ["💰 إجمالي الأرباح", fmt(u.totalClaimed||0)+" NDOG"],
-        ["🔥 Streak", u.streak||0], ["🆔 UID", `<code style="font-size:10px;color:var(--text3)">${uid}</code>`]
-      ].map(([k,v])=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="color:var(--text3);font-size:11px;margin-bottom:3px">${k}</div><div style="font-weight:500;color:var(--text)">${v}</div></div>`).join("")}
-    </div>`;
-  document.getElementById("viewUserContent").innerHTML = html;
-  openModal("viewUserModal");
-}
-
-function editUser(uid){
-  const u = allUsersData[uid];
-  if(!u) return;
-  document.getElementById("editUid").value = uid;
-  document.getElementById("editName").value = u.displayName||"";
-  document.getElementById("editBalance").value = u.balance||0;
-  document.getElementById("editCountry").value = u.country||"";
-  document.getElementById("editVip").value = u.vipLevel||"bronze";
-  openModal("editUserModal");
-}
-
-function saveUserEdits(){
-  const uid = document.getElementById("editUid").value;
-  const name = document.getElementById("editName").value.trim();
-  const balance = Number(document.getElementById("editBalance").value)||0;
-  const country = document.getElementById("editCountry").value.trim().toUpperCase();
-  const vipLevel = document.getElementById("editVip").value;
-  if(!uid) return;
-  showLoader();
-  db.ref("users/"+uid).update({displayName:name,balance,country,vipLevel}).then(()=>{
-    hideLoader(); closeModal("editUserModal"); showToast("تم تحديث بيانات المستخدم ✅","success"); loadAllData();
-  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
-}
-
-function toggleBan(uid, ban){
-  if(!confirm(`هل أنت متأكد من ${ban ? "حظر" : "رفع حظر"} هذا المستخدم؟`)) return;
-  showLoader();
-  db.ref("users/"+uid).update({banned:ban}).then(()=>{
-    hideLoader(); showToast(ban?"تم حظر المستخدم 🚫":"تم رفع الحظر ✅", ban?"error":"success"); loadAllData();
-  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
-}
-
-function deleteUser(uid, name){
-  if(!confirm(`⚠️ حذف نهائي للمستخدم "${name}"؟ هذا الإجراء لا يمكن التراجع عنه!`)) return;
-  showLoader();
-  db.ref("users/"+uid).remove().then(()=>{
-    hideLoader(); showToast("تم حذف المستخدم نهائياً 🗑️","warning"); loadAllData();
-  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
-}
-
-function toggleProAds(uid, setPro){
-  var action = setPro ? "تفعيل Pro (إغلاق الإعلانات)" : "إلغاء Pro (تفعيل الإعلانات)";
-  if(!confirm("هل أنت متأكد من " + action + " لهذا المستخدم؟")) return;
-  showLoader();
-  db.ref("users/"+uid).update({isPro: setPro}).then(function(){
-    hideLoader();
-    showToast(setPro ? "تم تفعيل Pro — لن تظهر إعلانات للمستخدم 🛡️" : "تم إلغاء Pro — ستظهر الإعلانات للمستخدم 📢", setPro ? "success" : "info");
-    loadAllData();
-  }).catch(function(err){hideLoader();showToast("خطأ: "+err.message,"error")});
-}
-
-// ==================== NOTIFICATIONS ====================
-function sendNotification(){
-  const target = document.getElementById("notifTarget").value;
-  const targetUser = document.getElementById("notifTargetUser").value.trim();
-  const title = document.getElementById("notifTitle").value.trim();
-  const message = document.getElementById("notifMessage").value.trim();
-  const icon = document.getElementById("notifIcon").value.trim() || "🔔";
-  if(!title||!message){showToast("العنوان والرسالة مطلوبان","error");return;}
-
-  const notif = {title, message, icon, createdAt: Date.now(), ts: Date.now(), readBy:{}};
-  showLoader();
-
-  const doSend = async ()=>{
-    let pushTargetType = target;
-    let pushTargetIds = [];
-
-    if(target==="all"){
-      const updates = {};
-      allUsers.forEach(u=>{ updates[`notifications/${u.uid}/${db.ref().push().key}`] = notif; });
-      await db.ref().update(updates);
-      await db.ref("admin_notifications").push({...notif, target:"all"});
-    } else if(target==="founders"){
-      const updates = {};
-      const founderUids = allUsers.filter(u=>u.founder);
-      founderUids.forEach(u=>{ updates[`notifications/${u.uid}/${db.ref().push().key}`] = notif; });
-      await db.ref().update(updates);
-      await db.ref("admin_notifications").push({...notif, target:"founders"});
-      pushTargetIds = founderUids.map(u=>u.uid);
-    } else if(target==="single"){
-      if(!targetUser){showToast("أدخل بيانات المستخدم","error");hideLoader();return;}
-      let uid = allUsers.find(x=>(x.email||"").toLowerCase()===targetUser.toLowerCase())?.uid || 
-                allUsers.find(x=>(x.referralCode||"").toUpperCase()===targetUser.toUpperCase())?.uid;
-      if(!uid && !targetUser.includes(".")) uid = targetUser; // Fallback to raw UID
-      if(!uid){showToast("لم يتم العثور على المستخدم","error");hideLoader();return;}
-      await db.ref(`notifications/${uid}`).push(notif);
-      await db.ref("admin_notifications").push({...notif, target:targetUser});
-      pushTargetIds = [uid];
-    }
-
-    // Send push via OneSignal (show result to admin)
-    const pushStatus = document.getElementById("pushStatus");
-    if(pushStatus) pushStatus.style.display = "block";
-
-    sendPushNotification(pushTargetType, pushTargetIds, title, message, { source: 'ndog-admin' })
-      .then(r => {
-        if(pushStatus){
-          if (r.error) {
-            pushStatus.style.background = "#3b1c1c";
-            pushStatus.style.color = "#fca5a5";
-            pushStatus.textContent = "⚠️ فشل إرسال Push: " + r.error;
-          } else {
-            pushStatus.style.background = "#1c3b2a";
-            pushStatus.style.color = "#86efac";
-            pushStatus.textContent = "✅ تم إرسال Push بنجاح إلى " + (r.sent || 0) + " جهاز";
-          }
-          setTimeout(()=>{ pushStatus.style.display = "none"; }, 8000);
-        }
-        if (r.error) console.warn('[Admin] Push error:', r.error);
-        else console.log('[Admin] Push sent:', r.sent, 'successful');
-      });
-
-    hideLoader(); showToast("تم حفظ الإشعار في قاعدة البيانات 🔔","success");
-    document.getElementById("notifTitle").value=""; document.getElementById("notifMessage").value="";
-    loadNotifHistory();
+  const titles = {
+    matches: 'إدارة المباريات',
+    users: 'إدارة المستخدمين',
+    config: 'الإعدادات'
   };
-  doSend().catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
+  document.getElementById('pageTitle').textContent = titles[page];
 }
 
-function loadNotifHistory(){
-  db.ref("admin_notifications").orderByChild("createdAt").limitToLast(30).once("value").then(snap=>{
-    const data = snap.val()||{};
-    const rows = Object.entries(data).sort((a,b)=>b[1].createdAt-a[1].createdAt);
-    const tbody = document.getElementById("notifHistoryBody");
-    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا توجد إشعارات</td></tr>`;return;}
-    tbody.innerHTML = rows.map(([id,n])=>`<tr>
-      <td>${n.icon||"🔔"} ${n.title}</td> <td style="color:var(--text2);font-size:12px">${n.message}</td>
-      <td><span class="badge badge-active">${n.target==="all"?"الجميع":n.target==="founders"?"المؤسسون":n.target||"—"}</span></td>
-      <td style="color:var(--text3);font-size:12px">${fmtDateTime(n.createdAt)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="db.ref('admin_notifications/${id}').remove().then(()=>loadNotifHistory())"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join("");
-  });
-}
-
-// ==================== NEWS ====================
-function publishNews(){
-  const title = document.getElementById("newsTitle").value.trim();
-  const content = document.getElementById("newsContent").value.trim();
-  const icon = document.getElementById("newsIcon").value.trim() || "📰";
-  const category = document.getElementById("newsCategory").value;
-  const priority = document.getElementById("newsPriority").value;
-  if(!title||!content){showToast("العنوان والمحتوى مطلوبان","error");return;}
-  showLoader();
-
-  const now = Date.now();
-  const newsData = {title, content, icon, category, priority, createdAt: now};
-
-  db.ref("news").push(newsData).then(async (newsSnap)=>{
-    // 1) Save notification to every user's notifications path
-    if(allUsers.length > 0){
-      const notif = {
-        title: (icon || "📰") + " " + title,
-        message: content.length > 100 ? content.substring(0, 100) + "..." : content,
-        icon: icon || "📰",
-        createdAt: now,
-        ts: now,
-        read: false,
-        source: "news"
-      };
-      const updates = {};
-      allUsers.forEach(u => {
-        updates["notifications/" + u.uid + "/" + db.ref().push().key] = notif;
-      });
-      await db.ref().update(updates).catch(e => console.warn("[Admin] Failed to save news notifications:", e));
-    }
-
-    // 2) Send push notification to ALL users via OneSignal
-    sendPushNotification("all", [], (icon || "📰") + " " + title, content.length > 100 ? content.substring(0, 100) + "..." : content, { source: "ndog-news", newsId: newsSnap.key })
-      .then(r => {
-        if (r.error) console.warn("[Admin] News push error:", r.error);
-        else console.log("[Admin] News push sent:", r.sent, "successful");
-      });
-
-    hideLoader(); showToast("تم نشر الخبر وإرسال إشعارات للمستخدمين 📰🔔","success");
-    document.getElementById("newsTitle").value=""; document.getElementById("newsContent").value=""; loadNews();
-  }).catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
-}
-
-function loadNews(){
-  db.ref("news").orderByChild("createdAt").limitToLast(50).once("value").then(snap=>{
-    const rows=Object.entries(snap.val()||{}).sort((a,b)=>b[1].createdAt-a[1].createdAt);
-    const tbody=document.getElementById("newsTableBody");
-    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا توجد أخبار</td></tr>`;return;}
-    const catColors={general:"var(--blue)",update:"var(--green)",event:"var(--purple)",announcement:"var(--accent)"};
-    const prioColors={normal:"var(--text2)",important:"var(--accent)",urgent:"var(--red)"};
-    tbody.innerHTML=rows.map(([id,n])=>`<tr>
-      <td>${n.icon||"📰"} ${n.title}</td> <td><span style="color:${catColors[n.category]||'var(--text2)'}">●</span> ${n.category||"عام"}</td>
-      <td><span style="color:${prioColors[n.priority]||'var(--text2)'};font-weight:600">${n.priority==="urgent"?"🔴 عاجل":n.priority==="important"?"🟡 مهم":"🔵 عادي"}</span></td>
-      <td style="color:var(--text3);font-size:12px">${fmtDateTime(n.createdAt)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="if(confirm('متأكد؟')) db.ref('news/${id}').remove().then(()=>loadNews())"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join("");
-  });
-}
-
-// ==================== GIFTS ====================
-function sendGift(){
-  const target = document.getElementById("giftTarget").value;
-  const targetUser = document.getElementById("giftTargetUser").value.trim();
-  const operation = document.getElementById("giftOperation").value;
-  const amount = Number(document.getElementById("giftAmount").value)||0;
-  const reason = document.getElementById("giftReason").value.trim();
-  if(amount<=0){showToast("أدخل مبلغاً صحيحاً","error");return;}
-
-  showLoader();
-  const processUser = async (uid)=>{
-    const bal = Number((await db.ref("users/"+uid+"/balance").once("value")).val())||0;
-    const newBal = operation==="add" ? bal+amount : operation==="subtract" ? Math.max(0,bal-amount) : amount;
-    await db.ref("users/"+uid+"/balance").set(newBal);
-    if(reason) await db.ref("notifications/"+uid).push({title: operation==="add"?"🎁 هدية":"⚙️ تعديل رصيد", message:reason+` (${operation==="subtract"?'-':'+'}${fmt(amount)} NDOG)`, icon:operation==="add"?"🎁":"⚙️", createdAt:Date.now()});
-  };
-
-  const doGift = async ()=>{
-    if(target==="all"){ for(const u of allUsers) await processUser(u.uid); } 
-    else {
-      let uid = allUsers.find(x=>(x.email||"").toLowerCase()===targetUser.toLowerCase())?.uid || allUsers.find(x=>(x.referralCode||"").toUpperCase()===targetUser.toUpperCase())?.uid;
-      if(!uid && !targetUser.includes(".")) uid = targetUser;
-      if(!uid){showToast("المستخدم غير موجود","error");hideLoader();return;}
-      await processUser(uid);
-    }
-    await db.ref("admin_gifts").push({target: target==="single"?targetUser:"all", operation, amount, reason, createdAt:Date.now()});
-    hideLoader(); showToast("تم التنفيذ بنجاح","success");
-    document.getElementById("giftAmount").value=""; document.getElementById("giftReason").value="";
-    loadAllData(); loadGiftsHistory();
-  };
-  doGift().catch(err=>{hideLoader();showToast("خطأ: "+err.message,"error")});
-}
-
-function loadGiftsHistory(){
-  db.ref("admin_gifts").orderByChild("createdAt").limitToLast(50).once("value").then(snap=>{
-    const rows=Object.entries(snap.val()||{}).sort((a,b)=>b[1].createdAt-a[1].createdAt);
-    const tbody=document.getElementById("giftsHistoryBody");
-    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا يوجد سجل</td></tr>`;return;}
-    tbody.innerHTML=rows.map(([id,g])=>`<tr>
-      <td>${g.target==="all"?"🌍 الجميع":g.target}</td>
-      <td>${g.operation==="add"?`<span style="color:var(--green)">➕ إضافة</span>`:g.operation==="subtract"?`<span style="color:var(--red)">➖ خصم</span>`:`<span style="color:var(--blue)">⚙️ تعيين</span>`}</td>
-      <td><span class="gift-amount-badge">${fmt(g.amount)} NDOG</span></td>
-      <td style="color:var(--text2);font-size:12px">${g.reason||"—"}</td>
-      <td style="color:var(--text3);font-size:12px">${fmtDateTime(g.createdAt)}</td>
-    </tr>`).join("");
-  });
-}
-
-// ==================== REFERRALS ====================
-function loadReferrals(){
-  db.ref("referrals").once("value").then(snap=>{
-    const rows=[];
-    Object.entries(snap.val()||{}).forEach(([refUid,refs])=>{ Object.entries(refs).forEach(([refedUid,info])=>{ rows.push({refUid,refedUid,...info}); }); });
-    rows.sort((a,b)=>(b.referredAt||0)-(a.referredAt||0));
-    const tbody=document.getElementById("referralsBody");
-    if(!rows.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا توجد إحالات</td></tr>`;return;}
-    tbody.innerHTML=rows.slice(0,200).map(r=>{
-      const refUser = allUsersData[r.refUid]; const refedUser = allUsersData[r.refedUid];
-      return `<tr>
-        <td>${refUser?refUser.displayName||refUser.email:r.refUid.slice(0,10)+"..."}</td>
-        <td>${refedUser?refedUser.displayName||refedUser.email:r.refedUid.slice(0,10)+"..."}</td>
-        <td style="color:var(--text2);font-size:12px">${r.email||"—"}</td>
-        <td><span class="badge badge-active">L${r.level||1}</span></td>
-        <td style="color:var(--text3);font-size:12px">${fmtDate(r.referredAt)}</td>
-      </tr>`;
-    }).join("");
-  });
-}
-
-// ==================== LEADERBOARD ====================
-function loadLeaderboard(){
-  const sorted=[...allUsers].sort((a,b)=>(b.balance||0)-(a.balance||0)).slice(0,50);
-  const tbody=document.getElementById("leaderboardBody");
-  tbody.innerHTML=sorted.map((u,i)=>`<tr>
-    <td style="font-size:18px;text-align:center">${["🥇","🥈","🥉"][i]||"#"+(i+1)}</td>
-    <td><div style="display:flex;align-items:center;gap:8px">${avatarCell(u)}<span>${u.displayName||"—"}</span></div></td>
-    <td style="color:var(--text2);font-size:12px">${u.email||"—"}</td>
-    <td style="color:var(--accent);font-weight:700;font-size:16px">${fmt(u.balance||0)} NDOG</td>
-    <td>${getVip(u.balance||0).emoji} ${getVip(u.balance||0).label}</td>
-    <td>${u.country||"—"}</td>
-  </tr>`).join("");
-}
-
-// ==================== ANALYTICS ====================
-function loadAnalytics(){
-  document.getElementById("anaDAU").textContent=fmt(allUsers.filter(u=>isActive24h(u)).length);
-  document.getElementById("anaAvgBalance").textContent=fmt(allUsers.length ? Math.round(allUsers.reduce((s,u)=>s+(u.balance||0),0)/allUsers.length) : 0)+" NDOG";
-  document.getElementById("anaDiamond").textContent=allUsers.filter(u=>(u.balance||0)>=100000).length;
-  db.ref("admin_gifts").once("value").then(snap=>document.getElementById("anaTotalGifts").textContent=Object.keys(snap.val()||{}).length);
-
-  const vipCount={bronze:0,silver:0,gold:0,platinum:0,diamond:0};
-  allUsers.forEach(u=>{ const k=Object.keys(VIP_LEVELS).find(k=>VIP_LEVELS[k]===getVip(u.balance||0))||"bronze"; vipCount[k]=(vipCount[k]||0)+1; });
-  document.getElementById("vipDistribution").innerHTML=Object.entries(vipCount).map(([k,v])=>{
-    const pct=Math.round(v/(allUsers.length||1)*100);
-    return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px"><span>${VIP_LEVELS[k].emoji} ${VIP_LEVELS[k].label}</span><span style="color:var(--text2)">${v} مستخدم (${pct}%)</span></div><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div></div>`;
-  }).join("");
-}
-
-// ==================== EXPORT ====================
-function exportCSV(type){
-  let rows=[], headers=[], filename="";
-  if(type==="users"){
-    headers=["UID","الاسم","البريد","الدولة","الرصيد","VIP","مؤسس","محظور","تاريخ التسجيل","آخر نشاط"];
-    rows=allUsers.map(u=>[u.uid,u.displayName||"",u.email||"",u.country||"",u.balance||0,getVip(u.balance||0).label,u.founder?"نعم":"لا",u.banned?"نعم":"لا",fmtDate(u.createdAt),fmtDate(u.lastActive)]);
-    downloadCSV(headers,rows,"ndog_users.csv");
+// ============= MATCH MANAGEMENT =============
+function updateScoreVisibility() {
+  const status = document.getElementById('matchStatus').value;
+  const liveSection = document.getElementById('liveScoreSection');
+  const resultSection = document.getElementById('resultSection');
+  
+  if (status === 'live' || status === 'finished') {
+    liveSection.classList.add('show');
   } else {
-    showToast("جارٍ تحضير الملف...","info");
-    if(type==="gifts") db.ref("admin_gifts").once("value").then(snap=>downloadCSV(["المستلم","النوع","المبلغ","السبب","التاريخ"],Object.values(snap.val()||{}).map(g=>[g.target,g.operation,g.amount,g.reason||"",fmtDate(g.createdAt)]),"ndog_gifts.csv"));
-    if(type==="notifications") db.ref("admin_notifications").once("value").then(snap=>downloadCSV(["العنوان","الرسالة","المستلم","التاريخ"],Object.values(snap.val()||{}).map(n=>[n.title,n.message,n.target||"all",fmtDate(n.createdAt)]),"ndog_notifications.csv"));
-    if(type==="referrals") db.ref("referrals").once("value").then(snap=>{
-      const r2=[]; Object.entries(snap.val()||{}).forEach(([ruid,refs])=>Object.entries(refs).forEach(([refedUid,info])=>r2.push([ruid,refedUid,info.email||"",info.level||1,fmtDate(info.referredAt)])));
-      downloadCSV(["المُحيل UID","المُحال UID","البريد","المستوى","التاريخ"],r2,"ndog_referrals.csv");
-    });
+    liveSection.classList.remove('show');
   }
+  
+  resultSection.style.display = status === 'finished' ? 'block' : 'none';
 }
-
-function downloadCSV(headers,rows,filename){
-  const csv="\uFEFF"+[headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
-  const a=document.createElement("a"); a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv); a.download=filename; a.click();
-  showToast("تم تنزيل الملف 💾","success");
-}
-
-
-// ==================== MATCHES / PREDICTIONS ====================
-const ADMIN_COUNTRY_CODES = {
-    "egypt":"eg","australia":"au","brazil":"br","argentina":"ar","germany":"de","france":"fr",
-    "spain":"es","england":"gb-eng","italy":"it","portugal":"pt","morocco":"ma","saudi arabia":"sa",
-    "usa":"us","united states":"us","mexico":"mx","japan":"jp","south korea":"kr","canada":"ca",
-    "south africa":"za","nigeria":"ng","ghana":"gh","cameroon":"cm","algeria":"dz","tunisia":"tn",
-    "senegal":"sn","colombia":"co","uruguay":"uy","chile":"cl","peru":"pe","ecuador":"ec",
-    "china":"cn","india":"in","indonesia":"id","malaysia":"my","thailand":"th","vietnam":"vn",
-    "philippines":"ph","iraq":"iq","iran":"ir","uae":"ae","qatar":"qa","kuwait":"kw",
-    "turkey":"tr","greece":"gr","russia":"ru","ukraine":"ua","poland":"pl","netherlands":"nl",
-    "belgium":"be","switzerland":"ch","austria":"at","croatia":"hr","serbia":"rs","denmark":"dk",
-    "sweden":"se","norway":"no","finland":"fi","czech republic":"cz","romania":"ro","hungary":"hu",
-    "new zealand":"nz","costa rica":"cr","panama":"pa","jamaica":"jm","ivory coast":"ci",
-    "dr congo":"cd","congo":"cg","venezuela":"ve","paraguay":"py","bolivia":"bo"
-};
-
-function adminGetCode(name) {
-    if (!name) return null;
-    const k = name.toLowerCase().trim();
-    if (ADMIN_COUNTRY_CODES[k]) return ADMIN_COUNTRY_CODES[k];
-    for (const [n, c] of Object.entries(ADMIN_COUNTRY_CODES)) {
-        if (k.includes(n) || n.includes(k)) return c;
-    }
-    return null;
-}
-
-function previewFlag(which) {
-    const input = document.getElementById('matchTeam' + (which === 'team1' ? '1' : '2'));
-    const preview = document.getElementById('flagPreview' + (which === 'team1' ? '1' : '2'));
-    const code = adminGetCode(input.value);
-    if (code && preview) {
-        const c = code.startsWith('gb-') ? 'gb' : code;
-        preview.innerHTML = '<img src="https://flagcdn.com/w80/' + c + '.png" style="width:48px;height:34px;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,0.3)">';
-    } else if (preview) {
-        preview.innerHTML = '';
-    }
-}
-
-// Show/hide result field based on status
-document.addEventListener('change', function(e) {
-    if (e.target.id === 'matchStatus') {
-        const sg = document.getElementById('scoreGroup');
-        const rg = document.getElementById('resultGroup');
-        const val = e.target.value;
-        if (sg) sg.hidden = (val !== 'live' && val !== 'finished');
-        if (rg) rg.hidden = val !== 'finished';
-        // Update score labels with team names
-        if (sg && !sg.hidden) {
-            const t1 = document.getElementById('matchTeam1').value.trim();
-            const t2 = document.getElementById('matchTeam2').value.trim();
-            document.getElementById('scoreLabel1').textContent = t1 || 'فريق 1';
-            document.getElementById('scoreLabel2').textContent = t2 || 'فريق 2';
-        }
-    }
-});
 
 let editingMatchId = null;
 
 function saveMatch() {
-    const team1 = document.getElementById('matchTeam1').value.trim();
-    const team2 = document.getElementById('matchTeam2').value.trim();
-    const matchDate = document.getElementById('matchDate').value;
-    const matchTime = document.getElementById('matchTime').value;
-    const prize = Number(document.getElementById('matchPrize').value) || 10000;
-    const status = document.getElementById('matchStatus').value;
-    const result = document.getElementById('matchResult').value || null;
-    const score1 = document.getElementById('matchScore1').value;
-    const score2 = document.getElementById('matchScore2').value;
-
-    if (!team1 || !team2) { showToast('أدخل اسمي الفريقين', 'error'); return; }
-    if (!matchDate || !matchTime) { showToast('أدخل التاريخ والوقت', 'error'); return; }
-    if ((status === 'live' || status === 'finished') && (score1 === '' || score2 === '')) { showToast('أدخل نتيجة المباراة', 'error'); return; }
-
-    const team1Code = adminGetCode(team1);
-    const team2Code = adminGetCode(team2);
-
-    // Calculate timestamp in Egypt timezone (UTC+2 or UTC+3 for DST)
-    const egyptOffset = 2; // hours
-    const dateParts = matchDate.split('-');
-    const timeParts = matchTime.split(':');
-    const localDate = new Date(Number(dateParts[0]), Number(dateParts[1])-1, Number(dateParts[2]),
-        Number(timeParts[0]), Number(timeParts[1]), 0, 0);
-    const matchTimestamp = localDate.getTime() - (egyptOffset * 3600000);
-
-    const matchData = {
-        team1, team2, team1Code: team1Code || '', team2Code: team2Code || '',
-        matchDate, matchTime, matchTimestamp, prize, status,
-        score1: (status === 'live' || status === 'finished') ? Number(score1) : null,
-        score2: (status === 'live' || status === 'finished') ? Number(score2) : null,
-        result: status === 'finished' ? result : null,
-        winnerProcessed: false,
-        createdAt: Date.now()
-    };
-
-    showLoader();
-
-    if (editingMatchId) {
-        delete matchData.createdAt;
-        db.ref('matches/' + editingMatchId).update(matchData).then(function() {
-            hideLoader();
-            showToast('✅ تم تحديث المباراة', 'success');
-            editingMatchId = null;
-            clearMatchForm();
-            loadMatches();
-        }).catch(function(err) {
-            hideLoader();
-            showToast('خطأ: ' + err.message, 'error');
-        });
-    } else {
-        db.ref('matches').push(matchData).then(function() {
-            hideLoader();
-            showToast('✅ تم إضافة المباراة', 'success');
-            clearMatchForm();
-            loadMatches();
-        }).catch(function(err) {
-            hideLoader();
-            showToast('خطأ: ' + err.message, 'error');
-        });
-    }
+  const team1 = document.getElementById('matchTeam1').value.trim();
+  const team2 = document.getElementById('matchTeam2').value.trim();
+  const matchDate = document.getElementById('matchDate').value;
+  const matchTime = document.getElementById('matchTime').value;
+  const prize = Number(document.getElementById('matchPrize').value) || 10000;
+  const status = document.getElementById('matchStatus').value;
+  const score1 = document.getElementById('matchScore1').value;
+  const score2 = document.getElementById('matchScore2').value;
+  const result = document.getElementById('matchResult').value || null;
+  
+  if (!team1 || !team2) return showToast('أدخل اسمي الفريقين', 'error');
+  if (!matchDate || !matchTime) return showToast('أدخل التاريخ والوقت', 'error');
+  if ((status === 'live' || status === 'finished') && (score1 === '' || score2 === '')) {
+    return showToast('أدخل النتيجة', 'error');
+  }
+  
+  const dateParts = matchDate.split('-');
+  const timeParts = matchTime.split(':');
+  const localDate = new Date(Number(dateParts[0]), Number(dateParts[1])-1, Number(dateParts[2]),
+      Number(timeParts[0]), Number(timeParts[1]), 0, 0);
+  const matchTimestamp = localDate.getTime();
+  
+  const matchData = {
+    team1, team2, matchDate, matchTime, matchTimestamp, prize, status,
+    score1: (status === 'live' || status === 'finished') ? Number(score1) : null,
+    score2: (status === 'live' || status === 'finished') ? Number(score2) : null,
+    result: status === 'finished' ? result : null,
+    winnerProcessed: false,
+    createdAt: Date.now()
+  };
+  
+  showLoader();
+  
+  if (editingMatchId) {
+    delete matchData.createdAt;
+    db.ref('matches/' + editingMatchId).update(matchData).then(() => {
+      hideLoader();
+      showToast('✅ تم تحديث المباراة', 'success');
+      editingMatchId = null;
+      clearMatchForm();
+      loadMatches();
+    }).catch(err => {
+      hideLoader();
+      showToast('خطأ: ' + err.message, 'error');
+    });
+  } else {
+    db.ref('matches').push(matchData).then(() => {
+      hideLoader();
+      showToast('✅ تم إضافة المباراة', 'success');
+      clearMatchForm();
+      loadMatches();
+    }).catch(err => {
+      hideLoader();
+      showToast('خطأ: ' + err.message, 'error');
+    });
+  }
 }
 
 function clearMatchForm() {
-    document.getElementById('matchTeam1').value = '';
-    document.getElementById('matchTeam2').value = '';
-    document.getElementById('matchDate').value = '';
-    document.getElementById('matchTime').value = '';
-    document.getElementById('matchPrize').value = '10000';
-    document.getElementById('matchStatus').value = 'upcoming';
-    document.getElementById('matchScore1').value = '';
-    document.getElementById('matchScore2').value = '';
-    document.getElementById('scoreLabel1').textContent = '';
-    document.getElementById('scoreLabel2').textContent = '';
-    document.getElementById('matchResult').value = '';
-    document.getElementById('scoreGroup').hidden = true;
-    document.getElementById('resultGroup').hidden = true;
-    document.getElementById('flagPreview1').innerHTML = '';
-    document.getElementById('flagPreview2').innerHTML = '';
-    editingMatchId = null;
+  document.getElementById('matchTeam1').value = '';
+  document.getElementById('matchTeam2').value = '';
+  document.getElementById('matchDate').value = '';
+  document.getElementById('matchTime').value = '';
+  document.getElementById('matchPrize').value = '10000';
+  document.getElementById('matchStatus').value = 'upcoming';
+  document.getElementById('matchScore1').value = '0';
+  document.getElementById('matchScore2').value = '0';
+  document.getElementById('matchResult').value = '';
+  document.getElementById('scoreLabel1').textContent = '';
+  document.getElementById('scoreLabel2').textContent = '';
+  document.getElementById('liveScoreSection').classList.remove('show');
+  document.getElementById('resultSection').style.display = 'none';
+  editingMatchId = null;
 }
 
 function loadMatches() {
-    const listEl = document.getElementById('matchesList');
-    if (!listEl) return;
-    db.ref('matches').orderByChild('createdAt').once('value').then(function(snap) {
-        const matches = [];
-        snap.forEach(function(child) {
-            matches.push(Object.assign({id: child.key}, child.val()));
-        });
-        matches.reverse();
-
-        if (matches.length === 0) {
-            listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3)">لا توجد مباريات بعد</div>';
-            return;
-        }
-
-        let html = '<table><thead><tr><th>#</th><th>الفريق 1</th><th>الفريق 2</th><th>التاريخ</th><th>الوقت</th><th>التوقعات</th><th>النتيجة</th><th>إجراءات</th></tr></thead><tbody>';
-        matches.forEach(function(m, i) {
-            const predCount = m.predictions ? Object.keys(m.predictions).length : 0;
-            const statusBadge = m.status === 'finished'
-                ? '<span style="color:#22C55E;font-weight:600">انتهت</span>'
-                : m.status === 'live'
-                ? '<span style="color:#F59E0B;font-weight:600">جارية</span>'
-                : '<span style="color:#60A5FA;font-weight:600">قادمة</span>';
-            const resultText = m.result
-                ? (m.result === 'team1' ? 'فوز ' + m.team1 : m.result === 'draw' ? 'تعادل' : 'فوز ' + m.team2)
-                : '—';
-
-            html += '<tr>';
-            html += '<td>' + (i+1) + '</td>';
-            html += '<td><b>' + m.team1 + '</b></td>';
-            html += '<td><b>' + m.team2 + '</b></td>';
-            html += '<td>' + (m.matchDate||'') + '</td>';
-            html += '<td>' + (m.matchTime||'') + '</td>';
-            html += '<td>' + predCount + '</td>';
-            html += '<td>' + resultText + '</td>';
-            html += '<td style="white-space:nowrap">';
-            html += '<button class="btn btn-info" style="padding:4px 10px;font-size:11px;margin:2px" onclick="editMatch(\'' + m.id + '\')">✏️</button>';
-            html += '<button class="btn btn-danger" style="padding:4px 10px;font-size:11px;margin:2px" onclick="deleteMatch(\'' + m.id + '\')">🗑️</button>'
-            html += '</td></tr>';
-        });
-        html += '</tbody></table>';
-        listEl.innerHTML = html;
+  db.ref('matches').orderByChild('createdAt').once('value').then(snap => {
+    const matches = [];
+    snap.forEach(child => {
+      matches.push(Object.assign({id: child.key}, child.val()));
     });
+    matches.reverse();
+    
+    const listEl = document.getElementById('matchesList');
+    if (matches.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3)">لا توجد مباريات بعد</div>';
+      return;
+    }
+    
+    let html = '<table><thead><tr><th>#</th><th>الفريق 1</th><th>الفريق 2</th><th>التاريخ</th><th>الحالة</th><th>النتيجة</th><th>إجراءات</th></tr></thead><tbody>';
+    matches.forEach((m, i) => {
+      const statusClass = m.status === 'finished' ? 'status-finished' : m.status === 'live' ? 'status-live' : 'status-upcoming';
+      const statusText = m.status === 'finished' ? 'انتهت' : m.status === 'live' ? 'جارية' : 'قادمة';
+      const resultText = m.score1 != null ? `${m.score1} - ${m.score2}` : '—';
+      const resultFinal = m.result ? (m.result === 'team1' ? 'فوز ' + m.team1 : m.result === 'draw' ? 'تعادل' : 'فوز ' + m.team2) : '—';
+      
+      html += '<tr>';
+      html += '<td>' + (i+1) + '</td>';
+      html += '<td><b>' + m.team1 + '</b></td>';
+      html += '<td><b>' + m.team2 + '</b></td>';
+      html += '<td>' + m.matchDate + '</td>';
+      html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
+      html += '<td><strong>' + resultText + '</strong></td>';
+      html += '<td style="white-space:nowrap">';
+      html += '<button class="btn btn-info" style="padding:6px 10px;font-size:11px" onclick="editMatch(\'' + m.id + '\')">✏️ تعديل</button> ';
+      html += '<button class="btn btn-danger" style="padding:6px 10px;font-size:11px" onclick="deleteMatch(\'' + m.id + '\')">🗑️ حذف</button>';
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+    listEl.innerHTML = html;
+  });
 }
 
 function editMatch(matchId) {
-    db.ref('matches/' + matchId).once('value').then(function(snap) {
-        const m = snap.val();
-        if (!m) return;
-        editingMatchId = matchId;
-        document.getElementById('matchTeam1').value = m.team1 || '';
-        document.getElementById('matchTeam2').value = m.team2 || '';
-        document.getElementById('matchDate').value = m.matchDate || '';
-        document.getElementById('matchTime').value = m.matchTime || '';
-        document.getElementById('matchPrize').value = m.prize || 10000;
-        document.getElementById('matchStatus').value = m.status || 'upcoming';
-        document.getElementById('matchScore1').value = m.score1 != null ? m.score1 : '';
-        document.getElementById('matchScore2').value = m.score2 != null ? m.score2 : '';
-        document.getElementById('scoreLabel1').textContent = m.team1 || 'فريق 1';
-        document.getElementById('scoreLabel2').textContent = m.team2 || 'فريق 2';
-        document.getElementById('matchResult').value = m.result || '';
-        document.getElementById('scoreGroup').hidden = (m.status !== 'live' && m.status !== 'finished');
-        document.getElementById('resultGroup').hidden = m.status !== 'finished';
-        previewFlag('team1');
-        previewFlag('team2');
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        showToast('✏️ جاري تعديل المباراة', 'info');
-    });
+  db.ref('matches/' + matchId).once('value').then(snap => {
+    const m = snap.val();
+    if (!m) return;
+    
+    editingMatchId = matchId;
+    document.getElementById('matchTeam1').value = m.team1 || '';
+    document.getElementById('matchTeam2').value = m.team2 || '';
+    document.getElementById('matchDate').value = m.matchDate || '';
+    document.getElementById('matchTime').value = m.matchTime || '';
+    document.getElementById('matchPrize').value = m.prize || 10000;
+    document.getElementById('matchStatus').value = m.status || 'upcoming';
+    document.getElementById('matchScore1').value = m.score1 != null ? m.score1 : '0';
+    document.getElementById('matchScore2').value = m.score2 != null ? m.score2 : '0';
+    document.getElementById('scoreLabel1').textContent = m.team1 || 'الفريق 1';
+    document.getElementById('scoreLabel2').textContent = m.team2 || 'الفريق 2';
+    document.getElementById('matchResult').value = m.result || '';
+    
+    updateScoreVisibility();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    showToast('✏️ جاري تعديل المباراة', 'info');
+  });
 }
 
 function deleteMatch(matchId) {
-    if (!confirm('هل أنت متأكد من حذف هذه المباراة؟ سيتم حذف جميع التوقعات المرتبطة.')) return;
-    showLoader();
-    db.ref('matches/' + matchId).remove().then(function() {
-        hideLoader();
-        showToast('🗑️ تم حذف المباراة', 'success');
-        loadMatches();
-    }).catch(function(err) {
-        hideLoader();
-        showToast('خطأ: ' + err.message, 'error');
-    });
+  if (!confirm('هل أنت متأكد من حذف هذه المباراة؟')) return;
+  
+  showLoader();
+  db.ref('matches/' + matchId).remove().then(() => {
+    hideLoader();
+    showToast('🗑️ تم حذف المباراة', 'success');
+    loadMatches();
+  }).catch(err => {
+    hideLoader();
+    showToast('خطأ: ' + err.message, 'error');
+  });
 }
-
-document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ document.querySelectorAll(".modal-overlay.open").forEach(m=>m.classList.remove("open")); closeMoreMenu(); }});
 </script>
+
 </body>
 </html>

@@ -748,10 +748,24 @@ select.field-input{cursor:pointer}
               </select>
             </div>
           </div>
+          <div class="form-group" style="margin-bottom:16px" id="scoreGroup" hidden>
+            <label class="form-label-sm">نتيجة المباراة</label>
+            <div style="display:flex;align-items:center;gap:12px;justify-content:center;direction:ltr">
+              <div style="flex:1;text-align:center">
+                <input class="field-input" type="number" id="matchScore1" min="0" max="99" placeholder="0" style="text-align:center;font-size:22px;font-weight:700;padding:10px">
+                <div style="font-size:11px;color:var(--text3);margin-top:4px" id="scoreLabel1"></div>
+              </div>
+              <div style="font-size:24px;font-weight:700;color:var(--text3);padding-bottom:18px">-</div>
+              <div style="flex:1;text-align:center">
+                <input class="field-input" type="number" id="matchScore2" min="0" max="99" placeholder="0" style="text-align:center;font-size:22px;font-weight:700;padding:10px">
+                <div style="font-size:11px;color:var(--text3);margin-top:4px" id="scoreLabel2"></div>
+              </div>
+            </div>
+          </div>
           <div class="form-group" style="margin-bottom:16px" id="resultGroup" hidden>
-            <label class="form-label-sm">النتيجة</label>
+            <label class="form-label-sm">الفائز</label>
             <select class="field-input" id="matchResult">
-              <option value="">-- اختر النتيجة --</option>
+              <option value="">-- اختر الفائز --</option>
               <option value="team1">فوز الفريق الأول</option>
               <option value="draw">تعادل</option>
               <option value="team2">فوز الفريق الثاني</option>
@@ -1668,8 +1682,18 @@ function previewFlag(which) {
 // Show/hide result field based on status
 document.addEventListener('change', function(e) {
     if (e.target.id === 'matchStatus') {
+        const sg = document.getElementById('scoreGroup');
         const rg = document.getElementById('resultGroup');
-        if (rg) rg.hidden = e.target.value !== 'finished';
+        const val = e.target.value;
+        if (sg) sg.hidden = (val !== 'live' && val !== 'finished');
+        if (rg) rg.hidden = val !== 'finished';
+        // Update score labels with team names
+        if (sg && !sg.hidden) {
+            const t1 = document.getElementById('matchTeam1').value.trim();
+            const t2 = document.getElementById('matchTeam2').value.trim();
+            document.getElementById('scoreLabel1').textContent = t1 || 'فريق 1';
+            document.getElementById('scoreLabel2').textContent = t2 || 'فريق 2';
+        }
     }
 });
 
@@ -1683,9 +1707,12 @@ function saveMatch() {
     const prize = Number(document.getElementById('matchPrize').value) || 10000;
     const status = document.getElementById('matchStatus').value;
     const result = document.getElementById('matchResult').value || null;
+    const score1 = document.getElementById('matchScore1').value;
+    const score2 = document.getElementById('matchScore2').value;
 
     if (!team1 || !team2) { showToast('أدخل اسمي الفريقين', 'error'); return; }
     if (!matchDate || !matchTime) { showToast('أدخل التاريخ والوقت', 'error'); return; }
+    if ((status === 'live' || status === 'finished') && (score1 === '' || score2 === '')) { showToast('أدخل نتيجة المباراة', 'error'); return; }
 
     const team1Code = adminGetCode(team1);
     const team2Code = adminGetCode(team2);
@@ -1701,6 +1728,8 @@ function saveMatch() {
     const matchData = {
         team1, team2, team1Code: team1Code || '', team2Code: team2Code || '',
         matchDate, matchTime, matchTimestamp, prize, status,
+        score1: (status === 'live' || status === 'finished') ? Number(score1) : null,
+        score2: (status === 'live' || status === 'finished') ? Number(score2) : null,
         result: status === 'finished' ? result : null,
         winnerProcessed: false,
         createdAt: Date.now()
@@ -1740,7 +1769,12 @@ function clearMatchForm() {
     document.getElementById('matchTime').value = '';
     document.getElementById('matchPrize').value = '10000';
     document.getElementById('matchStatus').value = 'upcoming';
+    document.getElementById('matchScore1').value = '';
+    document.getElementById('matchScore2').value = '';
+    document.getElementById('scoreLabel1').textContent = '';
+    document.getElementById('scoreLabel2').textContent = '';
     document.getElementById('matchResult').value = '';
+    document.getElementById('scoreGroup').hidden = true;
     document.getElementById('resultGroup').hidden = true;
     document.getElementById('flagPreview1').innerHTML = '';
     document.getElementById('flagPreview2').innerHTML = '';
@@ -1803,7 +1837,12 @@ function editMatch(matchId) {
         document.getElementById('matchTime').value = m.matchTime || '';
         document.getElementById('matchPrize').value = m.prize || 10000;
         document.getElementById('matchStatus').value = m.status || 'upcoming';
+        document.getElementById('matchScore1').value = m.score1 != null ? m.score1 : '';
+        document.getElementById('matchScore2').value = m.score2 != null ? m.score2 : '';
+        document.getElementById('scoreLabel1').textContent = m.team1 || 'فريق 1';
+        document.getElementById('scoreLabel2').textContent = m.team2 || 'فريق 2';
         document.getElementById('matchResult').value = m.result || '';
+        document.getElementById('scoreGroup').hidden = (m.status !== 'live' && m.status !== 'finished');
         document.getElementById('resultGroup').hidden = m.status !== 'finished';
         previewFlag('team1');
         previewFlag('team2');

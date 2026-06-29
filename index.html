@@ -9320,15 +9320,105 @@ async function signInWithGoogle() {
             initBgCanvas();
             setTimeout(buildWheel, 500);
 
-            // ===== Step 1: Process any pending redirect result FIRST =====
-            // Must be called BEFORE onAuthStateChanged so the redirect
-            // is resolved and the auth state is properly set.
+            // ===== FIX: Process redirect result FIRST, then register onAuthStateChanged =====
+            // This prevents the login screen flash caused by onAuthStateChanged firing
+            // with user=null BEFORE the Google redirect result is resolved.
+            // We also block the login screen from showing while the redirect is pending.
+
+            var redirectProcessed = false;
+
+            // Block login screen immediately — redirect is being processed
+            var authElTemp = document.getElementById('authScreens');
+            if (authElTemp) authElTemp.style.display = 'none';
+
+            function registerAuthStateListener() {
+                auth.onAuthStateChanged(function(user) {
+                    try {
+                        if (user) {
+                            currentUser = user;
+
+                            // In Telegram: link account if logged in via custom token
+                            if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
+                                linkTelegramToCurrentAccount().catch(function() {});
+                            }
+
+                            // Check if user has profile in DB
+                            db.ref('users/' + user.uid).once('value').then(function(snap) {
+                                if (snap.exists()) {
+                                    userData = Object.assign({}, snap.val(), { uid: user.uid });
+                                    showApp();
+                                    if (!isTelegramEnv) {
+                                        initOneSignal();
+                                    }
+                                } else {
+                                    hideLoading();
+                                    if (isTelegramEnv && ((tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser)) {
+                                        var tgU = (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser;
+                                        var tgName = [tgU.first_name, tgU.last_name].filter(Boolean).join(' ');
+                                        if (tgName) {
+                                            db.ref('users/' + user.uid + '/displayName').set(tgName);
+                                        }
+                                        db.ref('users/' + user.uid + '/telegramUsername').set(tgU.username || '');
+                                        showApp();
+                                    } else {
+                                        showProfileCompleteModal(user);
+                                    }
+                                }
+                            }).catch(function(err) {
+                                console.error('[NDOG] User data load error:', err);
+                                hideLoading();
+                                if (typeof showToast === 'function') showToast(t('خطأ في التحميل', 'Load error'), 'error');
+                            });
+                        } else {
+                            // user = null — only show login screen if redirect was already processed
+                            // and no redirect user was found
+                            currentUser = null;
+                            userData = null;
+                            var mainAppEl = document.getElementById('mainApp');
+                            var authEl = document.getElementById('authScreens');
+                            var notifEl = document.getElementById('notifBellBtn');
+                            if (mainAppEl) mainAppEl.style.display = 'none';
+                            if (notifEl) notifEl.style.display = 'none';
+                            hideLoading();
+
+                            // Only show auth screen after redirect processing is confirmed done
+                            // and no user came back from the redirect
+                            if (!redirectProcessed) {
+                                // Still waiting on redirect — do nothing, getRedirectResult will handle it
+                                return;
+                            }
+
+                            setTimeout(function() {
+                                if (currentUser) return;
+                                if (!isTelegramEnv && !window.__tgEarlyDetect) {
+                                    if (authEl) authEl.style.display = 'flex';
+                                } else {
+                                    if (authEl) authEl.style.display = 'none';
+                                }
+                                if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
+                                    console.log('[NDOG] No user + Telegram detected, triggering auth...');
+                                    doTelegramAuth();
+                                }
+                            }, 300);
+                        }
+                    } catch(authErr) {
+                        console.error('[NDOG] onAuthStateChanged error:', authErr);
+                        hideLoading();
+                    }
+                });
+            }
+
+            // Process Google redirect result first, then start listening to auth state
             auth.getRedirectResult().then(function(result) {
-                if (result.user) {
+                redirectProcessed = true;
+                if (result && result.user) {
                     console.log('[NDOG] Redirect sign-in resolved for:', result.user.uid);
                     currentUser = result.user;
                 }
+                // Now it's safe to register the auth state listener
+                registerAuthStateListener();
             }).catch(function(err) {
+                redirectProcessed = true;
                 console.error('[NDOG] getRedirectResult error:', err);
                 var msgs = {
                     "auth/popup-blocked":           t("يُرجى السماح بالنوافذ المنبثقة", "Please allow popups"),
@@ -9336,84 +9426,8 @@ async function signInWithGoogle() {
                     "auth/operation-not-allowed":   t("تسجيل الدخول بـ Google غير مفعّل", "Google sign-in not enabled")
                 };
                 if (typeof showToast === 'function') showToast(msgs[err.code] || t("فشل الدخول","Login failed"), "error");
-            });
-
-            // ===== Step 2: Auth state listener (fires after redirect is resolved) =====
-            auth.onAuthStateChanged(function(user) {
-                try {
-                    if (user) {
-                        currentUser = user;
-
-                        // In Telegram: link account if logged in via custom token
-                        if (isTelegramEnv && !user.isAnonymous && !tgAuthDone && ((tgApp && tgApp.initData) || window.__tgEarlyInitData)) {
-                            linkTelegramToCurrentAccount().catch(function() {});
-                        }
-
-                        // Check if user has profile in DB
-                        db.ref('users/' + user.uid).once('value').then(function(snap) {
-                            if (snap.exists()) {
-                                userData = Object.assign({}, snap.val(), { uid: user.uid });
-                                // Auto-login: Firebase session persists via IndexedDB/localStorage.
-                                // User goes straight to app if session exists.
-                                // Only shows login screen again if session/cookies are cleared.
-                                showApp();
-
-                                // Init OneSignal only for non-Telegram
-                                if (!isTelegramEnv) {
-                                    initOneSignal();
-                                }
-                            } else {
-                                hideLoading();
-                                // In Telegram: create profile automatically with Telegram data
-                                if (isTelegramEnv && ((tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser)) {
-                                    var tgU = (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) || window.__tgEarlyUser;
-                                    var tgName = [tgU.first_name, tgU.last_name].filter(Boolean).join(' ');
-                                    if (tgName) {
-                                        db.ref('users/' + user.uid + '/displayName').set(tgName);
-                                    }
-                                    db.ref('users/' + user.uid + '/telegramUsername').set(tgU.username || '');
-                                    showApp();
-                                } else {
-                                    showProfileCompleteModal(user);
-                                }
-                            }
-                        }).catch(function(err) {
-                            console.error('[NDOG] User data load error:', err);
-                            hideLoading();
-                            if (typeof showToast === 'function') showToast(t('خطأ في التحميل', 'Load error'), 'error');
-                        });
-                    } else {
-                        currentUser = null;
-                        userData = null;
-                        var mainAppEl = document.getElementById('mainApp');
-                        var authEl = document.getElementById('authScreens');
-                        var notifEl = document.getElementById('notifBellBtn');
-                        if (mainAppEl) mainAppEl.style.display = 'none';
-                        if (notifEl) notifEl.style.display = 'none';
-                        hideLoading();
-
-                        // Delay showing login screen by 1.5s to allow redirect processing
-                        // Without this, the login screen flashes briefly after Google redirect
-                        setTimeout(function() {
-                            // Re-check: if user signed in during the delay, don't show login
-                            if (currentUser) return;
-                            // In Telegram (by SDK or UA): NEVER show login screen
-                            if (!isTelegramEnv && !window.__tgEarlyDetect) {
-                                if (authEl) authEl.style.display = 'flex';
-                            } else {
-                                if (authEl) authEl.style.display = 'none';
-                            }
-                            // If Telegram was already detected
-                            if ((isTelegramEnv || window.__tgEarlyDetect) && !tgAuthDone) {
-                                console.log('[NDOG] No user + Telegram detected, triggering auth...');
-                                doTelegramAuth();
-                            }
-                        }, 1500);
-                    }
-                } catch(authErr) {
-                    console.error('[NDOG] onAuthStateChanged error:', authErr);
-                    hideLoading();
-                }
+                // Still register auth state listener even on error
+                registerAuthStateListener();
             });
 
             // Generate QR when user data is ready

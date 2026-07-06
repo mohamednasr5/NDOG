@@ -5175,87 +5175,197 @@
                 <div class="home-bottom-spacer"></div>
             </section>
 
-            <!-- ─── MINING TAB ─── -->
+            <!-- ─── MINING TAB (Redesigned) ─── -->
             <section id="tabMining" class="tab-view" data-tab="mining">
-                <div class="mining-header">
-                    <h2 class="page-title" data-ar="التعدين" data-en="Mining">Mining</h2>
-                </div>
 
-                <div class="mining-core-wrap">
-                    <div class="mining-energy-ring ring-a" aria-hidden="true"></div>
-                    <div class="mining-energy-ring ring-b" aria-hidden="true"></div>
-                    <div class="mining-energy-ring ring-c" aria-hidden="true"></div>
-                    <div class="mining-btn-wrap">
-                        <button id="miningBtn" class="mining-btn" type="button" aria-label="Mine NDOG">
-                            <div class="mining-btn-inner">
-                                <span class="mining-btn-emoji">🐕</span>
-                                <span class="mining-btn-label" data-ar="تعدين" data-en="MINE">MINE</span>
-                            </div>
-                            <div class="mining-btn-glow"></div>
-                        </button>
-                    </div>
-                    <div class="mining-particles" id="miningParticles" aria-hidden="true"></div>
-                </div>
-
-                <div class="mining-status" id="miningStatus">
-                    <div class="mining-status-state" id="miningStateLabel" data-ar="اضغط للتعدين" data-en="Tap to Mine">Tap to Mine</div>
+                <!-- === Hidden compat layer — JS still reads/writes these IDs === -->
+                <div style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;">
                     <div class="mining-progress-wrap" id="miningProgressWrap" style="display:none;">
                         <div class="mining-progress-bar">
                             <div class="mining-progress-fill" id="miningProgressFill"></div>
                         </div>
-                        <div class="mining-progress-vals">
-                            <span id="miningProgressEarned">0.00</span>
-                            <span>NDOG</span>
-                        </div>
-                        <div class="mining-countdown-text" id="miningCountdownText">23:59:59</div>
-                        <div class="mining-estimated-reward" id="miningEstimatedReward">+0 NDOG</div>
+                    </div>
+                    <span id="miningProgressEarned">0.00</span>
+                    <span id="miningEstimatedReward">+0 NDOG</span>
+                    <span id="miningStateLabel" data-ar="اضغط للتعدين" data-en="Tap to Mine">Tap to Mine</span>
+                    <span id="miningRate">10 NDOG/session</span>
+                    <span id="miningSessionReward">0 NDOG</span>
+                    <span id="miningSessions">0</span>
+                    <span id="miningTotalMined">0 NDOG</span>
+                </div>
+
+                <!-- === Top mining icon + boost level row === -->
+                <div class="nm-top-row">
+                    <div class="nm-mine-icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                            <path d="M14.531 12.469L6.619 20.38a1 1 0 1 1-1.414-1.414l7.912-7.912"/>
+                            <path d="M15.686 4.314A12.5 12.5 0 0 0 5.461 2.958l-.025.025L2.586 5.858l-.025.025A12.5 12.5 0 0 0 1.314 16.086l7.6-7.6"/>
+                            <path d="M17.7 2.3a2.12 2.12 0 0 1 3 3L16 9.98l-3-3z"/>
+                            <path d="M22 14l-4 4"/>
+                        </svg>
+                    </div>
+                    <div class="nm-boost-row" id="nmBoostRow">
+                        <span class="nm-boost-icon">⚡</span>
+                        <span class="nm-boost-label" id="nmBoostLevelLabel" data-ar="×1" data-en="×1">×1</span>
                     </div>
                 </div>
 
-                <!-- Boost -->
-                <div class="glass-card boost-card">
-                    <div class="boost-card-left">
-                        <div class="boost-icon">⚡</div>
-                        <div>
-                            <div class="boost-title" data-ar="تعزيز التعدين" data-en="Mining Boost">Mining Boost</div>
-                            <div class="boost-desc" id="boostDescText" data-ar="شاهد إعلاناً لزيادة السرعة (×1 → ×5)" data-en="Watch an ad to increase speed (×1 → ×5)">شاهد إعلاناً لزيادة السرعة (×1 → ×5)</div>
-                        </div>
+                <!-- === Circular Progress Ring === -->
+                <div class="nm-ring-container">
+                    <svg class="nm-ring-svg" viewBox="0 0 260 260">
+                        <defs>
+                            <linearGradient id="nmRingGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#00C896"/>
+                                <stop offset="100%" stop-color="#00E6AD"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="nm-ring-track" cx="130" cy="130" r="110" />
+                        <circle class="nm-ring-fill" id="nmRingFill" cx="130" cy="130" r="110" />
+                    </svg>
+                    <div class="nm-ring-content">
+                        <div class="nm-ring-question" data-ar="ما هو عدد ساعاتك المتبقية" data-en="How many hours left?">ما هو عدد ساعاتك المتبقية</div>
+                        <div class="nm-ring-amount" id="nmRingAmount">0.00 NDOG</div>
+                        <div class="nm-ring-sub" data-ar="ساعة العمل المتبقية" data-en="Remaining work hours">ساعة العمل المتبقية</div>
+                        <div class="nm-ring-rate" id="nmRingRate">1.84 NDOG/ساعة</div>
                     </div>
-                    <button id="boostBtn" class="btn-boost" type="button">
-                        <span data-ar="تعزيز" data-en="Boost">Boost</span>
+                </div>
+
+                <!-- === Start Mining Button === -->
+                <div class="nm-start-wrap">
+                    <button id="miningBtn" class="nm-start-btn" type="button" aria-label="Mine NDOG">
+                        <span class="nm-start-text" data-ar="ابدأ التعدين" data-en="Start Mining">ابدأ التعدين</span>
+                        <svg class="nm-start-play" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="6,3 20,12 6,21"/></svg>
                     </button>
                 </div>
-                <div class="boost-timer-wrap" id="boostTimerWrap" style="display:none;">
-                    <div class="boost-active-label">
-                        <span class="boost-active-dot"></span>
-                        <span id="boostActiveLabel" data-ar="التعزيز نشط" data-en="Boost Active">التعزيز نشط</span>
-                    </div>
-                    <div class="boost-countdown" id="boostCountdown">30:00</div>
+
+                <!-- === Mining particles (JS uses this ID) === -->
+                <div class="mining-particles" id="miningParticles" aria-hidden="true"></div>
+
+                <!-- === Timer === -->
+                <div class="nm-timer-section" id="nmTimerSection" style="display:none;">
+                    <div class="nm-timer-label" data-ar="الوقت المتبقي" data-en="Time Remaining">الوقت المتبقي</div>
+                    <div class="nm-timer-value" id="miningCountdownText">24:00:00</div>
                 </div>
 
-                <!-- Mining Stats -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <span class="card-header-icon">📊</span>
-                        <span class="card-header-title" data-ar="إحصائيات التعدين" data-en="Mining Stats">Mining Stats</span>
+                <!-- === Card 1: Energy / Levels Progress === -->
+                <div class="nm-card">
+                    <div class="nm-card-header">
+                        <div class="nm-card-header-left">
+                            <span class="nm-card-icon">⚡</span>
+                            <span class="nm-card-title" data-ar="طاقة التشغيل 5/5" data-en="Operating Energy 5/5">طاقة التشغيل 5/5</span>
+                        </div>
+                        <span class="nm-card-header-right">?</span>
                     </div>
-                    <div class="mining-stats-grid">
-                        <div class="mstat">
-                            <span class="mstat-label" data-ar="معدل التعدين" data-en="Mining Rate">Mining Rate</span>
-                            <span class="mstat-val" id="miningRate">10 NDOG/session</span>
+                    <div class="nm-segments">
+                        <div class="nm-seg" id="nmSeg1"><div class="nm-seg-fill"></div></div>
+                        <div class="nm-seg" id="nmSeg2"><div class="nm-seg-fill"></div></div>
+                        <div class="nm-seg" id="nmSeg3"><div class="nm-seg-fill"></div></div>
+                        <div class="nm-seg" id="nmSeg4"><div class="nm-seg-fill"></div></div>
+                        <div class="nm-seg" id="nmSeg5"><div class="nm-seg-fill"></div></div>
+                    </div>
+                </div>
+
+                <!-- === Card 2: TOR Balance === -->
+                <div class="nm-card">
+                    <div class="nm-card-header">
+                        <div class="nm-card-header-left">
+                            <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <span class="nm-card-title" data-ar="مجموع TOR المكتسب" data-en="Total TOR Earned">مجموع TOR المكتسب</span>
                         </div>
-                        <div class="mstat">
-                            <span class="mstat-label" data-ar="مكافأة الجلسة" data-en="Session Reward">Session Reward</span>
-                            <span class="mstat-val" id="miningSessionReward">0 NDOG</span>
+                        <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01"/></svg>
+                    </div>
+                    <div class="nm-tor-balance-row">
+                        <div class="nm-tor-balance-val" id="nmTorBalance">0 NDOG</div>
+                        <div class="nm-tor-balance-session" id="nmTorSession">0 / 5 NDOG</div>
+                    </div>
+                </div>
+
+                <!-- === Card 3: Statistics === -->
+                <div class="nm-card">
+                    <div class="nm-card-header">
+                        <div class="nm-card-header-left">
+                            <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-10"/></svg>
+                            <span class="nm-card-title" data-ar="الإحصائيات" data-en="Statistics">الإحصائيات</span>
                         </div>
-                        <div class="mstat">
-                            <span class="mstat-label" data-ar="الجلسات الكلية" data-en="Total Sessions">Total Sessions</span>
-                            <span class="mstat-val" id="miningSessions">0</span>
+                        <div class="nm-streak-badge" id="nmStreakBadge">3 <span data-ar="يوم" data-en="days">يوم</span></div>
+                    </div>
+                    <!-- Bar chart -->
+                    <div class="nm-chart-area">
+                        <div class="nm-chart-bars" id="nmChartBars">
+                            <div class="nm-bar" style="--h:20%"><div class="nm-bar-fill"></div></div>
+                            <div class="nm-bar" style="--h:40%"><div class="nm-bar-fill"></div></div>
+                            <div class="nm-bar" style="--h:30%"><div class="nm-bar-fill"></div></div>
+                            <div class="nm-bar" style="--h:60%"><div class="nm-bar-fill"></div></div>
+                            <div class="nm-bar" style="--h:80%"><div class="nm-bar-fill"></div></div>
+                            <div class="nm-bar" style="--h:50%"><div class="nm-bar-fill"></div></div>
+                            <div class="nm-bar" style="--h:35%"><div class="nm-bar-fill"></div></div>
                         </div>
-                        <div class="mstat">
-                            <span class="mstat-label" data-ar="الإجمالي المعدّن" data-en="Total Mined">Total Mined</span>
-                            <span class="mstat-val" id="miningTotalMined">0 NDOG</span>
+                    </div>
+                    <!-- Stats row -->
+                    <div class="nm-stats-row">
+                        <div class="nm-stat-block">
+                            <div class="nm-stat-label" data-ar="إجمالي المجموع" data-en="Total Sum">إجمالي المجموع</div>
+                            <div class="nm-stat-value" id="nmStatTotal">0 NDOG</div>
                         </div>
+                        <div class="nm-stat-block">
+                            <div class="nm-stat-label" data-ar="متوسط اليومي" data-en="Daily Average">متوسط اليومي</div>
+                            <div class="nm-stat-value nm-stat-gold" id="nmStatDaily">0 NDOG/يوم</div>
+                        </div>
+                    </div>
+                    <!-- Session progress -->
+                    <div class="nm-session-progress-row">
+                        <div class="nm-session-progress-bar">
+                            <div class="nm-session-progress-fill" id="nmSessionProgressFill"></div>
+                        </div>
+                        <div class="nm-session-progress-text">
+                            <span id="nmSessionPercent">0%</span>
+                            <span id="nmSessionFraction">0 / 100M</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === Boost Card === -->
+                <div class="nm-card nm-boost-card" id="nmBoostCard">
+                    <div class="nm-boost-left">
+                        <div class="nm-boost-icon-box">⚡</div>
+                        <div>
+                            <div class="nm-boost-title" data-ar="تعزيز التعدين" data-en="Mining Boost">تعزيز التعدين</div>
+                            <div class="nm-boost-desc" id="boostDescText" data-ar="شاهد إعلاناً لزيادة السرعة (×1 → ×5)" data-en="Watch an ad to increase speed (×1 → ×5)">شاهد إعلاناً لزيادة السرعة (×1 → ×5)</div>
+                        </div>
+                    </div>
+                    <button id="boostBtn" class="nm-boost-btn" type="button">
+                        <span data-ar="تعزيز" data-en="Boost">تعزيز</span>
+                    </button>
+                </div>
+
+                <!-- Boost Timer -->
+                <div class="nm-boost-timer" id="boostTimerWrap" style="display:none;">
+                    <div class="nm-boost-active-label">
+                        <span class="nm-boost-active-dot"></span>
+                        <span id="boostActiveLabel" data-ar="التعزيز نشط" data-en="Boost Active">التعزيز نشط</span>
+                    </div>
+                    <div class="nm-boost-countdown" id="boostCountdown">30:00</div>
+                </div>
+
+                <!-- === Daily Bonus Card === -->
+                <div class="nm-card">
+                    <div class="nm-card-header">
+                        <div class="nm-card-header-left">
+                            <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+                            <span class="nm-card-title" data-ar="الجائزة اليومية" data-en="Daily Bonus">الجائزة اليومية</span>
+                        </div>
+                        <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div class="nm-bonus-info" data-ar="احصل على مكافأة يومية تصل إلى 100 TOR" data-en="Get a daily bonus up to 100 TOR">احصل على مكافأة يومية تصل إلى 100 TOR</div>
+                    <!-- Streak days -->
+                    <div class="nm-streak-days" id="nmStreakDays">
+                        <div class="nm-streak-day" data-day="1"><span>1</span></div>
+                        <div class="nm-streak-day" data-day="2"><span>2</span></div>
+                        <div class="nm-streak-day" data-day="3"><span>3</span></div>
+                        <div class="nm-streak-day" data-day="4"><span>4</span></div>
+                        <div class="nm-streak-day" data-day="5"><span>5</span></div>
+                        <div class="nm-streak-day" data-day="6"><span>6</span></div>
+                        <div class="nm-streak-day" data-day="7"><span>7</span></div>
                     </div>
                 </div>
 
@@ -7398,12 +7508,18 @@ async function signInWithGoogle() {
                     isMining = true;
                     const btn = document.getElementById('miningBtn');
                     if (btn) btn.classList.add('is-mining');
+                    // Update button text
+                    var btnTextRestore = btn ? btn.querySelector('.nm-start-text') : null;
+                    if (btnTextRestore) btnTextRestore.textContent = t('إيقاف التعدين', 'Stop Mining');
                     const stateLabel = document.getElementById('miningStateLabel');
                     if (stateLabel) stateLabel.textContent = t('جاري التعدين...', 'Mining in progress...');
                     const progressWrap = document.getElementById('miningProgressWrap');
                     if (progressWrap) progressWrap.style.display = 'block';
                     const navMineBtn = document.getElementById('navMineBtn');
                     if (navMineBtn) navMineBtn.classList.add('active');
+                    // Show timer
+                    var timerSecRestore = document.getElementById('nmTimerSection');
+                    if (timerSecRestore) timerSecRestore.style.display = 'block';
                     runMiningTick();
                     miningInterval = setInterval(runMiningTick, 1000);
                 } else {
@@ -7517,6 +7633,10 @@ async function signInWithGoogle() {
             const streakMult = getStreakMult(streak);
             const totalMult = vip.mult * streakMult * (userData.founder ? 1.1 : 1);
 
+            // Update mining page streak badge
+            const nmStreakBadge = document.getElementById('nmStreakBadge');
+            if (nmStreakBadge) nmStreakBadge.innerHTML = streak + ' <span data-ar="يوم" data-en="days">' + t('يوم', 'days') + '</span>';
+
             setEl('dashBalance', fmt(bal));
             setEl('walletBalance', fmt(bal));
             setEl('dashStreak', streak);
@@ -7598,6 +7718,21 @@ async function signInWithGoogle() {
             setEl('miningSessions', userData.miningSessionsTotal || 0);
             setEl('miningTotalMined', fmt(userData.miningEarnings || 0) + ' NDOG');
 
+            // Update new mining page elements
+            setEl('nmTorBalance', fmt(userData.miningEarnings || 0) + ' NDOG');
+            setEl('nmStatTotal', fmt(userData.miningEarnings || 0) + ' NDOG');
+            var nmSessions = userData.miningSessionsTotal || 0;
+            var nmTotal = userData.miningEarnings || 0;
+            var nmDaily = nmSessions > 0 ? (nmTotal / nmSessions).toFixed(1) : '0';
+            setEl('nmStatDaily', nmDaily + ' NDOG/' + t('يوم', 'day'));
+            setEl('nmRingRate', (MINING_REWARD_PER_SESSION * boostMultCalc / 24).toFixed(2) + ' NDOG/' + t('ساعة', 'hr'));
+
+            // Activate all 5 energy segments
+            for (var si = 1; si <= 5; si++) {
+                var segEl = document.getElementById('nmSeg' + si);
+                if (segEl) segEl.classList.add('active');
+            }
+
             // Fetch referral stats from referrals/{uid} node
             db.ref('referrals/' + currentUser.uid).once('value').then(refSnap => {
                 const refData = refSnap.val() || {};
@@ -7614,7 +7749,7 @@ async function signInWithGoogle() {
             const earlyBanner = document.getElementById('earlyAdopterBanner');
             if (earlyBanner) earlyBanner.style.display = userData.founder ? 'flex' : 'none';
 
-            var boostCardEl = document.querySelector('.boost-card');
+            var boostCardEl = document.getElementById('nmBoostCard');
             if (boostCardEl) boostCardEl.style.display = isPro ? 'none' : '';
 
             loadAirdropInfo();
@@ -7624,7 +7759,7 @@ async function signInWithGoogle() {
         }
 
         function renderStreakDays(streak) {
-            document.querySelectorAll('.streak-day').forEach(el => {
+            document.querySelectorAll('.streak-day, .nm-streak-day').forEach(el => {
                 const day = parseInt(el.dataset.day);
                 el.classList.remove('completed', 'today');
                 if (day < streak) el.classList.add('completed');
@@ -8070,6 +8205,68 @@ async function signInWithGoogle() {
             }
         }
 
+        // Helper: update the SVG ring progress
+        function updateNmRing(progress) {
+            const ring = document.getElementById('nmRingFill');
+            if (!ring) return;
+            const circumference = 2 * Math.PI * 110; // r=110
+            const offset = circumference * (1 - progress);
+            ring.style.strokeDashoffset = offset;
+        }
+
+        // Helper: update new mining UI elements
+        function updateNmUI(progress, earned, maxReward) {
+            // Ring amount
+            const ringAmt = document.getElementById('nmRingAmount');
+            if (ringAmt) ringAmt.textContent = fmt(earned, 2) + '+ NDOG';
+
+            // Ring rate
+            const ringRate = document.getElementById('nmRingRate');
+            if (ringRate) {
+                var bm = boostActive ? boostLevel : 1;
+                ringRate.textContent = (MINING_REWARD_PER_SESSION * bm / 24).toFixed(2) + ' NDOG/' + t('ساعة', 'hr');
+            }
+
+            // Timer section visibility
+            const timerSec = document.getElementById('nmTimerSection');
+            if (timerSec) timerSec.style.display = isMining ? 'block' : 'none';
+
+            // Session progress
+            const sessFill = document.getElementById('nmSessionProgressFill');
+            if (sessFill) sessFill.style.width = (progress * 100).toFixed(1) + '%';
+            const sessPct = document.getElementById('nmSessionPercent');
+            if (sessPct) sessPct.textContent = (progress * 100).toFixed(1) + '%';
+            const sessFrac = document.getElementById('nmSessionFraction');
+            if (sessFrac) sessFrac.textContent = fmt(earned, 2) + ' / ' + maxReward + ' NDOG';
+
+            // TOR balance
+            const torBal = document.getElementById('nmTorBalance');
+            if (torBal) torBal.textContent = fmt(userData?.miningEarnings || 0) + ' NDOG';
+            const torSess = document.getElementById('nmTorSession');
+            if (torSess) torSess.textContent = fmt(earned, 2) + ' / ' + maxReward + ' NDOG';
+
+            // Total stats
+            const statTotal = document.getElementById('nmStatTotal');
+            if (statTotal) statTotal.textContent = fmt(userData?.miningEarnings || 0) + ' NDOG';
+            const statDaily = document.getElementById('nmStatDaily');
+            if (statDaily) {
+                var sessions = userData?.miningSessionsTotal || 0;
+                var total = userData?.miningEarnings || 0;
+                var daily = sessions > 0 ? (total / Math.max(sessions, 1)).toFixed(1) : '0';
+                statDaily.textContent = daily + ' NDOG/' + t('يوم', 'day');
+            }
+
+            // Boost level label
+            var bl = boostActive ? boostLevel : 1;
+            setEl('nmBoostLevelLabel', '×' + bl);
+
+            // Energy segments — show all 5 active
+            for (var i = 1; i <= 5; i++) {
+                var seg = document.getElementById('nmSeg' + i);
+                if (seg) seg.classList.toggle('active', i <= 5);
+            }
+        }
+
         function startMining() {
             isMining = true;
             miningStartTime = Date.now();
@@ -8081,6 +8278,10 @@ async function signInWithGoogle() {
             const btn = document.getElementById('miningBtn');
             if (btn) btn.classList.add('is-mining');
 
+            // Update button text
+            var btnText = btn ? btn.querySelector('.nm-start-text') : null;
+            if (btnText) btnText.textContent = t('إيقاف التعدين', 'Stop Mining');
+
             const stateLabel = document.getElementById('miningStateLabel');
             if (stateLabel) stateLabel.textContent = t('جاري التعدين...', 'Mining in progress...');
 
@@ -8089,6 +8290,10 @@ async function signInWithGoogle() {
 
             const navMineBtn = document.getElementById('navMineBtn');
             if (navMineBtn) navMineBtn.classList.add('active');
+
+            // Show timer
+            var timerSec = document.getElementById('nmTimerSection');
+            if (timerSec) timerSec.style.display = 'block';
 
             runMiningTick();
             miningInterval = setInterval(runMiningTick, 1000);
@@ -8120,7 +8325,11 @@ async function signInWithGoogle() {
             const h = Math.floor(remaining / 3600);
             const m = Math.floor((remaining % 3600) / 60);
             const s = Math.floor(remaining % 60);
-            setEl('miningCountdownText', `${pad(h)}:${pad(m)}:${pad(s)}`);
+            setEl('miningCountdownText', pad(h) + 'h ' + pad(m) + 'm ' + pad(s) + 's');
+
+            // Update new mining UI
+            updateNmRing(progress);
+            updateNmUI(progress, miningEarned, maxReward);
 
             if (Math.random() < 0.05) spawnMineParticle();
 
@@ -8141,8 +8350,16 @@ async function signInWithGoogle() {
             const btn = document.getElementById('miningBtn');
             if (btn) btn.classList.remove('is-mining');
 
+            // Reset button text
+            var btnText = btn ? btn.querySelector('.nm-start-text') : null;
+            if (btnText) btnText.textContent = t('ابدأ التعدين', 'Start Mining');
+
             const navMineBtn = document.getElementById('navMineBtn');
             if (navMineBtn) navMineBtn.classList.remove('active');
+
+            // Hide timer
+            var timerSec = document.getElementById('nmTimerSection');
+            if (timerSec) timerSec.style.display = 'none';
 
             // Clear persisted mining start time
             if (currentUser) {
@@ -8173,8 +8390,16 @@ async function signInWithGoogle() {
             if (btn) { btn.classList.remove('is-mining');
                 btn.classList.add('is-cooldown'); }
 
+            // Update button text for cooldown
+            var btnText = btn ? btn.querySelector('.nm-start-text') : null;
+            if (btnText) btnText.textContent = t('جاري المعالجة...', 'Processing...');
+
             const navMineBtn = document.getElementById('navMineBtn');
             if (navMineBtn) navMineBtn.classList.remove('active');
+
+            // Hide timer
+            var timerSec = document.getElementById('nmTimerSection');
+            if (timerSec) timerSec.style.display = 'none';
 
             addBalance(reward, 'mining_session').then(() => {
                 const sessions = (userData?.miningSessionsTotal || 0) + 1;
@@ -8188,6 +8413,9 @@ async function signInWithGoogle() {
             setTimeout(() => {
                 const btn2 = document.getElementById('miningBtn');
                 if (btn2) btn2.classList.remove('is-cooldown');
+                // Reset button text
+                var btnText2 = btn2 ? btn2.querySelector('.nm-start-text') : null;
+                if (btnText2) btnText2.textContent = t('ابدأ التعدين', 'Start Mining');
                 updateMiningUI();
             }, 3000);
         }
@@ -8201,9 +8429,17 @@ async function signInWithGoogle() {
             if (fill) fill.style.width = '0%';
             const progressWrap = document.getElementById('miningProgressWrap');
             if (progressWrap) progressWrap.style.display = 'none';
-            setEl('miningCountdownText', '24:00:00');
+            setEl('miningCountdownText', '24h 00m 00s');
             var bmUI = boostActive ? boostLevel : 1;
             setEl('miningSessionReward', '0 / ' + (MINING_REWARD_PER_SESSION * bmUI) + ' NDOG');
+
+            // Update new mining UI
+            updateNmRing(0);
+            updateNmUI(0, 0, MINING_REWARD_PER_SESSION * bmUI);
+
+            // Hide timer
+            var timerSec = document.getElementById('nmTimerSection');
+            if (timerSec) timerSec.style.display = 'none';
         }
 
         function spawnMineParticle() {

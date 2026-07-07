@@ -350,6 +350,9 @@
       <p>The NDOG app is a Progressive Web App (PWA) that installs as a standalone application on Android, iPhone, iPad, and desktop computers. It features: real-time mining dashboard with animated graphics, multi-language support (English and Arabic), offline functionality for viewing balances and stats, push notifications for mining completions and referrals, QR code sharing for referral codes, VIP tier progression system, and a global leaderboard. The app works completely independently from the browser once installed.</p>
     </div>
 
+    <!-- ========== EXTERNAL STYLES (mining ring, boost slots, VIP card, etc.) ========== -->
+    <link rel="stylesheet" href="./styles.css">
+
     <!-- ========== STYLES ========== -->
     <style>
         /* ═══════════════════════════════════════════════════════════════
@@ -1783,8 +1786,8 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: linear-gradient(135deg, #1A2140, #0F1825);
-            border: 3px solid rgba(212, 160, 23, 0.5);
+            background: radial-gradient(circle at 35% 28%, var(--gold-light), var(--gold) 55%, var(--gold-dark) 100%);
+            border: 3px solid rgba(255, 255, 255, 0.18);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1793,28 +1796,31 @@
             position: relative;
             z-index: 1;
             box-shadow:
-                0 0 0 6px rgba(212, 160, 23, 0.05),
-                0 0 30px rgba(212, 160, 23, 0.2),
-                inset 0 0 30px rgba(212, 160, 23, 0.05);
+                0 0 0 6px rgba(212, 160, 23, 0.08),
+                0 10px 32px rgba(212, 160, 23, 0.35),
+                inset 0 2px 6px rgba(255, 255, 255, 0.3),
+                inset 0 -10px 18px rgba(0, 0, 0, 0.22);
             transition: all 0.3s;
         }
         .mining-btn.is-mining .mining-btn-inner {
-            border-color: var(--gold);
+            border-color: rgba(255, 255, 255, 0.3);
             box-shadow:
-                0 0 0 6px rgba(212, 160, 23, 0.1),
-                0 0 40px rgba(212, 160, 23, 0.4),
-                inset 0 0 30px rgba(212, 160, 23, 0.1);
+                0 0 0 6px rgba(212, 160, 23, 0.16),
+                0 10px 44px rgba(212, 160, 23, 0.55),
+                inset 0 2px 6px rgba(255, 255, 255, 0.35),
+                inset 0 -10px 18px rgba(0, 0, 0, 0.2);
         }
         .mining-btn.is-cooldown .mining-btn-inner {
-            border-color: var(--blue-light);
+            background: radial-gradient(circle at 35% 28%, var(--blue-light), var(--blue) 55%, #123a7a 100%);
             box-shadow:
-                0 0 0 6px rgba(61, 142, 240, 0.1),
-                0 0 30px rgba(61, 142, 240, 0.3),
-                inset 0 0 20px rgba(61, 142, 240, 0.05);
+                0 0 0 6px rgba(61, 142, 240, 0.14),
+                0 10px 34px rgba(61, 142, 240, 0.4),
+                inset 0 2px 6px rgba(255, 255, 255, 0.3),
+                inset 0 -10px 18px rgba(0, 0, 0, 0.22);
         }
         .mining-btn-emoji {
             font-size: 42px;
-            filter: drop-shadow(0 0 12px rgba(212, 160, 23, 0.6));
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
             animation: mineEmoji 2s ease-in-out infinite;
         }
         .mining-btn.is-mining .mining-btn-emoji {
@@ -1842,7 +1848,7 @@
             font-size: 10px;
             font-weight: 800;
             letter-spacing: 1.5px;
-            color: var(--gold);
+            color: rgba(20, 14, 2, 0.72);
             text-transform: uppercase;
         }
         .mining-btn-glow {
@@ -1877,6 +1883,48 @@
                 opacity: 1;
                 transform: scale(1.15);
             }
+        }
+
+        /* Boost pill — overlaps the top of the mining ring, tap-to-boost style */
+        .mining-boost-pill {
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 20px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+            color: #1A1204;
+            font-size: 13px;
+            font-weight: 800;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 18px rgba(212, 160, 23, 0.45), 0 0 0 4px rgba(212, 160, 23, 0.08);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .mining-boost-pill:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 8px 22px rgba(212, 160, 23, 0.55), 0 0 0 4px rgba(212, 160, 23, 0.1);
+        }
+        .mining-boost-pill:active {
+            transform: translateX(-50%) scale(0.96);
+        }
+        .mining-boost-pill .boost-pill-icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .mining-boost-pill.is-maxed {
+            background: linear-gradient(135deg, var(--surface-3), var(--surface-2));
+            color: var(--text-2);
+            border-color: var(--border);
+            box-shadow: none;
+            cursor: default;
         }
 
         .mining-particles {
@@ -5181,11 +5229,34 @@
                     <h2 class="page-title" data-ar="التعدين" data-en="Mining">Mining</h2>
                 </div>
 
+                <div class="mining-status" id="miningStatus">
+                    <div class="mining-status-state" id="miningStateLabel" data-ar="اضغط للتعدين" data-en="Tap to Mine">Tap to Mine</div>
+
+                    <div class="mining-earned-block" id="miningProgressWrap" style="display:none;">
+                        <div class="mining-earned-label" data-ar="ما تم ربحه حتى الآن" data-en="Earned so far">ما تم ربحه حتى الآن</div>
+                        <div class="mining-earned-value">NDOG <span id="miningProgressEarned">0.00</span>+</div>
+                        <div class="mining-active-power">
+                            <span data-ar="قوة التعدين النشطة" data-en="Active mining power">قوة التعدين النشطة</span>
+                            <span class="mining-active-power-val" id="miningEstimatedReward">0 NDOG/hr</span>
+                        </div>
+                        <div class="mining-progress-fill-hidden">
+                            <div id="miningProgressFill"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mining-core-wrap">
                     <div class="mining-energy-ring ring-a" aria-hidden="true"></div>
                     <div class="mining-energy-ring ring-b" aria-hidden="true"></div>
                     <div class="mining-energy-ring ring-c" aria-hidden="true"></div>
                     <div class="mining-progress-ring" id="miningProgressRing" aria-hidden="true"></div>
+
+                    <!-- Boost pill button — overlaps the top of the mining circle -->
+                    <button id="boostBtn" class="mining-boost-pill" type="button">
+                        <svg class="boost-pill-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                        <span id="boostBtnText" data-ar="اضغط للتعزيز" data-en="Tap to Boost">اضغط للتعزيز</span>
+                    </button>
+
                     <div class="mining-btn-wrap">
                         <button id="miningBtn" class="mining-btn" type="button" aria-label="Mine NDOG">
                             <div class="mining-btn-inner">
@@ -5214,35 +5285,6 @@
                     <div class="mining-time-value" id="miningCountdownText">24:00:00</div>
                 </div>
 
-                <div class="mining-status" id="miningStatus">
-                    <div class="mining-status-state" id="miningStateLabel" data-ar="اضغط للتعدين" data-en="Tap to Mine">Tap to Mine</div>
-
-                    <div class="mining-earned-block" id="miningProgressWrap" style="display:none;">
-                        <div class="mining-earned-label" data-ar="ما تم ربحه حتى الآن" data-en="Earned so far">ما تم ربحه حتى الآن</div>
-                        <div class="mining-earned-value">NDOG <span id="miningProgressEarned">0.00</span>+</div>
-                        <div class="mining-active-power">
-                            <span data-ar="قوة التعدين النشطة" data-en="Active mining power">قوة التعدين النشطة</span>
-                            <span class="mining-active-power-val" id="miningEstimatedReward">0 NDOG/hr</span>
-                        </div>
-                        <div class="mining-progress-fill-hidden">
-                            <div id="miningProgressFill"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Boost -->
-                <div class="glass-card boost-card">
-                    <div class="boost-card-left">
-                        <div class="boost-icon">⚡</div>
-                        <div>
-                            <div class="boost-title" data-ar="تعزيز التعدين" data-en="Mining Boost">Mining Boost</div>
-                            <div class="boost-desc" id="boostDescText" data-ar="شاهد إعلاناً لزيادة السرعة (×1 → ×5)" data-en="Watch an ad to increase speed (×1 → ×5)">شاهد إعلاناً لزيادة السرعة (×1 → ×5)</div>
-                        </div>
-                    </div>
-                    <button id="boostBtn" class="btn-boost" type="button">
-                        <span data-ar="تعزيز" data-en="Boost">Boost</span>
-                    </button>
-                </div>
                 <div class="boost-timer-wrap" id="boostTimerWrap" style="display:none;">
                     <div class="boost-active-label">
                         <span class="boost-active-dot"></span>
@@ -6843,7 +6885,7 @@
             isPro = !!userData.isPro;
             if (isPro) {
                 document.querySelectorAll('script[src*="quge5.com"]').forEach(function(el) { el.remove(); });
-                var boostCard = document.querySelector('.boost-card');
+                var boostCard = document.getElementById('boostBtn');
                 if (boostCard) boostCard.style.display = 'none';
             } else {
                 loadAdsIfNeeded();
@@ -7718,7 +7760,7 @@ async function signInWithGoogle() {
             const earlyBanner = document.getElementById('earlyAdopterBanner');
             if (earlyBanner) earlyBanner.style.display = userData.founder ? 'flex' : 'none';
 
-            var boostCardEl = document.querySelector('.boost-card');
+            var boostCardEl = document.getElementById('boostBtn');
             if (boostCardEl) boostCardEl.style.display = isPro ? 'none' : '';
 
             loadAirdropInfo();
@@ -8404,15 +8446,18 @@ async function signInWithGoogle() {
             var btnText = document.getElementById('boostBtnText');
             var descText = document.getElementById('boostDescText');
             var activeLabel = document.getElementById('boostActiveLabel');
+            var boostBtnEl = document.getElementById('boostBtn');
             if (boostActive) {
                 if (activeLabel) activeLabel.textContent = currentLang === 'ar' ? 'التعزيز ×' + boostLevel + ' نشط' : 'Boost ×' + boostLevel + ' Active';
             }
             if (boostLevel >= BOOST_MAX_LEVEL) {
                 if (btnText) btnText.textContent = currentLang === 'ar' ? 'أقصى سرعة ×5' : 'Max ×5';
                 if (descText) descText.textContent = currentLang === 'ar' ? 'وصلت للحد الأقصى!' : 'Max speed reached!';
+                if (boostBtnEl) boostBtnEl.classList.add('is-maxed');
             } else {
                 var nextLvl = boostLevel + 1;
-                if (btnText) btnText.textContent = currentLang === 'ar' ? 'تسريع ×' + nextLvl : 'Boost ×' + nextLvl;
+                if (btnText) btnText.textContent = currentLang === 'ar' ? 'اضغط للتعزيز' : 'Tap to Boost';
+                if (boostBtnEl) boostBtnEl.classList.remove('is-maxed');
             }
         }
 

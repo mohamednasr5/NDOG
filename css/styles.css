@@ -2100,7 +2100,7 @@ html[dir="ltr"] .level-threshold { font-family: var(--font-mono); }
 
 .nm-ring-track {
   fill: none;
-  stroke: rgba(255,255,255,0.07);
+  stroke: rgba(255,255,255,0.1);
   stroke-width: 10;
 }
 
@@ -2112,6 +2112,16 @@ html[dir="ltr"] .level-threshold { font-family: var(--font-mono); }
   stroke-dasharray: 691.15;  /* 2 * PI * 110 */
   stroke-dashoffset: 691.15;
   transition: stroke-dashoffset 0.8s linear;
+}
+
+/* Always show a small default arc so ring is visible */
+.nm-ring-container:not(.mining-active) .nm-ring-fill {
+  stroke-dashoffset: 622.04; /* ~10% visible */
+  opacity: 0.3;
+}
+
+.nm-ring-container.mining-active .nm-ring-fill {
+  opacity: 1;
 }
 
 .nm-ring-content {

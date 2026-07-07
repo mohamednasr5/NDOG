@@ -5265,12 +5265,12 @@
                     </div>
                 </div>
 
-                <!-- === Card 2: TOR Balance === -->
+                <!-- === Card 2: NDOG Balance === -->
                 <div class="nm-card">
                     <div class="nm-card-header">
                         <div class="nm-card-header-left">
                             <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <span class="nm-card-title" data-ar="مجموع TOR المكتسب" data-en="Total TOR Earned">مجموع TOR المكتسب</span>
+                            <span class="nm-card-title" data-ar="مجموع NDOG المكتسب" data-en="Total NDOG Earned">مجموع NDOG المكتسب</span>
                         </div>
                         <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 14h.01"/></svg>
                     </div>
@@ -5356,7 +5356,7 @@
                         </div>
                         <svg class="nm-card-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                     </div>
-                    <div class="nm-bonus-info" data-ar="احصل على مكافأة يومية تصل إلى 100 TOR" data-en="Get a daily bonus up to 100 TOR">احصل على مكافأة يومية تصل إلى 100 TOR</div>
+                    <div class="nm-bonus-info" data-ar="احصل على مكافأة يومية تصل إلى 100 NDOG" data-en="Get a daily bonus up to 100 NDOG">احصل على مكافأة يومية تصل إلى 100 NDOG</div>
                     <!-- Streak days -->
                     <div class="nm-streak-days" id="nmStreakDays">
                         <div class="nm-streak-day" data-day="1"><span>1</span></div>
@@ -7508,6 +7508,9 @@ async function signInWithGoogle() {
                     isMining = true;
                     const btn = document.getElementById('miningBtn');
                     if (btn) btn.classList.add('is-mining');
+                    // Update ring container
+                    var ringContainerRestore = document.querySelector('.nm-ring-container');
+                    if (ringContainerRestore) ringContainerRestore.classList.add('mining-active');
                     // Update button text
                     var btnTextRestore = btn ? btn.querySelector('.nm-start-text') : null;
                     if (btnTextRestore) btnTextRestore.textContent = t('إيقاف التعدين', 'Stop Mining');
@@ -8239,7 +8242,7 @@ async function signInWithGoogle() {
             const sessFrac = document.getElementById('nmSessionFraction');
             if (sessFrac) sessFrac.textContent = fmt(earned, 2) + ' / ' + maxReward + ' NDOG';
 
-            // TOR balance
+            // NDOG balance
             const torBal = document.getElementById('nmTorBalance');
             if (torBal) torBal.textContent = fmt(userData?.miningEarnings || 0) + ' NDOG';
             const torSess = document.getElementById('nmTorSession');
@@ -8277,6 +8280,10 @@ async function signInWithGoogle() {
 
             const btn = document.getElementById('miningBtn');
             if (btn) btn.classList.add('is-mining');
+
+            // Update ring container
+            const ringContainer = document.querySelector('.nm-ring-container');
+            if (ringContainer) ringContainer.classList.add('mining-active');
 
             // Update button text
             var btnText = btn ? btn.querySelector('.nm-start-text') : null;
@@ -8350,6 +8357,10 @@ async function signInWithGoogle() {
             const btn = document.getElementById('miningBtn');
             if (btn) btn.classList.remove('is-mining');
 
+            // Reset ring container
+            const ringContainer = document.querySelector('.nm-ring-container');
+            if (ringContainer) ringContainer.classList.remove('mining-active');
+
             // Reset button text
             var btnText = btn ? btn.querySelector('.nm-start-text') : null;
             if (btnText) btnText.textContent = t('ابدأ التعدين', 'Start Mining');
@@ -8389,6 +8400,10 @@ async function signInWithGoogle() {
             const btn = document.getElementById('miningBtn');
             if (btn) { btn.classList.remove('is-mining');
                 btn.classList.add('is-cooldown'); }
+
+            // Reset ring container
+            const ringContainerComplete = document.querySelector('.nm-ring-container');
+            if (ringContainerComplete) ringContainerComplete.classList.remove('mining-active');
 
             // Update button text for cooldown
             var btnText = btn ? btn.querySelector('.nm-start-text') : null;

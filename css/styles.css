@@ -1054,35 +1054,33 @@ input { font-family: inherit; }
   50% { opacity: 1; transform: scale(1.15); }
 }
 
-/* Boost pill button — overlaps the top of the mining ring, tap-to-boost style */
+/* Boost pill button — sits above the mining circle, normal document flow, blue accent */
 .mining-boost-pill {
-  position: absolute;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 9px 20px;
+  margin: 0 auto 14px;
+  padding: 10px 24px;
+  width: fit-content;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
-  color: #1A1204;
+  background: linear-gradient(135deg, var(--blue-light), var(--blue));
+  color: #fff;
   font-size: 13px;
   font-weight: 800;
-  border: 1px solid rgba(255,255,255,0.3);
-  box-shadow: 0 6px 18px rgba(212,160,23,0.45), 0 0 0 4px rgba(212,160,23,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 6px 18px rgba(26,107,219,0.4), 0 0 0 4px rgba(26,107,219,0.08);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
 }
 
 .mining-boost-pill:hover {
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 8px 22px rgba(212,160,23,0.55), 0 0 0 4px rgba(212,160,23,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(26,107,219,0.5), 0 0 0 4px rgba(26,107,219,0.1);
 }
 
-.mining-boost-pill:active { transform: translateX(-50%) scale(0.96); }
+.mining-boost-pill:active { transform: scale(0.96); }
 
 .mining-boost-pill .boost-pill-icon {
   width: 14px; height: 14px;
